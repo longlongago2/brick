@@ -1,38 +1,33 @@
 import React, { memo, useCallback } from 'react';
-import IconButton, { IconButtonProps } from '@mui/joy/IconButton';
-import Tooltip from '@mui/joy/Tooltip';
+import { Button as AntdButton, Tooltip } from 'antd';
 
-const mr5 = {margin: '5px'};
+import type { ButtonProps as AntdButtonProps } from 'antd';
 
-export interface ButtonProps<T> {
+export interface BaseButtonProps {
   active?: boolean;
   title?: React.ReactNode;
-  dataset?: T;
-  onClick?: (e: React.MouseEvent<HTMLButtonElement>, dataset: T) => void;
+  icon?: React.ReactNode;
+  dataset?: any;
+  onClick?: (e: React.MouseEvent<HTMLElement>, dataset?: any) => void;
 }
 
-function Button(props: ButtonProps<any> & Omit<IconButtonProps, 'title' | 'onClick'>) {
-  const { active, children, title, dataset, onClick, ...restProps } = props;
+export type ButtonProps = BaseButtonProps & Omit<AntdButtonProps, 'title' | 'onClick' | 'type' | 'icon'>;
 
-  const handleClick = useCallback<React.MouseEventHandler<HTMLButtonElement>>(
+function Button(props: ButtonProps) {
+  const { active, children, title, icon, dataset, onClick, ...restProps } = props;
+
+  const handleClick = useCallback<React.MouseEventHandler<HTMLElement>>(
     (e) => {
-      if (onClick) onClick(e, dataset);
+      onClick?.(e, dataset);
     },
     [dataset, onClick]
   );
 
   return (
-    <Tooltip title={title} size="sm">
-      <IconButton
-        {...restProps}
-        variant={active ? 'solid' : 'plain'}
-        size="sm"
-        sx={mr5}
-        color="neutral"
-        onClick={handleClick}
-      >
+    <Tooltip title={title}>
+      <AntdButton {...restProps} type={active ? 'primary' : 'text'} onClick={handleClick} icon={icon}>
         {children}
-      </IconButton>
+      </AntdButton>
     </Tooltip>
   );
 }

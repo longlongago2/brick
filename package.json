@@ -138,6 +138,7 @@
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-replace": "^5.0.1",
     "@rollup/plugin-typescript": "^10.0.1",
+    "@svgr/webpack": "^6.5.1",
     "@types/react": "^18.0.26",
     "@types/react-dom": "^18.0.9",
     "@typescript-eslint/eslint-plugin": "^5.46.1",
@@ -173,8 +174,10 @@
   },
   "dependencies": {
     "@ant-design/icons": "^4.8.0",
+    "@emotion/css": "^11.10.5",
     "ahooks": "^3.7.2",
     "antd": "^5.0.7",
+    "classnames": "^2.3.2",
     "is-hotkey": "^0.2.0",
     "slate": "^0.87.0",
     "slate-history": "^0.86.0",

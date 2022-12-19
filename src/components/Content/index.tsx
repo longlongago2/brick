@@ -2,10 +2,11 @@ import React, { memo, useCallback } from 'react';
 import { Editable, useSlate } from 'slate-react';
 import { Range, Transforms } from 'slate';
 import isHotkey, { isKeyHotkey } from 'is-hotkey';
+import classNames from 'classnames';
 import { HOTKEYS } from 'src/utils/constant';
 import Leaf from 'src/components/Leaf'; // TODO: 验证 alias 路径在 esm, cjs 模式下是否正确编译
 import Element from 'src/components/Element';
-import styles from './index.module.less';
+import useStyled from './styled';
 
 import type { RenderLeafProps, RenderElementProps } from 'slate-react';
 import type { NoEffectWrapTypes } from '../../utils/constant';
@@ -36,6 +37,8 @@ function Content(props: ContentProps) {
   } = props;
 
   const editor = useSlate();
+
+  const { content } = useStyled();
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -120,7 +123,7 @@ function Content(props: ContentProps) {
 
   return (
     <Editable
-      className={className}
+      className={classNames(content, className)}
       role="textbox"
       placeholder={placeholder}
       spellCheck={spellCheck}

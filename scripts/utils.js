@@ -153,6 +153,25 @@ export const getRules = (config) => {
         preProcessor: true,
       }),
     },
+    // 将 svg 图标作为 React 组件导入
+    // import Icon from '@ant-design/icons/lib/components/Icon';
+    // import MessageSvg from 'path/to/message.svg';
+    // <Icon component={MessageSvg} />
+    {
+      test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+      use: [
+        {
+          loader: 'babel-loader',
+        },
+        {
+          loader: '@svgr/webpack',
+          options: {
+            babel: false,
+            icon: true,
+          },
+        },
+      ],
+    },
   ];
 };
 
