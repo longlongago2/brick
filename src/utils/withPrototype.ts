@@ -1,7 +1,7 @@
 import { Transforms } from 'slate';
 import { INLINE_TYPES, VOID_TYPES } from './constant';
 import { deserialize } from './transformDOMToJSON';
-import { isUrl } from '.';
+import { isUrl, isIncludeElementTypes } from '.';
 
 import type { Editor, Node } from 'slate';
 
@@ -16,12 +16,12 @@ export function withPrototype<T extends Editor>(editor: T) {
 
   // 此处增加自定义的行内元素 Inline Element
   editor.isInline = (element) => {
-    return INLINE_TYPES.includes(element.type) || isInline(element);
+    return isIncludeElementTypes(element, INLINE_TYPES) || isInline(element);
   };
 
   // 此处增加自定义的虚空元素 Void Element, children 是 占位组件
   editor.isVoid = (element) => {
-    return VOID_TYPES.includes(element.type) || isVoid(element);
+    return isIncludeElementTypes(element, VOID_TYPES) || isVoid(element);
   };
 
   // 处理外部纯文本复制粘贴

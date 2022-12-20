@@ -1,3 +1,6 @@
+import type { Element } from 'slate';
+import type { DefinedType } from './constant';
+
 /**
  * @description 判断是否是长度大于0的数组
  */
@@ -70,3 +73,26 @@ export const isUrl = (url: string) => {
   }
   return false;
 };
+
+/**
+ * @description 判断是否是条件内的元素类型
+ * @export
+ * @param {Element} element 元素
+ * @param {DefinedType[]} types 类型条件
+ * @return {*}
+ */
+export function isIncludeElementTypes(element: Element, types: DefinedType[]) {
+  return Boolean(
+    types.find((type) => {
+      if (typeof type === 'string') {
+        return element.type === type;
+      }
+      const [_type, condition] = type;
+      let selector = element.type === _type;
+      Object.keys(condition).forEach((key) => {
+        selector = selector && element[key as keyof Element] === condition[key];
+      });
+      return selector;
+    })
+  );
+}

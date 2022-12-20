@@ -109,6 +109,14 @@ declare module 'slate' {
   export type VideoElement = {
     type: 'video';
     url: string;
+    inline?: boolean;
+    children: EmptyText[];
+  };
+
+  export type AudioElement = {
+    type: 'audio';
+    url: string;
+    inline?: boolean;
     children: EmptyText[];
   };
 
@@ -156,6 +164,7 @@ declare module 'slate' {
     | TableRowElement
     | TableCellElement
     | VideoElement
+    | AudioElement
     | FormulaElement;
 
   // Slate custom types

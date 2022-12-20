@@ -1,6 +1,7 @@
 import React, { useCallback, memo, useState, useMemo } from 'react';
 import { Editor, Transforms } from 'slate';
 import { useSlate, ReactEditor, useReadOnly } from 'slate-react';
+import useStyled from './styled';
 // import ContextMenu from '../ContextMenu'; // 右键菜单
 
 import type { RenderElementProps } from 'slate-react';
@@ -17,6 +18,8 @@ function Paragraph(props: RenderElementProps) {
   const editor = useSlate();
 
   const readOnly = useReadOnly();
+
+  const { paragraphLock } = useStyled();
 
   const style = useMemo<React.CSSProperties>(
     () => ({
@@ -61,7 +64,7 @@ function Paragraph(props: RenderElementProps) {
   if (element.lock) {
     // 冻结锁定
     return (
-      <p style={style} {...attributes} title="段落已冻结" contentEditable={false}>
+      <p className={paragraphLock} style={style} {...attributes} title="该段落已冻结" contentEditable={false}>
         {children}
         {/* 也参考雨雀，开发左侧按钮，显示为拖动手柄或状态指示，右键为菜单，开发为通用的按钮菜单，其他Element 类型也可用 */}
         {/* <div>

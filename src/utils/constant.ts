@@ -4,13 +4,21 @@ import type { Element, MarkKeys } from 'slate';
 export const isDev = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
 
 // 行内元素类型定义
-export const INLINE_TYPES = ['link'];
+export type DefinedType = string | [string, Record<string, any>];
 
-// 虚空元素类型：Void Element 经常用于不能编辑的元素
-export const VOID_TYPES = ['image'];
+export const INLINE_TYPES: DefinedType[] = [
+  'link',
+  ['image', { inline: true }],
+  ['formula', { inline: true }],
+  ['video', { inline: true }],
+  ['audio', { inline: true }],
+];
+
+// 虚空元素类型：Void Element 经常用于不使用原始渲染，自定义渲染的元素。
+export const VOID_TYPES: DefinedType[] = ['image', 'formula', 'video', 'audio'];
 
 // List 元素：含有元素 List Item
-export const LIST_TYPES = ['bulleted-list', 'numbered-list'];
+export const LIST_TYPES: string[] = ['bulleted-list', 'numbered-list'];
 
 // Align 类型
 export type TextAlign = Exclude<CSSProperties['textAlign'], undefined>;
