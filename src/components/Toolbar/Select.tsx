@@ -4,6 +4,7 @@ import { isPowerArray } from '../../utils';
 import useStyled from './styled';
 
 import type { SelectProps as AntdSelectProps } from 'antd';
+import type { DefaultOptionType } from 'antd/es/select';
 
 const { Option } = Select;
 
@@ -12,19 +13,21 @@ export interface DropdownOption {
   label: string;
   icon?: React.ReactNode;
   extra?: React.ReactNode;
+  disabled?: boolean;
   renderLabel?: (label: string) => React.ReactNode;
 }
 
-export interface BaseSelectProps {
+export interface SelectProps<DatasetType = any>
+  extends Omit<AntdSelectProps, 'onChange' | 'children' | 'ref'> {
   title?: React.ReactNode;
   width?: number;
   options?: DropdownOption[];
+  dataset?: DatasetType;
+  onChange?: (value: any, option: DefaultOptionType | DefaultOptionType[], dataset?: DatasetType) => void; // 继承失败，因为参数不同，所以去掉父类onChange属性
 }
 
-export type SelectProps = BaseSelectProps & Omit<AntdSelectProps, 'options'>;
-
-function Selector(props: SelectProps) {
-  const { options, title, width = 120, style, ...restProps } = props;
+function Selector<DatasetType = any>(props: SelectProps<DatasetType>) {
+  const { options, title, width = 120, style, dataset, onChange, ...restProps } = props;
 
   const [tooltipVisible, setTooltipVisible] = useState(false);
 
@@ -52,17 +55,28 @@ function Selector(props: SelectProps) {
     [tooltipVisible]
   );
 
+  const handleChange = useCallback<Exclude<AntdSelectProps['onChange'], undefined>>(
+    (value, option) => {
+      onChange?.(value, option, dataset);
+    },
+    [dataset, onChange]
+  );
+
   return (
     <Tooltip title={title} open={tooltipVisible} onOpenChange={handleTooltipVisibleChange}>
       <Select
-        className={selector}
         style={_style}
+        listHeight={300}
+        className={selector}
+        open={dropdownVisible}
+        virtual={false}
         bordered={false}
         allowClear={false}
         optionLabelProp="label"
-        open={dropdownVisible}
+        dropdownMatchSelectWidth={false}
         onDropdownVisibleChange={handleDropdownVisibleChange}
         {...restProps}
+        onChange={handleChange}
       >
         {isPowerArray(options) &&
           options.map((item) => (
@@ -84,4 +98,4 @@ function Selector(props: SelectProps) {
   );
 }
 
-export default memo(Selector);
+export default memo(Selector) as typeof Selector; // 泛型memo组件继承原始组件的属性的泛型

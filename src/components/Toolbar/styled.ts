@@ -14,28 +14,35 @@ export default function useStyled() {
       }
     `,
     option: css`
-      display: inline-flex;
       width: 100%;
-      .option--icon {
-        flex: none;
-        display: flex;
-        align-items: center;
-        width: 60px;
-        height: 100%;
-      }
-      .option--main {
-        flex: auto;
-        display: inline-block;
-        width: 100%;
-        height: 100%;
-      }
-      .option--extra {
-        flex: none;
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        width: 120px;
-        height: 100%;
+      .ant-select-item-option-content {
+        display: inline-flex;
+        font-weight: normal !important;
+        .option--icon {
+          flex: none;
+          display: flex;
+          align-items: center;
+          width: 40px;
+          height: 100%;
+        }
+        .option--main {
+          flex: auto;
+          display: inline-flex;
+          align-items: center;
+          width: 100%;
+          height: 100%;
+        }
+        .option--extra {
+          flex: none;
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          width: 110px;
+          height: 100%;
+          color: ${token.colorTextTertiary};
+          font-size: 12px;
+          text-align: right;
+        }
       }
     `,
   };

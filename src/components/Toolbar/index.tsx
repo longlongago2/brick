@@ -8,7 +8,7 @@ import Selector from './Select';
 
 import type { Editor } from 'slate';
 import type { DropdownOption, SelectProps } from './Select';
-import type { DefaultOptionType } from 'antd/es/select';
+import type { ButtonProps } from './Button';
 
 const mp0 = { padding: 0, margin: 0 };
 
@@ -31,7 +31,7 @@ export interface ToolbarDropdown {
   placeholder?: string;
   options: DropdownOption[];
   activeKey?: DropdownOption['key'] | ((editor: Editor) => DropdownOption['key']);
-  onSelect?: (editor: Editor, e: any, v: any) => void;
+  onSelect?: (editor: Editor, v: any, option: any) => void;
 }
 
 // 自定义按钮
@@ -158,7 +158,7 @@ export const baseResolver: ToolbarResolver[] = [
       },
     ],
     activeKey: (editor) => editor.getElementValue('type'),
-    onSelect(editor, e, v) {
+    onSelect(editor, v) {
       editor.toggleElement(v);
       ReactEditor.focus(editor);
     },
@@ -191,19 +191,16 @@ function Toolbar(props: ToolbarProps) {
 
   const resolver = useMemo(() => getResolver(), [getResolver]);
 
-  const handleButtonClick = useCallback(
-    (e: React.MouseEvent<HTMLElement>, dataset: ToolbarButton) => {
+  const handleButtonClick = useCallback<Exclude<ButtonProps<ToolbarButton>['onClick'], undefined>>(
+    (e, dataset) => {
       dataset?.onClick?.(editor, e);
     },
     [editor]
   );
 
-  const handleSelectChange = useCallback<Exclude<SelectProps['onChange'], undefined>>(
-    (v, option) => {
-      console.log(option);
-
-      const { dataset } = option as DefaultOptionType;
-      dataset?.onSelect?.(editor, v);
+  const handleSelectChange = useCallback<Exclude<SelectProps<ToolbarDropdown>['onChange'], undefined>>(
+    (value, option, dataset) => {
+      dataset?.onSelect?.(editor, value, option);
     },
     [editor]
   );
@@ -224,7 +221,7 @@ function Toolbar(props: ToolbarProps) {
             active = item.active(editor);
           }
           return (
-            <Button
+            <Button<ToolbarButton>
               key={key}
               icon={item.icon}
               title={item.title}
@@ -243,13 +240,14 @@ function Toolbar(props: ToolbarProps) {
             value = item.activeKey(editor);
           }
           return (
-            <Selector
+            <Selector<ToolbarDropdown>
               key={key}
               value={value}
               options={item.options}
               title={item.title}
               width={item.width}
               placeholder={item.placeholder}
+              dataset={item}
               onChange={handleSelectChange}
             />
           );
