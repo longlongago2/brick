@@ -57,6 +57,7 @@ function Paragraph(props: RenderElementProps) {
       } else if (key === 'down-enter') {
         handleDownEnter();
       } else if (key.indexOf('lock') > -1) {
+        setDragging(false);
         editor.toggleLock('paragraph');
       } else if (key === 'allow-drag') {
         setDragging(true);
@@ -92,12 +93,12 @@ function Paragraph(props: RenderElementProps) {
           (dragging
             ? {
               key: 'not-allow-drag',
-              label: '关闭拖动',
+              label: '关闭段落拖动',
               icon: <DragOutlined />,
             }
             : {
               key: 'allow-drag',
-              label: '开启拖动',
+              label: '开启段落拖动',
               icon: <DragOutlined />,
             }),
         {
@@ -150,8 +151,8 @@ function Paragraph(props: RenderElementProps) {
       <p style={style} {...attributes} className={paragraph} draggable={dragging}>
         {children}
         {dragging && (
-          <Button icon={<HolderOutlined />} size="small" className={dragButton}>
-            拖动
+          <Button icon={<HolderOutlined />} size="small" className={dragButton} contentEditable={false}>
+            按住拖动
           </Button>
         )}
       </p>

@@ -54,6 +54,18 @@ export default function useStyled() {
       position: absolute;
       top: -2px;
       right: 0;
+      cursor: move;
+      display: flex;
+      align-items: center;
+      > span {
+        font-size: 12px;
+        line-height: 1;
+        color: ${token.colorTextTertiary};
+      }
+      .anticon {
+        font-size: 14px;
+        color: ${token.colorText};
+      }
     `,
   };
 }
