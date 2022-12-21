@@ -21,7 +21,7 @@ function Button<DatasetType = any>(props: ButtonProps<DatasetType>) {
   );
 
   return (
-    <Tooltip title={title}>
+    <Tooltip title={title} showArrow={false}>
       <AntdButton {...restProps} type={active ? 'primary' : 'text'} onClick={handleClick}>
         {children}
       </AntdButton>

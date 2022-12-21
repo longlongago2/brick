@@ -18,16 +18,17 @@ export interface DropdownOption {
 }
 
 export interface SelectProps<DatasetType = any>
-  extends Omit<AntdSelectProps, 'onChange' | 'children' | 'ref'> {
+  extends Omit<AntdSelectProps, 'onChange' | 'children' | 'ref' | 'optionLabelProp'> {
   title?: React.ReactNode;
   width?: number;
   options?: DropdownOption[];
   dataset?: DatasetType;
+  optionDisplayField?: keyof DropdownOption;
   onChange?: (value: any, option: DefaultOptionType | DefaultOptionType[], dataset?: DatasetType) => void; // 继承失败，因为参数不同，所以去掉父类onChange属性
 }
 
 function Selector<DatasetType = any>(props: SelectProps<DatasetType>) {
-  const { options, title, width = 120, style, dataset, onChange, ...restProps } = props;
+  const { options, title, width = 120, style, dataset, optionDisplayField, onChange, ...restProps } = props;
 
   const [tooltipVisible, setTooltipVisible] = useState(false);
 
@@ -63,7 +64,7 @@ function Selector<DatasetType = any>(props: SelectProps<DatasetType>) {
   );
 
   return (
-    <Tooltip title={title} open={tooltipVisible} onOpenChange={handleTooltipVisibleChange}>
+    <Tooltip title={title} open={tooltipVisible} onOpenChange={handleTooltipVisibleChange} showArrow={false}>
       <Select
         style={_style}
         listHeight={300}
@@ -72,10 +73,10 @@ function Selector<DatasetType = any>(props: SelectProps<DatasetType>) {
         virtual={false}
         bordered={false}
         allowClear={false}
-        optionLabelProp="label"
         dropdownMatchSelectWidth={false}
         onDropdownVisibleChange={handleDropdownVisibleChange}
         {...restProps}
+        optionLabelProp="label"
         onChange={handleChange}
       >
         {isPowerArray(options) &&
@@ -84,7 +85,7 @@ function Selector<DatasetType = any>(props: SelectProps<DatasetType>) {
               key={item.key}
               className={option}
               value={item.key}
-              label={item.label}
+              label={item[optionDisplayField || 'label']}
               title={item.label}
               dataset={item}
             >

@@ -22,8 +22,15 @@ declare module 'slate' {
     children: Descendant[];
   };
 
+  export type ListItemElement = {
+    type: 'list-item';
+    align?: TextAlign;
+    children: Descendant[];
+  };
+
   export type CheckListItemElement = {
     type: 'check-list-item';
+    align?: TextAlign;
     checked: boolean;
     children: Descendant[];
   };
@@ -76,11 +83,6 @@ declare module 'slate' {
   export type LinkElement = {
     type: 'link';
     url: string;
-    children: Descendant[];
-  };
-
-  export type ListItemElement = {
-    type: 'list-item';
     children: Descendant[];
   };
 
@@ -149,6 +151,7 @@ declare module 'slate' {
     | BlockQuoteElement
     | BulletedListElement
     | NumberedListElement
+    | ListItemElement
     | CheckListItemElement
     | HeadingOneElement
     | HeadingTwoElement
@@ -158,7 +161,6 @@ declare module 'slate' {
     | HeadingSixElement
     | ImageElement
     | LinkElement
-    | ListItemElement
     | ParagraphElement
     | TableElement
     | TableRowElement

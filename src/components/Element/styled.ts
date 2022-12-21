@@ -43,5 +43,17 @@ export default function useStyled() {
       cursor: default;
       color: ${token.colorTextTertiary};
     `,
+    paragraph: css`
+      position: relative;
+      &[draggable='true'] {
+        background-color: ${token.colorPrimaryBg};
+        box-shadow: 0 0 0 7px ${token.colorPrimaryBg};
+      }
+    `,
+    dragButton: css`
+      position: absolute;
+      top: -2px;
+      right: 0;
+    `,
   };
 }

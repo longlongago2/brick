@@ -1,8 +1,20 @@
 import React, { memo, useCallback, useMemo } from 'react';
 import { useSlate, ReactEditor } from 'slate-react';
 import { Tooltip, Divider, Space } from 'antd';
-import { BoldOutlined, ItalicOutlined, UnderlineOutlined, StrikethroughOutlined } from '@ant-design/icons';
+import {
+  BoldOutlined,
+  ItalicOutlined,
+  UnderlineOutlined,
+  StrikethroughOutlined,
+  AlignLeftOutlined,
+  AlignRightOutlined,
+  AlignCenterOutlined,
+  MenuOutlined,
+  OrderedListOutlined,
+  UnorderedListOutlined,
+} from '@ant-design/icons';
 import { isPowerArray } from '../../utils';
+import { LIST_TYPES } from '../../utils/constant';
 import Button from './Button';
 import Selector from './Select';
 
@@ -29,6 +41,7 @@ export interface ToolbarDropdown {
   title: React.ReactNode;
   width?: number;
   placeholder?: string;
+  optionDisplayField?: keyof DropdownOption;
   options: DropdownOption[];
   activeKey?: DropdownOption['key'] | ((editor: Editor) => DropdownOption['key']);
   onSelect?: (editor: Editor, v: any, option: any) => void;
@@ -60,7 +73,18 @@ export interface ToolbarProps {
   extraResolver?: (editor: Editor) => ToolbarResolver[]; // 自定义按钮处理程序
 }
 
-export const baseSort = ['format', 'divider', 'bold', 'italic', 'linethrough', 'underline', 'divider'];
+export const baseSort = [
+  'format',
+  'divider',
+  'bold',
+  'italic',
+  'linethrough',
+  'underline',
+  'divider',
+  'align',
+  'numbered-list',
+  'bulleted-list',
+];
 
 export const baseResolver: ToolbarResolver[] = [
   {
@@ -108,11 +132,33 @@ export const baseResolver: ToolbarResolver[] = [
     },
   },
   {
+    key: 'numbered-list',
+    type: 'button',
+    icon: <OrderedListOutlined />,
+    title: '有序列表 Ctrl+Alt+O',
+    active: (editor) => editor.isElementActive('numbered-list'),
+    onClick(editor) {
+      editor.toggleElement('numbered-list');
+      ReactEditor.focus(editor);
+    },
+  },
+  {
+    key: 'bulleted-list',
+    type: 'button',
+    icon: <UnorderedListOutlined />,
+    title: '无序列表 Ctrl+Alt+U',
+    active: (editor) => editor.isElementActive('bulleted-list'),
+    onClick(editor) {
+      editor.toggleElement('bulleted-list');
+      ReactEditor.focus(editor);
+    },
+  },
+  {
     key: 'format',
     type: 'dropdown',
     title: '正文与标题',
     placeholder: '无标题',
-    width: 90,
+    width: 85,
     options: [
       {
         key: 'paragraph',
@@ -157,9 +203,58 @@ export const baseResolver: ToolbarResolver[] = [
         extra: 'Ctrl+Alt+6',
       },
     ],
-    activeKey: (editor) => editor.getElementValue('type'),
+    activeKey: (editor) => editor.getElementFieldsValue('type'),
     onSelect(editor, v) {
       editor.toggleElement(v);
+      ReactEditor.focus(editor);
+    },
+  },
+  {
+    key: 'align',
+    type: 'dropdown',
+    title: '文本对齐',
+    width: 65,
+    optionDisplayField: 'icon',
+    options: [
+      {
+        key: 'left',
+        label: '左对齐',
+        extra: 'Ctrl+Alt+L',
+        icon: <AlignLeftOutlined />,
+      },
+      {
+        key: 'right',
+        label: '右对齐',
+        extra: 'Ctrl+Alt+R',
+        icon: <AlignRightOutlined />,
+      },
+      {
+        key: 'center',
+        label: '居中对齐',
+        extra: 'Ctrl+Alt+C',
+        icon: <AlignCenterOutlined />,
+      },
+      {
+        key: 'justify',
+        label: '两端对齐',
+        extra: 'Ctrl+Alt+J',
+        icon: <MenuOutlined />,
+      },
+    ],
+    activeKey: (editor) => {
+      const type = editor.getElementFieldsValue('type');
+      const isList = LIST_TYPES.includes(type);
+      if (isList) {
+        // list比较特殊，因为有list-item，此判断逻辑适用于所有存在item的Node，
+        // 所以需要注意可能有其他类型的嵌套，需要一并添加判断。
+        // getElementFieldsValue 直接获取的是list的值，但其实真正控制align的是list-item
+        // 需要指定具体类型，否则获取的是上层的数据
+        return editor.getElementFieldsValue('align', 'list-item') || 'left';
+      }
+      return editor.getElementFieldsValue('align') || 'left';
+    },
+    onSelect(editor, v) {
+      editor.toggleAlign(v);
       ReactEditor.focus(editor);
     },
   },
@@ -248,6 +343,7 @@ function Toolbar(props: ToolbarProps) {
               width={item.width}
               placeholder={item.placeholder}
               dataset={item}
+              optionDisplayField={item.optionDisplayField}
               onChange={handleSelectChange}
             />
           );

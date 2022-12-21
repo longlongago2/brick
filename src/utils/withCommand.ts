@@ -1,16 +1,17 @@
 import { Editor, Element, Transforms, Range } from 'slate';
 import { TEXT_ALIGN_TYPES, NO_EFFECT_WRAP_TYPES, LIST_TYPES } from './constant';
-import { isPowerObject } from '.';
+
 import type { Text, Node, LinkElement, MarkKeys, ElementKeys } from 'slate';
 import type { TextAlign, NoEffectWrapTypes } from './constant';
 
 export interface CommandEditor {
   isMarkActive: (name: MarkKeys) => boolean;
   toggleMark: (name: MarkKeys) => void;
-  isElementActive: (type: string, condition?: Record<string, any>) => boolean;
+  isElementActive: (type: Element['type']) => boolean;
   toggleElement: (type: NoEffectWrapTypes) => void;
   toggleAlign: (align: TextAlign) => void;
-  getElementValue: (key: ElementKeys) => any;
+  toggleLock: (type: Element['type']) => void;
+  getElementFieldsValue: (fields?: ElementKeys | ElementKeys[], type?: Element['type']) => any;
   setLink: (url: string) => void;
   unsetLink: () => void;
 }
@@ -39,23 +40,13 @@ export function withCommand<T extends Editor>(editor: T) {
     }
   };
 
-  e.isElementActive = (type, condition) => {
+  e.isElementActive = (type) => {
     const { selection } = editor;
     if (!selection) return false;
     const [match] = Array.from(
       Editor.nodes(editor, {
         at: Editor.unhangRange(editor, selection),
-        match: (n) => {
-          const baseCondition = !Editor.isEditor(n) && Element.isElement(n) && n.type === type;
-          if (condition && isPowerObject(condition)) {
-            let extraCondition = true;
-            Object.keys(condition).forEach((key) => {
-              extraCondition = extraCondition && n[key as keyof Node] === condition[key];
-            });
-            return baseCondition && extraCondition;
-          }
-          return baseCondition;
-        },
+        match: (n) => !Editor.isEditor(n) && Element.isElement(n) && n.type === type,
       })
     );
     return !!match;
@@ -67,42 +58,91 @@ export function withCommand<T extends Editor>(editor: T) {
     const isList = LIST_TYPES.includes(type);
     // 1.如果是List, 需要删除 ListItem wrap
     Transforms.unwrapNodes(editor, {
-      match: (n) =>
-        !Editor.isEditor(n) && Element.isElement(n) && LIST_TYPES.includes(n.type) && n.type === type,
+      match: (n) => !Editor.isEditor(n) && Element.isElement(n) && LIST_TYPES.includes(n.type),
       split: true,
     });
     // 2.普通Element直接修改type
-    const newProperties: Partial<Element> = {
-      type: isActive ? 'paragraph' : isList ? 'list-item' : type,
+    const newProperties = {
+      type: (isActive ? 'paragraph' : isList ? 'list-item' : type) as Element['type'],
     };
     Transforms.setNodes(editor, newProperties);
     // 3.ListItem 需要添加 Wrap List
     if (!isActive && isList) {
       const block = { type, children: [] };
-      Transforms.wrapNodes(editor, block as Element);
+      Transforms.wrapNodes(editor, block);
     }
   };
 
   e.toggleAlign = (align) => {
     if (!TEXT_ALIGN_TYPES.includes(align)) return;
-    const prev = e.getElementValue('align');
+    const res = e.getElementFieldsValue(['align', 'type']);
+    let prevAlign = res?.[0];
+    const type = res?.[1];
+    const isList = LIST_TYPES.includes(type);
+    if (isList) {
+      // list比较特殊，getElementFieldsValue 直接获取的是list的值，但其实真正控制align的是list-item
+      prevAlign = e.getElementFieldsValue('align', 'list-item');
+    }
+    const isActive = prevAlign === align;
     const newProperties = {
-      align: prev ? undefined : align,
+      align: isActive ? undefined : align,
     };
     Transforms.setNodes(editor, newProperties);
   };
 
-  e.getElementValue = (key) => {
+  e.toggleLock = (type) => {
     const { selection } = editor;
     if (!selection) return null;
     const [match] = Array.from(
       Editor.nodes(editor, {
         at: Editor.unhangRange(editor, selection),
-        match: (n) => !Editor.isEditor(n) && Element.isElement(n),
+        match: (n) => !Editor.isEditor(n) && Element.isElement(n) && n.type === type,
       })
     );
-    const ele = match[0];
-    return ele?.[key as keyof Node];
+    const element = match?.[0] as Element;
+    if (!element) return;
+
+    const isInline = e.isInline(element);
+    if (isInline) return; // 只有Block元素才可以lock
+
+    let prevLock;
+    if ('lock' in element) {
+      prevLock = element.lock;
+    }
+    const newProperties = {
+      lock: !prevLock,
+    };
+    Transforms.setNodes(editor, newProperties);
+  };
+
+  e.getElementFieldsValue = (fields, type) => {
+    const { selection } = editor;
+    if (!selection) return null;
+    const [match] = Array.from(
+      Editor.nodes(editor, {
+        at: Editor.unhangRange(editor, selection),
+        match: (n) => {
+          const baseMatch = !Editor.isEditor(n) && Element.isElement(n);
+          if (type) {
+            return baseMatch && n.type === type;
+          }
+          return baseMatch;
+        },
+      })
+    );
+    const ele = match?.[0];
+    if (!ele) return null;
+    if (fields) {
+      // 根据fields，返回不同的数据格式
+      if (Array.isArray(fields)) {
+        // 多个字段值组成的数组
+        return fields.map((key) => ele[key as keyof Node]);
+      }
+      // 单个字段值
+      return ele[fields as keyof Node];
+    }
+    // fields is undefined, return all element data
+    return ele;
   };
 
   e.setLink = (url) => {

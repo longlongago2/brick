@@ -22,7 +22,7 @@ export default function useStyled() {
           flex: none;
           display: flex;
           align-items: center;
-          width: 40px;
+          width: 30px;
           height: 100%;
         }
         .option--main {
@@ -34,14 +34,17 @@ export default function useStyled() {
         }
         .option--extra {
           flex: none;
-          display: flex;
+          display: inline-flex;
           align-items: center;
           justify-content: flex-end;
-          width: 110px;
+          width: 80px;
           height: 100%;
           color: ${token.colorTextTertiary};
           font-size: 12px;
           text-align: right;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
       }
     `,

@@ -70,7 +70,11 @@ function Element(props: RenderElementProps) {
         </ol>
       );
     case 'list-item':
-      return <li {...attributes}>{children}</li>;
+      return (
+        <li style={style} {...attributes}>
+          {children}
+        </li>
+      );
     case 'link':
       return <Link {...props} />;
     case 'image':

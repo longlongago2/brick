@@ -6,21 +6,25 @@ import type { RenderElementProps } from 'slate-react';
 
 const initialValue: Descendant[] = [
   {
-    type: 'paragraph',
-    children: [{ text: 'A line of text in a paragraph.' }],
+    type: 'heading-one',
+    children: [{ text: '标题一' }],
   },
   {
     type: 'paragraph',
-    children: [{ text: 'A line of text in a paragraph.' }],
+    children: [{ text: '这是一段普通的段落文字！' }],
   },
   {
     type: 'paragraph',
-    children: [{ text: 'A line of text in a paragraph.' }],
+    children: [{ text: '这是一段普通的段落文字！' }],
+  },
+  {
+    type: 'paragraph',
+    children: [{ text: '这是一段普通的段落文字！' }],
   },
   {
     type: 'paragraph',
     lock: true,
-    children: [{ text: 'A line of text in an locked paragraph.' }],
+    children: [{ text: '这是被冻结的段落，不可操作，右键可解除冻结。' }],
   },
   {
     type: 'paragraph',
