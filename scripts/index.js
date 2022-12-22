@@ -8,16 +8,19 @@ import webpack from 'webpack';
 import chalk from 'chalk';
 import ora from 'ora';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
-import { resolveApp, getRules, banner, alias, externals } from './utils.js';
+import { resolveApp, getRules, banner, alias, externals, webpackPromise } from './utils.js';
 
-// WEBPACK: build cjs
+async function runComplier() {
+  const spinner = ora();
+  // WEBPACK: build esm
 
-// WEBPACK: build esm
+  // WEBPACK: build cjs
 
-// WEBPACK: build umd TODO: 利用Promise封装一下，同步打包。
-const umdSpinner = ora().start('UMD Packaging');
-webpack(
-  {
+  console.log('\n');
+
+  // WEBPACK: build umd
+  spinner.start(chalk.green('WEBPACK UMD: ') + chalk.bgGreen(chalk.white.bold('Building...')));
+  await webpackPromise({
     mode: 'production',
     entry: resolveApp('./src/index.ts'),
     devtool: false,
@@ -54,46 +57,19 @@ webpack(
         filename: '[name].css',
       }),
     ],
-  },
-  (err, stats) => {
-    const info = stats.toJson();
-
-    if (err || stats.hasErrors()) {
-      // build failed
-      umdSpinner
-        .fail(chalk.green('WEBPACK UMD: ') + chalk.bgRed(chalk.white.bold(' Build failed! \n')))
+  })
+    .then((log) => {
+      // build complete
+      spinner
+        .succeed(chalk.green('WEBPACK UMD: ') + chalk.bgGreen(chalk.white.bold('Build completed!\n')))
         .stop();
+      log();
+    })
+    .catch((log) => {
+      // build failed
+      spinner.fail(chalk.green('WEBPACK UMD: ') + chalk.bgRed(chalk.white.bold('Build failed!\n'))).stop();
+      log();
+    });
+}
 
-      // errors
-      if (err) {
-        if (err.details) {
-          console.error(err.details);
-        } else {
-          console.error(err.stack || err);
-        }
-      } else {
-        const { errors } = info;
-        errors.forEach((error) => {
-          console.error(error.message);
-        });
-      }
-
-      return;
-    }
-
-    // build complete
-    umdSpinner
-      .succeed(chalk.green('WEBPACK UMD: ') + chalk.bgGreen(chalk.white.bold(' Build complete! \n')))
-      .stop();
-
-    // warnings
-    if (stats.hasWarnings()) {
-      const { warnings } = info;
-      console.log(chalk.bgYellow(chalk.white.bold(' WEBPACK UMD: Warnings ')));
-
-      warnings.forEach((warn) => {
-        console.log(chalk.yellow(warn.message));
-      });
-    }
-  }
-);
+runComplier();

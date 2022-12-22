@@ -10,7 +10,7 @@ const compiler = webpack({
   mode: 'development',
   entry: resolveApp('./serve/index.tsx'),
   devtool: 'inline-source-map',
-  stats: 'normal',
+  stats: 'errors-warnings',
   module: {
     rules: getRules({ isDevelopment: true, miniCssExtract: false }),
   },
@@ -44,9 +44,8 @@ const server = new WebpackDevServer(
 );
 
 const runServer = async () => {
-  console.log('⚡ ', chalk.bgGreen(chalk.white.bold(' Starting service... ')));
+  console.log('webpack server ' + chalk.green.bold('⚡ starting...'));
   await server.start();
-  console.log('⚡ ', chalk.bgGreen(chalk.white.bold(' Startup complete! ')));
 };
 
 runServer();

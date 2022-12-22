@@ -1,5 +1,8 @@
+/* eslint-disable no-console */
 import path from 'path';
 import fs from 'fs-extra';
+import chalk from 'chalk';
+import webpack from 'webpack';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 
 export const appDirectory = fs.realpathSync(process.cwd());
@@ -186,3 +189,55 @@ export const getRules = (config) => {
     },
   ];
 };
+
+/**
+ * @description webpack complier promise function
+ * @export
+ * @param {webpack.Configuration} config
+ * @return {Promise}
+ */
+export function webpackPromise(config) {
+  return new Promise((resolve, reject) => {
+    webpack(config, (err, stats) => {
+      const info = stats.toJson();
+
+      // Build failed
+      if (err || stats.hasErrors()) {
+        const log = () => {
+          // Logging errors
+          if (err) {
+            if (err.details) {
+              console.error(err.details);
+            } else {
+              console.error(err.stack || err);
+            }
+          } else {
+            const { errors } = info;
+            errors.forEach((error) => {
+              console.error(error.message);
+            });
+          }
+        };
+
+        reject(log);
+
+        return;
+      }
+
+      // Build completed
+      const log = () => {
+        // Logging warnings
+        if (stats.hasWarnings()) {
+          const { warnings } = info;
+          console.log(chalk.bgYellow(chalk.white.bold('Warnings\n')));
+
+          warnings.forEach((warn) => {
+            console.log(chalk.yellow(warn.message));
+          });
+        }
+      };
+
+      resolve(log);
+    });
+  });
+}
