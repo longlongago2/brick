@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig to read more about this file */
-    // "outDir": "./dist/",
+    // "outDir": "lib",
+    // "rootDir": ".",
     "noImplicitAny": true,
     "module": "ESNext",
     "target": "ES5",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "jsx": "react-jsx",
     "allowJs": true,
-    "moduleResolution": "node",
-    "sourceMap": true,
+    "moduleResolution": "Node",
+    "sourceMap": false,
     "experimentalDecorators": true,
     "noEmit": false,
     "isolatedModules": true,
@@ -25,7 +26,7 @@
     "skipLibCheck": true,
     "baseUrl": "./",
     "paths": {
-      "brick": ["src/index.tsx"],
+      "brick": ["src/index.ts"],
       "src": ["src"]
     }
   },

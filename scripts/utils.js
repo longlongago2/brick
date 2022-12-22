@@ -26,7 +26,7 @@ export const getBanner = ({ fileName }) => `
 `;
 
 export const alias = {
-  brick: resolveApp('./src/index.tsx'),
+  brick: resolveApp('./src/index.ts'),
   src: resolveApp('./src'),
 };
 

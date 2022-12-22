@@ -64,6 +64,8 @@ export default function useStyled() {
       }
       .anticon {
         font-size: 14px;
+        height: 14px;
+        width: 14px;
         color: ${token.colorText};
       }
     `,

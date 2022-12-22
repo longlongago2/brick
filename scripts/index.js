@@ -8,12 +8,12 @@ import webpack from 'webpack';
 import chalk from 'chalk';
 import glob from 'glob';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import autoprefixer from 'autoprefixer';
 import postcss from 'rollup-plugin-postcss';
+import { babel } from '@rollup/plugin-babel';
 import rollupAlias from '@rollup/plugin-alias';
 import replace from '@rollup/plugin-replace';
-import resolve from '@rollup/plugin-node-resolve';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import {
@@ -35,7 +35,7 @@ rollupBuild({
       path.relative('src', file.slice(0, file.length - path.extname(file).length)),
       // This expands the relative paths to absolute paths, so e.g.
       // src/nested/foo becomes /project/src/nested/foo.js
-      fileURLToPath(new URL(file, import.meta.url)),
+      resolveApp(file),
     ])
   ),
   output: [
@@ -56,13 +56,17 @@ rollupBuild({
   external: ['react', 'react-dom'],
   plugins: [
     replace({
-      'process.env.NODE_ENV': JSON.stringify('production'),
-    }),
-    resolve({
-      moduleDirectories: ['node_modules'],
+      preventAssignment: true,
+      values: {
+        'process.env.NODE_ENV': JSON.stringify('production'),
+      },
     }),
     // Complier Typescript: the plugin loads any compilerOptions from the tsconfig.json file by default.
     typescript(),
+    // Complier Typescript and React(.ts, .tsx)
+    babel({ babelHelpers: 'bundled' }),
+    // Locates modules: for using third party modules in node_modules
+    nodeResolve(),
     // Compiler Sass/Stylus/Less
     // For Sass install node-sass: yarn add node-sass --dev
     // For Stylus Install stylus: yarn add stylus --dev
@@ -82,6 +86,7 @@ rollupBuild({
       minimize: true,
       sourceMap: false,
     }),
+    // Alias: path alias
     rollupAlias({
       entries: alias,
     }),
