@@ -1,103 +1,25 @@
 /**
- * This library support 3 lib-types: umd, esm, commonjs
- * cjs,esm use rollup to build: https://rollupjs.org/guide/en/
- * umd use webpack to build: https://webpack.js.org/guides/author-libraries/#authoring-a-library
- * Since umd mode need to package some static resources, so it is easier to use webpack.
+ * This library support 3 lib-types: umd, esm, cjs
+ * use webpack to build: https://webpack.js.org/guides/author-libraries/#authoring-a-library
+ * since umd mode need to package some static resources, so it is easier to use webpack.
  */
+/* eslint-disable no-console */
 import webpack from 'webpack';
 import chalk from 'chalk';
-import glob from 'glob';
-import path from 'node:path';
-import autoprefixer from 'autoprefixer';
-import postcss from 'rollup-plugin-postcss';
-import { babel } from '@rollup/plugin-babel';
-import rollupAlias from '@rollup/plugin-alias';
-import replace from '@rollup/plugin-replace';
-import { nodeResolve } from '@rollup/plugin-node-resolve';
-import typescript from '@rollup/plugin-typescript';
+import ora from 'ora';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
-import {
-  resolveApp,
-  getRules,
-  banner,
-  alias,
-  getBanner,
-  rollupBuild,
-  cssModulesScopedName,
-} from './utils.js';
+import { resolveApp, getRules, banner, alias, externals } from './utils.js';
 
-// Rollup: build cjs, esm
-rollupBuild({
-  input: Object.fromEntries(
-    glob.sync('src/**/*').map((file) => [
-      // This remove `src/` as well as the file extension from each file, so e.g.
-      // src/nested/foo.js becomes nested/foo
-      path.relative('src', file.slice(0, file.length - path.extname(file).length)),
-      // This expands the relative paths to absolute paths, so e.g.
-      // src/nested/foo becomes /project/src/nested/foo.js
-      resolveApp(file),
-    ])
-  ),
-  output: [
-    {
-      format: 'esm', // https://rollupjs.org/guide/en/#outputformat
-      dir: 'esm',
-      exports: 'auto',
-      banner: getBanner,
-    },
-    {
-      format: 'cjs',
-      dir: 'lib',
-      exports: 'auto',
-      banner: getBanner,
-    },
-  ],
-  treeshake: true,
-  external: ['react', 'react-dom'],
-  plugins: [
-    replace({
-      preventAssignment: true,
-      values: {
-        'process.env.NODE_ENV': JSON.stringify('production'),
-      },
-    }),
-    // Complier Typescript: the plugin loads any compilerOptions from the tsconfig.json file by default.
-    typescript(),
-    // Complier Typescript and React(.ts, .tsx)
-    babel({ babelHelpers: 'bundled' }),
-    // Locates modules: for using third party modules in node_modules
-    nodeResolve(),
-    // Compiler Sass/Stylus/Less
-    // For Sass install node-sass: yarn add node-sass --dev
-    // For Stylus Install stylus: yarn add stylus --dev
-    // For Less Install less: yarn add less --dev
-    postcss({
-      extract: false, // Extract CSS
-      // CSS modules
-      modules: {
-        generateScopedName: cssModulesScopedName,
-      },
-      // Automatically enable CSS modules for
-      // .module.css .module.sss .module.scss .module.sass .module.styl .module.stylus .module.less files.
-      autoModules: true,
-      plugins: [
-        autoprefixer(), // browserslist
-      ],
-      minimize: true,
-      sourceMap: false,
-    }),
-    // Alias: path alias
-    rollupAlias({
-      entries: alias,
-    }),
-  ],
-});
+// WEBPACK: build cjs
 
-// WEBPACK: build umd
+// WEBPACK: build esm
+
+// WEBPACK: build umd TODO: 利用Promise封装一下，同步打包。
+const umdSpinner = ora().start('UMD Packaging');
 webpack(
   {
     mode: 'production',
-    entry: resolveApp('./src/index.tsx'),
+    entry: resolveApp('./src/index.ts'),
     devtool: false,
     output: {
       path: resolveApp('./dist'),
@@ -108,20 +30,7 @@ webpack(
       },
       clean: true,
     },
-    externals: {
-      react: {
-        commonjs: 'react',
-        commonjs2: 'react',
-        amd: 'react',
-        root: 'React',
-      },
-      'react-dom': {
-        commonjs: 'react-dom',
-        commonjs2: 'react-dom',
-        amd: 'react-dom',
-        root: 'ReactDOM',
-      },
-    },
+    externals,
     module: {
       parser: {
         javascript: {
@@ -147,24 +56,40 @@ webpack(
     ],
   },
   (err, stats) => {
-    if (err) {
-      console.log('❗ ' + chalk.green('Webpack ') + chalk.bgRed(chalk.white.bold(' Build umd failed! ')));
-      if (err.details) {
-        console.error(err.details);
+    const info = stats.toJson();
+
+    if (err || stats.hasErrors()) {
+      // build failed
+      umdSpinner
+        .fail(chalk.green('WEBPACK UMD: ') + chalk.bgRed(chalk.white.bold(' Build failed! \n')))
+        .stop();
+
+      // errors
+      if (err) {
+        if (err.details) {
+          console.error(err.details);
+        } else {
+          console.error(err.stack || err);
+        }
       } else {
-        console.error(err.stack || err);
+        const { errors } = info;
+        errors.forEach((error) => {
+          console.error(error.message);
+        });
       }
+
       return;
     }
 
     // build complete
-    console.log('🚩 ' + chalk.green('Webpack ') + chalk.bgGreen(chalk.white.bold(' Build umd complete! ')));
+    umdSpinner
+      .succeed(chalk.green('WEBPACK UMD: ') + chalk.bgGreen(chalk.white.bold(' Build complete! \n')))
+      .stop();
 
     // warnings
-    const info = stats.toJson();
     if (stats.hasWarnings()) {
       const { warnings } = info;
-      console.log(chalk.bgYellow(chalk.white.bold(' Warnings ')));
+      console.log(chalk.bgYellow(chalk.white.bold(' WEBPACK UMD: Warnings ')));
 
       warnings.forEach((warn) => {
         console.log(chalk.yellow(warn.message));
