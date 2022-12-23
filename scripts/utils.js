@@ -5,6 +5,7 @@ import chalk from 'chalk';
 import webpack from 'webpack';
 import cssModulesPlugin from 'esbuild-css-modules-plugin';
 import { lessLoader } from 'esbuild-plugin-less';
+import svgrPlugin from 'esbuild-plugin-svgr';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 
 export const appDirectory = fs.realpathSync(process.cwd());
@@ -50,7 +51,7 @@ export function extendTsupConfig(overrideOptions) {
     minify: false,
     splitting: false,
     treeshake: true,
-    bundle: false,
+    bundle: true, // 作为浏览器的library,一定要开启 bundle, 这样，静态资源才会打包进去，而不是简单的和src开发模式一样引用路径，例如 svgr
     sourcemap: false,
     injectStyle: true,
     replaceNodeEnv: true,
@@ -59,6 +60,8 @@ export function extendTsupConfig(overrideOptions) {
     shims: false,
     external: ['react', 'react-dom'],
     esbuildPlugins: [
+      // 和webpack作用相同：svg作为react component 导入
+      svgrPlugin(),
       // NOTE: 尽量和webpack同步支持css modules,less (未经测试)
       cssModulesPlugin({
         filter: /\.module\.css$/,

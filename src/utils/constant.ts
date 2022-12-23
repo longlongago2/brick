@@ -66,6 +66,8 @@ export const HOTKEYS: HotKeys = {
     'mod+`': 'code',
     'mod+m': 'highlight',
     'mod+alt+s': 'linethrough',
+    'mod+.': 'superscript',
+    'mod+,': 'subscript',
   },
   nodes: {
     'mod+alt+1': 'heading-one',

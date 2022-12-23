@@ -143,6 +143,7 @@
     "css-loader": "^6.7.3",
     "esbuild-css-modules-plugin": "^2.6.3",
     "esbuild-plugin-less": "^1.1.11",
+    "esbuild-plugin-svgr": "^1.0.1",
     "eslint": "^8.29.0",
     "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-import": "^2.26.0",

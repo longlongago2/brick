@@ -5,6 +5,7 @@ import useStyled from './styled';
 
 import type { SelectProps as AntdSelectProps } from 'antd';
 import type { DefaultOptionType } from 'antd/es/select';
+import { CaretDownFilled } from '@ant-design/icons';
 
 const { Option } = Select;
 
@@ -16,6 +17,8 @@ export interface DropdownOption {
   disabled?: boolean;
   renderLabel?: (label: string) => React.ReactNode;
 }
+
+const suffix = <CaretDownFilled style={{ pointerEvents: 'none' }} />;
 
 export interface SelectProps<DatasetType = any>
   extends Omit<AntdSelectProps, 'onChange' | 'children' | 'ref' | 'optionLabelProp'> {
@@ -75,6 +78,7 @@ function Selector<DatasetType = any>(props: SelectProps<DatasetType>) {
         allowClear={false}
         dropdownMatchSelectWidth={false}
         onDropdownVisibleChange={handleDropdownVisibleChange}
+        suffixIcon={suffix}
         {...restProps}
         optionLabelProp="label"
         onChange={handleChange}

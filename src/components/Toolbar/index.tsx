@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useMemo } from 'react';
 import { useSlate, ReactEditor } from 'slate-react';
 import { Tooltip, Divider, Space } from 'antd';
-import {
+import Icon, {
   BoldOutlined,
   ItalicOutlined,
   UnderlineOutlined,
@@ -12,11 +12,17 @@ import {
   MenuOutlined,
   OrderedListOutlined,
   UnorderedListOutlined,
+  LinkOutlined,
 } from '@ant-design/icons';
 import { isPowerArray } from '../../utils';
 import { LIST_TYPES } from '../../utils/constant';
+import { useFormDialog } from '../../hooks';
 import Button from './Button';
 import Selector from './Select';
+import CodeSvgr from '../../assets/code.svg';
+import BlockQuoteSvgr from '../../assets/block-quote.svg';
+import SuperscriptSvgr from '../../assets/superscript.svg';
+import SubscriptSvgr from '../../assets/subscript.svg';
 
 import type { Editor } from 'slate';
 import type { DropdownOption, SelectProps } from './Select';
@@ -80,188 +86,259 @@ export const baseSort = [
   'italic',
   'linethrough',
   'underline',
+  'code',
+  'superscript',
+  'subscript',
   'divider',
   'align',
   'numbered-list',
   'bulleted-list',
-];
-
-export const baseResolver: ToolbarResolver[] = [
-  {
-    key: 'bold',
-    type: 'button',
-    icon: <BoldOutlined />,
-    title: '加粗 Ctrl+B',
-    active: (editor) => editor.isMarkActive('bold'),
-    onClick(editor) {
-      editor.toggleMark('bold');
-      ReactEditor.focus(editor);
-    },
-  },
-  {
-    key: 'italic',
-    type: 'button',
-    icon: <ItalicOutlined />,
-    title: '倾斜 Ctrl+I',
-    active: (editor) => editor.isMarkActive('italic'),
-    onClick(editor) {
-      editor.toggleMark('italic');
-      ReactEditor.focus(editor);
-    },
-  },
-  {
-    key: 'linethrough',
-    type: 'button',
-    icon: <StrikethroughOutlined />,
-    title: '删除线 Ctrl+Alt+S',
-    active: (editor) => editor.isMarkActive('linethrough'),
-    onClick(editor) {
-      editor.toggleMark('linethrough');
-      ReactEditor.focus(editor);
-    },
-  },
-  {
-    key: 'underline',
-    type: 'button',
-    icon: <UnderlineOutlined />,
-    title: '下划线 Ctrl+U',
-    active: (editor) => editor.isMarkActive('underline'),
-    onClick(editor) {
-      editor.toggleMark('underline');
-      ReactEditor.focus(editor);
-    },
-  },
-  {
-    key: 'numbered-list',
-    type: 'button',
-    icon: <OrderedListOutlined />,
-    title: '有序列表 Ctrl+Alt+O',
-    active: (editor) => editor.isElementActive('numbered-list'),
-    onClick(editor) {
-      editor.toggleElement('numbered-list');
-      ReactEditor.focus(editor);
-    },
-  },
-  {
-    key: 'bulleted-list',
-    type: 'button',
-    icon: <UnorderedListOutlined />,
-    title: '无序列表 Ctrl+Alt+U',
-    active: (editor) => editor.isElementActive('bulleted-list'),
-    onClick(editor) {
-      editor.toggleElement('bulleted-list');
-      ReactEditor.focus(editor);
-    },
-  },
-  {
-    key: 'format',
-    type: 'dropdown',
-    title: '正文与标题',
-    placeholder: '无标题',
-    width: 85,
-    options: [
-      {
-        key: 'paragraph',
-        label: '正文',
-        renderLabel: (label) => <p style={mp0}>{label}</p>,
-        extra: 'Ctrl+Alt+0',
-      },
-      {
-        key: 'heading-one',
-        label: '标题1',
-        renderLabel: (label) => <h1 style={mp0}>{label}</h1>,
-        extra: 'Ctrl+Alt+1',
-      },
-      {
-        key: 'heading-two',
-        label: '标题2',
-        renderLabel: (label) => <h2 style={mp0}>{label}</h2>,
-        extra: 'Ctrl+Alt+2',
-      },
-      {
-        key: 'heading-three',
-        label: '标题3',
-        renderLabel: (label) => <h3 style={mp0}>{label}</h3>,
-        extra: 'Ctrl+Alt+3',
-      },
-      {
-        key: 'heading-four',
-        label: '标题4',
-        renderLabel: (label) => <h4 style={mp0}>{label}</h4>,
-        extra: 'Ctrl+Alt+4',
-      },
-      {
-        key: 'heading-five',
-        label: '标题5',
-        renderLabel: (label) => <h5 style={mp0}>{label}</h5>,
-        extra: 'Ctrl+Alt+5',
-      },
-      {
-        key: 'heading-six',
-        label: '标题6',
-        renderLabel: (label) => <h6 style={mp0}>{label}</h6>,
-        extra: 'Ctrl+Alt+6',
-      },
-    ],
-    activeKey: (editor) => editor.getElementFieldsValue('type'),
-    onSelect(editor, v) {
-      editor.toggleElement(v);
-      ReactEditor.focus(editor);
-    },
-  },
-  {
-    key: 'align',
-    type: 'dropdown',
-    title: '文本对齐',
-    width: 65,
-    optionDisplayField: 'icon',
-    options: [
-      {
-        key: 'left',
-        label: '左对齐',
-        extra: 'Ctrl+Alt+L',
-        icon: <AlignLeftOutlined />,
-      },
-      {
-        key: 'right',
-        label: '右对齐',
-        extra: 'Ctrl+Alt+R',
-        icon: <AlignRightOutlined />,
-      },
-      {
-        key: 'center',
-        label: '居中对齐',
-        extra: 'Ctrl+Alt+C',
-        icon: <AlignCenterOutlined />,
-      },
-      {
-        key: 'justify',
-        label: '两端对齐',
-        extra: 'Ctrl+Alt+J',
-        icon: <MenuOutlined />,
-      },
-    ],
-    activeKey: (editor) => {
-      const type = editor.getElementFieldsValue('type');
-      const isList = LIST_TYPES.includes(type);
-      if (isList) {
-        // list比较特殊，因为有list-item，此判断逻辑适用于所有存在item的Node，
-        // 所以需要注意可能有其他类型的嵌套，需要一并添加判断。
-        // getElementFieldsValue 直接获取的是list的值，但其实真正控制align的是list-item
-        // 需要指定具体类型，否则获取的是上层的数据
-        return editor.getElementFieldsValue('align', 'list-item') || 'left';
-      }
-      return editor.getElementFieldsValue('align') || 'left';
-    },
-    onSelect(editor, v) {
-      editor.toggleAlign(v);
-      ReactEditor.focus(editor);
-    },
-  },
+  'divider',
+  'block-quote',
+  'link',
 ];
 
 function Toolbar(props: ToolbarProps) {
   const { className, style, sort = baseSort, include, exclude, extraResolver } = props;
+
+  const { visible: linkDialogVisible, pos: linkDialogPos, setPos: setLinkDialogPos } = useFormDialog();
+
+  const baseResolver = useMemo<ToolbarResolver[]>(
+    () => [
+      {
+        key: 'bold',
+        type: 'button',
+        icon: <BoldOutlined />,
+        title: '加粗 Ctrl+B',
+        active: (editor) => editor.isMarkActive('bold'),
+        onClick(editor) {
+          editor.toggleMark('bold');
+          ReactEditor.focus(editor);
+        },
+      },
+      {
+        key: 'italic',
+        type: 'button',
+        icon: <ItalicOutlined />,
+        title: '倾斜 Ctrl+I',
+        active: (editor) => editor.isMarkActive('italic'),
+        onClick(editor) {
+          editor.toggleMark('italic');
+          ReactEditor.focus(editor);
+        },
+      },
+      {
+        key: 'linethrough',
+        type: 'button',
+        icon: <StrikethroughOutlined />,
+        title: '删除线 Ctrl+Alt+S',
+        active: (editor) => editor.isMarkActive('linethrough'),
+        onClick(editor) {
+          editor.toggleMark('linethrough');
+          ReactEditor.focus(editor);
+        },
+      },
+      {
+        key: 'code',
+        type: 'button',
+        icon: <Icon component={CodeSvgr} />,
+        title: '行内代码 Ctrl+`',
+        active: (editor) => editor.isMarkActive('code'),
+        onClick(editor) {
+          editor.toggleMark('code');
+          ReactEditor.focus(editor);
+        },
+      },
+      {
+        key: 'underline',
+        type: 'button',
+        icon: <UnderlineOutlined />,
+        title: '下划线 Ctrl+U',
+        active: (editor) => editor.isMarkActive('underline'),
+        onClick(editor) {
+          editor.toggleMark('underline');
+          ReactEditor.focus(editor);
+        },
+      },
+      {
+        key: 'superscript',
+        type: 'button',
+        icon: <Icon component={SuperscriptSvgr} />,
+        title: '上标 Ctrl+.',
+        active: (editor) => editor.isMarkActive('superscript'),
+        onClick(editor) {
+          editor.toggleMark('superscript');
+          ReactEditor.focus(editor);
+        },
+      },
+      {
+        key: 'subscript',
+        type: 'button',
+        icon: <Icon component={SubscriptSvgr} />,
+        title: '下标 Ctrl+,',
+        active: (editor) => editor.isMarkActive('subscript'),
+        onClick(editor) {
+          editor.toggleMark('subscript');
+          ReactEditor.focus(editor);
+        },
+      },
+      {
+        key: 'numbered-list',
+        type: 'button',
+        icon: <OrderedListOutlined />,
+        title: '有序列表 Ctrl+Alt+O',
+        active: (editor) => editor.isElementActive('numbered-list'),
+        onClick(editor) {
+          editor.toggleElement('numbered-list');
+          ReactEditor.focus(editor);
+        },
+      },
+      {
+        key: 'bulleted-list',
+        type: 'button',
+        icon: <UnorderedListOutlined />,
+        title: '无序列表 Ctrl+Alt+U',
+        active: (editor) => editor.isElementActive('bulleted-list'),
+        onClick(editor) {
+          editor.toggleElement('bulleted-list');
+          ReactEditor.focus(editor);
+        },
+      },
+      {
+        key: 'block-quote',
+        type: 'button',
+        icon: <Icon component={BlockQuoteSvgr} />,
+        title: '引用块 Ctrl+Alt+Q',
+        active: (editor) => editor.isElementActive('block-quote'),
+        onClick(editor) {
+          editor.toggleElement('block-quote');
+          ReactEditor.focus(editor);
+        },
+      },
+      {
+        key: 'link',
+        type: 'button',
+        icon: <LinkOutlined />,
+        title: '插入链接',
+        active: (editor) => editor.isElementActive('link'),
+        onClick(editor) {
+          const pos = editor.getBoundingClientRect();
+          // https://ant.design/components/modal-cn#components-modal-demo-modal-render
+          // TODO: 拖动对话框 <Draggable defaultPosition={pos} />，初始位置defaultPosition是鼠标的位置，即pos
+          if (pos) {
+            console.log(pos);
+            setLinkDialogPos({ x: pos.x + pos.width, y: pos.y + pos.height });
+          }
+        },
+      },
+      {
+        key: 'format',
+        type: 'dropdown',
+        title: '正文与标题',
+        placeholder: '无标题',
+        width: 85,
+        options: [
+          {
+            key: 'paragraph',
+            label: '正文',
+            renderLabel: (label) => <p style={mp0}>{label}</p>,
+            extra: 'Ctrl+Alt+0',
+          },
+          {
+            key: 'heading-one',
+            label: '标题1',
+            renderLabel: (label) => <h1 style={mp0}>{label}</h1>,
+            extra: 'Ctrl+Alt+1',
+          },
+          {
+            key: 'heading-two',
+            label: '标题2',
+            renderLabel: (label) => <h2 style={mp0}>{label}</h2>,
+            extra: 'Ctrl+Alt+2',
+          },
+          {
+            key: 'heading-three',
+            label: '标题3',
+            renderLabel: (label) => <h3 style={mp0}>{label}</h3>,
+            extra: 'Ctrl+Alt+3',
+          },
+          {
+            key: 'heading-four',
+            label: '标题4',
+            renderLabel: (label) => <h4 style={mp0}>{label}</h4>,
+            extra: 'Ctrl+Alt+4',
+          },
+          {
+            key: 'heading-five',
+            label: '标题5',
+            renderLabel: (label) => <h5 style={mp0}>{label}</h5>,
+            extra: 'Ctrl+Alt+5',
+          },
+          {
+            key: 'heading-six',
+            label: '标题6',
+            renderLabel: (label) => <h6 style={mp0}>{label}</h6>,
+            extra: 'Ctrl+Alt+6',
+          },
+        ],
+        activeKey: (editor) => editor.getElementFieldsValue('type'),
+        onSelect(editor, v) {
+          editor.toggleElement(v);
+          ReactEditor.focus(editor);
+        },
+      },
+      {
+        key: 'align',
+        type: 'dropdown',
+        title: '文本对齐',
+        width: 65,
+        optionDisplayField: 'icon',
+        options: [
+          {
+            key: 'left',
+            label: '左对齐',
+            extra: 'Ctrl+Alt+L',
+            icon: <AlignLeftOutlined />,
+          },
+          {
+            key: 'right',
+            label: '右对齐',
+            extra: 'Ctrl+Alt+R',
+            icon: <AlignRightOutlined />,
+          },
+          {
+            key: 'center',
+            label: '居中对齐',
+            extra: 'Ctrl+Alt+C',
+            icon: <AlignCenterOutlined />,
+          },
+          {
+            key: 'justify',
+            label: '两端对齐',
+            extra: 'Ctrl+Alt+J',
+            icon: <MenuOutlined />,
+          },
+        ],
+        activeKey: (editor) => {
+          const type = editor.getElementFieldsValue('type');
+          const isList = LIST_TYPES.includes(type);
+          if (isList) {
+            // list比较特殊，因为有list-item，此判断逻辑适用于所有存在item的Node，
+            // 所以需要注意可能有其他类型的嵌套，需要一并添加判断。
+            // getElementFieldsValue 直接获取的是list的值，但其实真正控制align的是list-item
+            // 需要指定具体类型，否则获取的是上层的数据
+            return editor.getElementFieldsValue('align', 'list-item') || 'left';
+          }
+          return editor.getElementFieldsValue('align') || 'left';
+        },
+        onSelect(editor, v) {
+          editor.toggleAlign(v);
+          ReactEditor.focus(editor);
+        },
+      },
+    ],
+    [setLinkDialogPos]
+  );
 
   const editor = useSlate();
 
@@ -282,7 +359,7 @@ function Toolbar(props: ToolbarProps) {
       })
       .filter(Boolean) as ToolbarItem[];
     return resolver;
-  }, [exclude, extra, include, sort]);
+  }, [baseResolver, exclude, extra, include, sort]);
 
   const resolver = useMemo(() => getResolver(), [getResolver]);
 

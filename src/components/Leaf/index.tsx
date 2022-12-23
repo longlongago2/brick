@@ -32,6 +32,14 @@ function Leaf(props: RenderLeafProps) {
     text = <mark>{text}</mark>;
   }
 
+  if ('superscript' in leaf && leaf.superscript) {
+    text = <sup>{text}</sup>;
+  }
+
+  if ('subscript' in leaf && leaf.subscript) {
+    text = <sub>{text}</sub>;
+  }
+
   return <span {...attributes}>{text}</span>;
 }
 

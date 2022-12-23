@@ -1,4 +1,5 @@
 import { Editor, Element, Transforms, Range } from 'slate';
+import { ReactEditor } from 'slate-react';
 import { TEXT_ALIGN_TYPES, NO_EFFECT_WRAP_TYPES, LIST_TYPES } from './constant';
 
 import type { Text, Node, LinkElement, MarkKeys, ElementKeys } from 'slate';
@@ -14,6 +15,7 @@ export interface CommandEditor {
   getElementFieldsValue: (fields?: ElementKeys | ElementKeys[], type?: Element['type']) => any;
   setLink: (url: string) => void;
   unsetLink: () => void;
+  getBoundingClientRect: () => DOMRect | null;
 }
 
 /**
@@ -170,6 +172,12 @@ export function withCommand<T extends Editor>(editor: T) {
     Transforms.unwrapNodes(editor, {
       match: (n) => !Editor.isEditor(n) && Element.isElement(n) && n.type === 'link',
     });
+  };
+
+  e.getBoundingClientRect = () => {
+    if (!editor.selection) return null;
+    const range = ReactEditor.toDOMRange(editor, editor.selection);
+    return range.getBoundingClientRect();
   };
 
   return e;

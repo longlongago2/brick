@@ -15,17 +15,15 @@ export default function useStyled() {
         background-color: ${token.colorErrorBg};
         word-break: break-all;
         border-radius: 2px;
-        font-family: Menlo, Monaco, Consolas, 'Courier New', Courier, monospace;
-        padding: 0 5px;
+        font-family: Menlo, Monaco, Consolas, 'Microsoft YaHei', 'Courier New', Courier, monospace;
+        padding: 0 0.2em;
       }
       blockquote {
-        background-color: ${token.colorBgTextHover};
-        border-left: 5px solid ${token.colorPrimary};
-        padding: 1em;
+        border-left: 3px solid ${token.colorBorder};
+        padding: 0.3em 0.6em;
         word-break: break-all;
         white-space: pre-wrap;
         margin: 0;
-        line-height: 1.5;
       }
       mark {
         background-color: #ffff00;
