@@ -3,6 +3,8 @@ import path from 'path';
 import fs from 'fs-extra';
 import chalk from 'chalk';
 import webpack from 'webpack';
+import cssModulesPlugin from 'esbuild-css-modules-plugin';
+import { lessLoader } from 'esbuild-plugin-less';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 
 export const appDirectory = fs.realpathSync(process.cwd());
@@ -17,16 +19,75 @@ const date = new Date();
 
 const datestring = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 
-export const banner = `[file] ${datestring}
+export const getBanner = (platform) => {
+  if (platform === 'webpack') {
+    return `brick v${packageJSON.version} ${datestring}
 Copyright (c) 2022, NebulaeData Ltd.
-Released under the MIT License.
-@version ${packageJSON.version}
-@author ${packageJSON.author}
-@description ${packageJSON.description}`;
+Released under the MIT License.`;
+  }
+  if (platform === 'tsup') {
+    return `/**
+ * brick v${packageJSON.version} ${datestring}
+ * Copyright (c) 2022, NebulaeData Ltd.
+ * Released under the MIT License.
+ */
+`;
+  }
+};
 
+/**
+ * @description 继承公共的tsup配置
+ * @export
+ * @param {import('tsup').Options} overrideOptions
+ * @return {import('tsup').Options}
+ */
+export function extendTsupConfig(overrideOptions) {
+  return {
+    entry: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts'],
+    platform: 'browser',
+    dts: true,
+    clean: true,
+    minify: false,
+    splitting: false,
+    treeshake: true,
+    bundle: false,
+    sourcemap: false,
+    injectStyle: true,
+    replaceNodeEnv: true,
+    silent: true,
+    skipNodeModulesBundle: false,
+    shims: false,
+    external: ['react', 'react-dom'],
+    esbuildPlugins: [
+      // NOTE: 尽量和webpack同步支持css modules,less (未经测试)
+      cssModulesPlugin({
+        filter: /\.module\.css$/,
+      }),
+      lessLoader(
+        {},
+        {
+          filter: /\.less$/,
+        }
+      ),
+    ],
+    banner: {
+      js: getBanner('tsup'),
+    },
+    outExtension() {
+      return {
+        js: '.js', // 所有js后缀名全都设为'.js',避免出现'.cjs','.mjs' outExtension({ format }),也可根据format动态设置
+      };
+    },
+    ...overrideOptions,
+    // ts 打包配置使用tsconfig.json,例如 paths alias 包路径别名,就在tsconfig.json => paths 配置
+  };
+}
+
+// 需要和以下配置文件同步配置项
+// Typescript: tsconfig.json => paths
+// Esllint: package.json => eslintConfig => import/resolver => alias
 export const alias = {
   brick: resolveApp('./src/index.ts'),
-  src: resolveApp('./src'),
 };
 
 // peerDependencies externals
@@ -58,19 +119,8 @@ const getStyleLoaders = (config) => {
     {
       loader: 'postcss-loader',
       options: {
-        postcssOptions: {
-          plugins: [
-            [
-              'postcss-preset-env',
-              {
-                autoprefixer: {
-                  flexbox: 'no-2009',
-                },
-                stage: 3,
-              },
-            ],
-          ],
-        },
+        // use postcss.config.js
+        postcssOptions: {},
         sourceMap: false,
       },
     },
@@ -94,17 +144,7 @@ export const getRules = (config) => {
         {
           loader: 'babel-loader',
           options: {
-            presets: [
-              [
-                '@babel/preset-env',
-                {
-                  useBuiltIns: 'usage',
-                  corejs: '3.2',
-                },
-              ],
-              '@babel/preset-react',
-              '@babel/preset-typescript',
-            ],
+            // use babel.config.json
             plugins: [isDevelopment && 'react-refresh/babel'].filter(Boolean),
           },
         },

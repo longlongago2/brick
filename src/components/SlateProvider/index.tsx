@@ -1,7 +1,7 @@
 import React, { memo, useMemo } from 'react';
 import { Slate } from 'slate-react';
 import { ConfigProvider } from 'antd';
-import { useEditorState } from 'src/hooks';
+import { useEditorState } from '../../hooks';
 
 import type { Descendant, Editor } from 'slate';
 import type { ThemeConfig } from 'antd/es/config-provider/context';

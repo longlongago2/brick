@@ -3,9 +3,9 @@ import { Editable, useSlate } from 'slate-react';
 import { Range, Transforms } from 'slate';
 import isHotkey, { isKeyHotkey } from 'is-hotkey';
 import classNames from 'classnames';
-import { HOTKEYS } from 'src/utils/constant';
-import Leaf from 'src/components/Leaf'; // TODO: 验证 alias 路径在 esm, cjs 模式下是否正确编译
-import Element from 'src/components/Element';
+import Leaf from '../Leaf';
+import Element from '../Element';
+import { HOTKEYS } from '../../utils/constant';
 import useStyled from './styled';
 
 import type { RenderLeafProps, RenderElementProps } from 'slate-react';
