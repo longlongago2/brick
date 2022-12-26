@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useMemo } from 'react';
 import { useSlate, ReactEditor } from 'slate-react';
-import { Tooltip, Divider, Space } from 'antd';
+import { Tooltip, Divider, Space, Form, Input } from 'antd';
 import Icon, {
   BoldOutlined,
   ItalicOutlined,
@@ -19,6 +19,7 @@ import { LIST_TYPES } from '../../utils/constant';
 import { useFormDialog } from '../../hooks';
 import Button from './Button';
 import Selector from './Select';
+import FormDialog from './FormDialog';
 import CodeSvgr from '../../assets/code.svg';
 import BlockQuoteSvgr from '../../assets/block-quote.svg';
 import SuperscriptSvgr from '../../assets/superscript.svg';
@@ -101,7 +102,13 @@ export const baseSort = [
 function Toolbar(props: ToolbarProps) {
   const { className, style, sort = baseSort, include, exclude, extraResolver } = props;
 
-  const { visible: linkDialogVisible, pos: linkDialogPos, setPos: setLinkDialogPos } = useFormDialog();
+  const {
+    visible: linkDialogVisible,
+    setVisible: setLinkDialogVisible,
+    pos: linkDialogPos,
+    setPos: setLinkDialogPos,
+    close,
+  } = useFormDialog();
 
   const baseResolver = useMemo<ToolbarResolver[]>(
     () => [
@@ -223,11 +230,9 @@ function Toolbar(props: ToolbarProps) {
         active: (editor) => editor.isElementActive('link'),
         onClick(editor) {
           const pos = editor.getBoundingClientRect();
-          // https://ant.design/components/modal-cn#components-modal-demo-modal-render
-          // TODO: 拖动对话框 <Draggable defaultPosition={pos} />，初始位置defaultPosition是鼠标的位置，即pos
           if (pos) {
-            console.log(pos);
             setLinkDialogPos({ x: pos.x + pos.width, y: pos.y + pos.height });
+            setLinkDialogVisible(true);
           }
         },
       },
@@ -337,7 +342,7 @@ function Toolbar(props: ToolbarProps) {
         },
       },
     ],
-    [setLinkDialogPos]
+    [setLinkDialogPos, setLinkDialogVisible]
   );
 
   const editor = useSlate();
@@ -378,70 +383,85 @@ function Toolbar(props: ToolbarProps) {
   );
 
   return (
-    <Space role="toolbar" className={className} style={style} wrap>
-      {resolver.map((item, i) => {
-        if (item === 'divider') {
-          return <Divider key={`${item}-${i}`} type="vertical" />;
-        }
-        const { key, type } = item;
-        if (type === 'button') {
-          // 普通按钮
-          let active = false;
-          if (typeof item.active === 'boolean') {
-            active = item.active;
-          } else if (typeof item.active === 'function') {
-            active = item.active(editor);
+    <>
+      <Space role="toolbar" className={className} style={style} wrap>
+        {resolver.map((item, i) => {
+          if (item === 'divider') {
+            return <Divider key={`${item}-${i}`} type="vertical" />;
           }
-          return (
-            <Button<ToolbarButton>
-              key={key}
-              icon={item.icon}
-              title={item.title}
-              active={active}
-              dataset={item}
-              onClick={handleButtonClick}
-            />
-          );
-        }
-        if (type === 'dropdown') {
-          // 下拉按钮
-          let value = '';
-          if (typeof item.activeKey === 'string') {
-            value = item.activeKey;
-          } else if (typeof item.activeKey === 'function') {
-            value = item.activeKey(editor);
+          const { key, type } = item;
+          if (type === 'button') {
+            // 普通按钮
+            let active = false;
+            if (typeof item.active === 'boolean') {
+              active = item.active;
+            } else if (typeof item.active === 'function') {
+              active = item.active(editor);
+            }
+            return (
+              <Button<ToolbarButton>
+                key={key}
+                icon={item.icon}
+                title={item.title}
+                active={active}
+                dataset={item}
+                onClick={handleButtonClick}
+              />
+            );
           }
-          return (
-            <Selector<ToolbarDropdown>
-              key={key}
-              value={value}
-              options={item.options}
-              title={item.title}
-              width={item.width}
-              placeholder={item.placeholder}
-              dataset={item}
-              optionDisplayField={item.optionDisplayField}
-              onChange={handleSelectChange}
-            />
-          );
-        }
-        if (type === 'custom') {
-          // 自定义按钮
-          let jsxElement = null;
-          if (typeof item.element === 'function') {
-            jsxElement = item.element(editor);
-          } else {
-            jsxElement = item.element;
+          if (type === 'dropdown') {
+            // 下拉按钮
+            let value = '';
+            if (typeof item.activeKey === 'string') {
+              value = item.activeKey;
+            } else if (typeof item.activeKey === 'function') {
+              value = item.activeKey(editor);
+            }
+            return (
+              <Selector<ToolbarDropdown>
+                key={key}
+                value={value}
+                options={item.options}
+                title={item.title}
+                width={item.width}
+                placeholder={item.placeholder}
+                dataset={item}
+                optionDisplayField={item.optionDisplayField}
+                onChange={handleSelectChange}
+              />
+            );
           }
-          return (
-            <Tooltip key={item.key} title={item.title}>
-              {jsxElement}
-            </Tooltip>
-          );
-        }
-        return null;
-      })}
-    </Space>
+          if (type === 'custom') {
+            // 自定义按钮
+            let jsxElement = null;
+            if (typeof item.element === 'function') {
+              jsxElement = item.element(editor);
+            } else {
+              jsxElement = item.element;
+            }
+            return (
+              <Tooltip key={item.key} title={item.title}>
+                {jsxElement}
+              </Tooltip>
+            );
+          }
+          return null;
+        })}
+      </Space>
+      <FormDialog
+        width={355}
+        draggable
+        title="超链接"
+        mask={false}
+        open={linkDialogVisible}
+        defaultPosition={linkDialogPos}
+        onCancel={close}
+      >
+        <Form.Item name="url">
+          <Input placeholder="请输入地址，例如：http://www.baidu.com" allowClear autoFocus />
+        </Form.Item>
+      </FormDialog>
+    </>
   );
 }
 

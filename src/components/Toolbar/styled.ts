@@ -48,5 +48,20 @@ export default function useStyled() {
         }
       }
     `,
+    dragHandler: css`
+      width: 100%;
+      min-height: 35px;
+      cursor: move;
+      &.disabled {
+        cursor: default;
+      }
+    `,
+    dragModal: css`
+      overflow: hidden !important;
+      .ant-modal {
+        margin: 0 !important;
+        top: unset !important;
+      }
+    `,
   };
 }

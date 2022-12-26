@@ -58,7 +58,7 @@ export function extendTsupConfig(overrideOptions) {
     silent: true,
     skipNodeModulesBundle: false,
     shims: false,
-    external: ['react', 'react-dom'],
+    external: ['react', 'react-dom', 'slate', 'slate-react'], // bundle: true,生效, 与webpack external同步
     esbuildPlugins: [
       // 和webpack作用相同：svg作为react component 导入
       svgrPlugin(),
@@ -94,6 +94,10 @@ export const alias = {
 };
 
 // peerDependencies externals
+// <script src="https://unpkg.com/react/umd/react.production.min.js"></script>
+// <script src="https://unpkg.com/react-dom/umd/react-dom.production.min.js"></script>
+// <script src="https://unpkg.com/slate/dist/slate.js"></script>
+// <script src="https://unpkg.com/slate-react/dist/slate-react.js"></script>
 export const externals = {
   react: {
     commonjs: 'react',
@@ -106,6 +110,18 @@ export const externals = {
     commonjs2: 'react-dom',
     amd: 'react-dom',
     root: 'ReactDOM',
+  },
+  slate: {
+    commonjs: 'slate',
+    commonjs2: 'slate',
+    amd: 'slate',
+    root: 'Slate',
+  },
+  'slate-react': {
+    commonjs: 'slate-react',
+    commonjs2: 'slate-react',
+    amd: 'slate-react',
+    root: 'SlateReact',
   },
 };
 
