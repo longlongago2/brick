@@ -91,6 +91,7 @@ export function extendTsupConfig(overrideOptions) {
 // Esllint: package.json => eslintConfig => import/resolver => alias
 export const alias = {
   brick: resolveApp('./src/index.ts'),
+  src: resolveApp('./src'),
 };
 
 // peerDependencies externals

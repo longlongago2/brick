@@ -13,16 +13,30 @@ export interface FormDialogProps extends Omit<ModalProps, 'modalRender' | 'destr
   position?: DraggableProps['position'];
   draggable?: boolean;
   onFinish?: FormProps['onFinish'];
+  onFinishFailed?: FormProps['onFinishFailed'];
+  onFieldsChange?: FormProps['onFieldsChange'];
+  onValuesChange?: FormProps['onValuesChange'];
 }
 
 function FormDialog(props: FormDialogProps) {
-  const { title, form, defaultPosition, position, draggable, wrapClassName, children, ...restProps } = props;
+  const {
+    title,
+    form,
+    defaultPosition,
+    position,
+    draggable,
+    wrapClassName,
+    children,
+    onFinish,
+    onFinishFailed,
+    onFieldsChange,
+    onValuesChange,
+    ...restProps
+  } = props;
 
   const [bounds, setBounds] = useState({ left: 0, top: 0, bottom: 0, right: 0 });
 
   const draggleRef = useRef<HTMLDivElement>(null);
-
-  const [_form] = Form.useForm();
 
   const { dragHandler, dragModal } = useStyled();
 
@@ -40,8 +54,6 @@ function FormDialog(props: FormDialogProps) {
       bottom: clientHeight - (targetRect.bottom - uiData.y),
     });
   }, []);
-
-  const formInstance = useMemo(() => form || _form, [_form, form]);
 
   const modalRender = useCallback<NonNullable<ModalProps['modalRender']>>(
     (modal) => {
@@ -78,7 +90,14 @@ function FormDialog(props: FormDialogProps) {
       modalRender={modalRender}
       destroyOnClose
     >
-      <Form form={formInstance} layout="vertical">
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        onFinishFailed={onFinishFailed}
+        onFieldsChange={onFieldsChange}
+        onValuesChange={onValuesChange}
+      >
         {children}
       </Form>
     </Modal>

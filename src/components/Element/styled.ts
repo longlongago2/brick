@@ -42,6 +42,7 @@ export default function useStyled() {
     paragraphLock: css`
       cursor: default;
       color: ${token.colorTextTertiary};
+      opacity: 0.7;
     `,
     paragraph: css`
       position: relative;

@@ -91,6 +91,10 @@
             [
               "brick",
               "./src/index.ts"
+            ],
+            [
+              "src",
+              "./src"
             ]
           ],
           "extensions": [

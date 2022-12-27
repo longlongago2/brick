@@ -26,7 +26,8 @@
     "skipLibCheck": true,
     "baseUrl": "./",
     "paths": {
-      "brick": ["src/index.ts"]
+      "brick": ["src/index.ts"],
+      "src": ["src"],
     }
   },
   "include": ["src/**/*", "serve/**/*"]

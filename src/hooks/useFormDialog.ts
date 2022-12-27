@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Form } from 'antd';
 
 export interface useFormDialogParams {
@@ -18,26 +18,31 @@ export function useFormDialog(params?: useFormDialogParams) {
 
   const [form] = Form.useForm();
 
-  const close = () => {
+  const close = useCallback(() => {
     setLoading(false);
     setVisible(false);
     form.resetFields();
-  };
+  }, [form]);
 
-  const submit = () => {
+  const submit = useCallback(() => {
     setLoading(true);
     form.submit();
-  };
+  }, [form]);
+
+  const reset = useCallback(() => {
+    form.resetFields();
+  }, [form]);
 
   return {
+    form,
     visible,
     setVisible,
     loading,
     setLoading,
-    form,
-    close,
-    submit,
     pos,
     setPos,
+    close,
+    submit,
+    reset,
   };
 }

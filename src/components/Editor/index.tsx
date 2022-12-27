@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
 import SlateProvider from '../SlateProvider';
+import ToolbarProvider from '../Toolbar/Provider';
 import Toolbar from '../Toolbar';
 import Content from '../Content';
 
