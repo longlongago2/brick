@@ -5,7 +5,6 @@ import { isFunction, isPowerArray } from '../../utils';
 import Button from './Button';
 import Selector from './Select';
 import useBaseResolver from './useBaseResolver';
-import { useToolbarCtx } from 'src/hooks';
 
 import type { Editor } from 'slate';
 import type { DropdownOption, SelectProps } from './Select';
@@ -18,6 +17,7 @@ export interface ToolbarButton {
   icon: React.ReactNode | ((editor: Editor) => React.ReactNode);
   title: React.ReactNode | ((editor: Editor) => React.ReactNode);
   active?: boolean | ((editor: Editor) => boolean);
+  attachRender?: React.ReactNode; // 附带渲染：例如弹出框等
   onClick?: (editor: Editor, e: any) => void;
 }
 
@@ -31,6 +31,7 @@ export interface ToolbarDropdown {
   optionDisplayField?: keyof DropdownOption;
   options: DropdownOption[];
   activeKey?: DropdownOption['key'] | ((editor: Editor) => DropdownOption['key']);
+  attachRender?: React.ReactNode;
   onSelect?: (editor: Editor, v: any, option: any) => void;
 }
 
@@ -40,6 +41,7 @@ export interface ToolbarElement {
   type: 'custom';
   title: React.ReactNode | ((editor: Editor) => React.ReactNode);
   element: React.ReactElement | ((editor: Editor) => React.ReactElement);
+  attachRender?: React.ReactNode;
 }
 
 // 分割线
@@ -85,14 +87,12 @@ function Toolbar(props: ToolbarProps) {
   // memoize
   const editor = useSlate();
 
-  const toolbar = useToolbarCtx();
-
   const { baseResolver, baseRender } = useBaseResolver();
 
-  const extra = useMemo(() => extraResolver?.(editor) || [], [editor, extraResolver]);
+  const _extraResolver = useMemo(() => extraResolver?.(editor) || [], [editor, extraResolver]);
 
   const getResolver = useCallback(() => {
-    let res = baseResolver.filter(({ key }) => !extra.find((_) => _.key === key)).concat(extra);
+    let res = baseResolver.filter(({ key }) => !_extraResolver.find((_) => _.key === key)).concat(_extraResolver);
     if (Array.isArray(include)) {
       res = res.filter(({ key }) => include.includes(key));
     }
@@ -106,11 +106,9 @@ function Toolbar(props: ToolbarProps) {
       })
       .filter(Boolean) as ToolbarItem[];
     return resolver;
-  }, [baseResolver, exclude, extra, include, sort]);
+  }, [_extraResolver, baseResolver, exclude, include, sort]);
 
   const resolver = useMemo(() => getResolver(), [getResolver]);
-
-  toolbar.current.resolver = baseResolver.concat(extra); // 更新 toolbar 上下文的内容
 
   // handler
   const handleButtonClick = useCallback<Exclude<ButtonProps<ToolbarButton>['onClick'], undefined>>(

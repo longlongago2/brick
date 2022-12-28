@@ -1,11 +1,12 @@
 import React, { memo, useCallback, useMemo } from 'react';
 import { useSelected, useFocused, useReadOnly, useSlate } from 'slate-react';
-import { Dropdown } from 'antd';
-import Icon, { CopyOutlined, DisconnectOutlined, FormOutlined } from '@ant-design/icons';
+import { Dropdown, message } from 'antd';
+import Icon, { DisconnectOutlined, FormOutlined, GlobalOutlined } from '@ant-design/icons';
 import classNames from 'classnames';
+import { copyToClipboard } from 'src/utils';
+import useBaseResolver from '../Toolbar/useBaseResolver';
 import InlineChromiumBugfix from '../InlineChromiumBugfix';
 import SvgrLinkExternal from 'src/assets/link-external.svg';
-import { useToolbarCtx } from 'src/hooks';
 import useStyled from './styled';
 
 import type { RenderElementProps } from 'slate-react';
@@ -26,30 +27,42 @@ function Link(props: RenderElementProps) {
 
   const readOnly = useReadOnly();
 
-  const toolbar = useToolbarCtx();
-
   const { link } = useStyled();
 
   const linkEle = element as LinkElement;
 
   const paragraphLocked = editor.getElementFieldsValue('lock', 'paragraph');
 
-  const handleMenuClick = useCallback<
-    Exclude<Exclude<DropDownProps['menu'], undefined>['onClick'], undefined>
-  >(
+  const { baseResolver } = useBaseResolver();
+
+  const linkToolbarResolver = useMemo<ToolbarButton>(
+    () => baseResolver.find((_) => _.key === 'link') as ToolbarButton,
+    [baseResolver]
+  );
+
+  const linkToolbarAttachRender = useMemo(() => linkToolbarResolver.attachRender, [linkToolbarResolver]);
+
+  const handleMenuClick = useCallback<NonNullable<NonNullable<DropDownProps['menu']>['onClick']>>(
     ({ key }) => {
       if (key === 'unset') {
         editor.unsetLink();
       } else if (key === 'edit') {
-        const bar = toolbar.current.resolver?.find((_) => _.key === 'link') as ToolbarButton;
-        if (bar) bar.onClick?.(editor, { target: 'emit-edit' });
+        if (linkToolbarResolver && linkToolbarResolver.onClick) {
+          linkToolbarResolver.onClick(editor, { target: 'emitter_edit' });
+        }
       } else if (key === 'copy') {
-        console.log('copy');
+        copyToClipboard(linkEle.url)
+          .then(() => {
+            message.success('链接地址已复制');
+          })
+          .catch(() => {
+            message.error('复制失败，浏览器不支持');
+          });
       } else if (key === 'redirect') {
         window.open(linkEle.url, '_blank');
       }
     },
-    [editor, linkEle.url, toolbar]
+    [editor, linkEle, linkToolbarResolver]
   );
 
   const preventContextMenu: React.MouseEventHandler<HTMLSpanElement> = (e) => {
@@ -72,8 +85,8 @@ function Link(props: RenderElementProps) {
         },
         {
           key: 'copy',
-          label: '复制超链接',
-          icon: <CopyOutlined />,
+          label: '复制链接地址',
+          icon: <GlobalOutlined />,
         },
         {
           key: 'redirect',
@@ -110,6 +123,7 @@ function Link(props: RenderElementProps) {
   );
 
   if (paragraphLocked) {
+    // 段落锁定
     return core;
   }
 
@@ -118,6 +132,7 @@ function Link(props: RenderElementProps) {
       <Dropdown trigger={trigger} menu={menu}>
         {core}
       </Dropdown>
+      {linkToolbarAttachRender}
     </span>
   );
 }

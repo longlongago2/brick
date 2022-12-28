@@ -128,6 +128,8 @@
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "slate": "^0.87.0",
+    "slate-history": "^0.86.0",
+    "slate-hyperscript": "^0.77.0",
     "slate-react": "^0.88.0"
   },
   "devDependencies": {
@@ -168,6 +170,8 @@
     "react-dom": "^18.2.0",
     "react-refresh": "^0.14.0",
     "slate": "^0.87.0",
+    "slate-history": "^0.86.0",
+    "slate-hyperscript": "^0.77.0",
     "slate-react": "^0.88.0",
     "style-loader": "^3.3.1",
     "tslib": "^2.4.1",
@@ -183,8 +187,6 @@
     "antd": "^5.1.0",
     "classnames": "^2.3.2",
     "is-hotkey": "^0.2.0",
-    "react-draggable": "^4.4.5",
-    "slate-history": "^0.86.0",
-    "slate-hyperscript": "^0.77.0"
+    "react-draggable": "^4.4.5"
   }
 }

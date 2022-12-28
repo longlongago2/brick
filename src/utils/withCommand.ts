@@ -150,7 +150,10 @@ export function withCommand<T extends Editor>(editor: T) {
   e.setLink = (url) => {
     const isActive = e.isElementActive('link');
     if (isActive) {
-      e.unsetLink();
+      // update: delete and then insert
+      Transforms.removeNodes(editor, {
+        match: (n) => !Editor.isEditor(n) && Element.isElement(n) && n.type === 'link',
+      });
     }
     const { selection } = editor;
     const isCollapsed = selection && Range.isCollapsed(selection);

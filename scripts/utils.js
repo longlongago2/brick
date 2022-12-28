@@ -58,7 +58,7 @@ export function extendTsupConfig(overrideOptions) {
     silent: true,
     skipNodeModulesBundle: false,
     shims: false,
-    external: ['react', 'react-dom', 'slate', 'slate-react'], // bundle: true,生效, 与webpack external同步
+    external: ['react', 'react-dom', 'slate', 'slate-react', 'slate-history', 'slate-hyperscript'], // bundle: true,生效, 与webpack external同步
     esbuildPlugins: [
       // 和webpack作用相同：svg作为react component 导入
       svgrPlugin(),
@@ -99,6 +99,8 @@ export const alias = {
 // <script src="https://unpkg.com/react-dom/umd/react-dom.production.min.js"></script>
 // <script src="https://unpkg.com/slate/dist/slate.js"></script>
 // <script src="https://unpkg.com/slate-react/dist/slate-react.js"></script>
+// <script src="https://unpkg.com/slate-history/dist/slate-history.js"></script>
+// <script src="https://unpkg.com/slate-hyperscript/dist/slate-hyperscript.js"></script>
 export const externals = {
   react: {
     commonjs: 'react',
@@ -123,6 +125,18 @@ export const externals = {
     commonjs2: 'slate-react',
     amd: 'slate-react',
     root: 'SlateReact',
+  },
+  'slate-history': {
+    commonjs: 'slate-history',
+    commonjs2: 'slate-history',
+    amd: 'slate-history',
+    root: 'SlateHistory',
+  },
+  'slate-hyperscript': {
+    commonjs: 'slate-hyperscript',
+    commonjs2: 'slate-hyperscript',
+    amd: 'slate-hyperscript',
+    root: 'SlateHyperscript',
   },
 };
 

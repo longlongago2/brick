@@ -41,6 +41,16 @@ export default function useBaseResolver() {
     submit: submitLink,
   } = useFormDialog();
 
+  const handleLinkFinish = useCallback<NonNullable<FormDialogProps['onFinish']>>(
+    (values) => {
+      const { url } = values;
+      editor.setLink(url);
+      ReactEditor.focus(editor);
+      closeLink();
+    },
+    [closeLink, editor]
+  );
+
   const baseResolver = useMemo<ToolbarResolver[]>(
     () => [
       {
@@ -159,17 +169,33 @@ export default function useBaseResolver() {
         icon: (editor) => (editor.isElementActive('link') ? <DisconnectOutlined /> : <LinkOutlined />),
         title: (editor) => (editor.isElementActive('link') ? '取消超链接' : '插入超链接'),
         active: (editor) => editor.isElementActive('link'),
+        attachRender: (
+          <FormDialog
+            form={formLink}
+            width={355}
+            draggable
+            title="超链接"
+            mask={false}
+            open={linkDialogVisible}
+            defaultPosition={linkDialogPos}
+            onCancel={closeLink}
+            onOk={submitLink}
+            onFinish={handleLinkFinish}
+          >
+            <Form.Item name="url">
+              <Input placeholder="请输入地址，例如：http://www.baidu.com" allowClear />
+            </Form.Item>
+          </FormDialog>
+        ),
         onClick(editor, e) {
-          if (e?.target === 'emit-edit') {
-            // 处理特殊请求，一般从Content：即文本编辑器中发出
+          // 处理特殊请求，一般从Content：即文本编辑区中发出
+          if (e?.target === 'emitter_edit') {
+            // 编辑请求
+            const url = editor.getElementFieldsValue('url', 'link');
             const pos = editor.getBoundingClientRect();
-            if (pos) {
-              const url = editor.getElementFieldsValue('url', 'link');
-              formLink.setFieldsValue({ url });
-              setLinkDialogPos({ x: pos.x + pos.width, y: pos.y + pos.height });
-              setLinkDialogVisible(true);
-              // TODO: 需要设置 FormDialog 的mode,是编辑还是新增，FormDialog新增mode
-            }
+            formLink.setFieldsValue({ url });
+            if (pos) setLinkDialogPos({ x: pos.x + pos.width, y: pos.y + pos.height });
+            setLinkDialogVisible(true);
             return;
           }
           const isActive = editor.isElementActive('link');
@@ -290,42 +316,19 @@ export default function useBaseResolver() {
         },
       },
     ],
-    [setLinkDialogPos, setLinkDialogVisible]
+    [
+      closeLink,
+      formLink,
+      handleLinkFinish,
+      linkDialogPos,
+      linkDialogVisible,
+      setLinkDialogPos,
+      setLinkDialogVisible,
+      submitLink,
+    ]
   );
 
-  const handleLinkFinish = useCallback<NonNullable<FormDialogProps['onFinish']>>(
-    (values) => {
-      const { url } = values;
-      editor.setLink(url);
-      ReactEditor.focus(editor);
-      closeLink();
-    },
-    [closeLink, editor]
-  );
-
-  const baseRender = useMemo(
-    () => (
-      <>
-        <FormDialog
-          form={formLink}
-          width={355}
-          draggable
-          title="超链接"
-          mask={false}
-          open={linkDialogVisible}
-          defaultPosition={linkDialogPos}
-          onCancel={closeLink}
-          onOk={submitLink}
-          onFinish={handleLinkFinish}
-        >
-          <Form.Item name="url">
-            <Input placeholder="请输入地址，例如：http://www.baidu.com" allowClear />
-          </Form.Item>
-        </FormDialog>
-      </>
-    ),
-    [closeLink, formLink, handleLinkFinish, linkDialogPos, linkDialogVisible, submitLink]
-  );
+  const baseRender = useMemo(() => baseResolver.map((_) => _.attachRender).filter(Boolean), [baseResolver]);
 
   return { baseResolver, baseRender };
 }
