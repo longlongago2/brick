@@ -3,53 +3,66 @@ import SlateProvider from '../SlateProvider';
 import Toolbar from '../Toolbar';
 import Content from '../Content';
 
-import type { Descendant, Editor } from 'slate';
+import type { Descendant, Editor as SlateEditor } from 'slate';
 import type { ThemeConfig } from 'antd/es/config-provider/context';
 import type { ContentProps } from '../Content';
 import type { ToolbarProps } from '../Toolbar';
 
-export type BaseArchEditorProps = {
-  editor?: Editor;
+export interface EditorProps
+  extends Omit<ContentProps, 'style' | 'className'>,
+    Omit<ToolbarProps, 'style' | 'className'> {
+  editor?: SlateEditor;
   value: Descendant[];
   onChange?: (value: Descendant[]) => void;
   theme?: ThemeConfig;
+  className?: string;
   contentStyle?: React.CSSProperties;
   contentClassName?: string;
   toolbarStyle?: React.CSSProperties;
   toolbarClassName?: string;
-};
-
-export type ArchEditorProps = BaseArchEditorProps & Omit<ContentProps, 'style'> & Omit<ToolbarProps, 'style'>;
+}
 
 /**
- * @description 完整的Editor, 包含toolbar工具栏和editor编辑器的成品
- * @param {ArchEditorProps} props
+ * @description Editor, 包含toolbar工具栏和content编辑区
+ * @param {EditorProps} props
  * @return {*}
  */
-function ArchEditor(props: ArchEditorProps) {
+function Editor(props: EditorProps) {
   const {
-    editor,
     value,
-    onChange,
+    editor,
     theme,
     className,
-    contentClassName,
     contentStyle,
+    contentClassName,
+    preventDefaultShortcut,
     toolbarClassName,
     toolbarStyle,
     placeholder,
     spellCheck,
     autoFocus,
     readOnly,
+    include,
+    exclude,
+    sort,
+    extraResolver,
     renderElement,
     renderLeaf,
     onKeyboard,
+    onChange,
   } = props;
 
   return (
     <SlateProvider editor={editor} value={value} onChange={onChange} theme={theme}>
       <div className={className}>
-        <Toolbar className={toolbarClassName} style={toolbarStyle} />
+        <Toolbar
+          className={toolbarClassName}
+          style={toolbarStyle}
+          sort={sort}
+          include={include}
+          exclude={exclude}
+          extraResolver={extraResolver}
+        />
         <Content
           className={contentClassName}
           style={contentStyle}
@@ -57,6 +70,7 @@ function ArchEditor(props: ArchEditorProps) {
           spellCheck={spellCheck}
           autoFocus={autoFocus}
           readOnly={readOnly}
+          preventDefaultShortcut={preventDefaultShortcut}
           renderElement={renderElement}
           renderLeaf={renderLeaf}
           onKeyboard={onKeyboard}
@@ -66,4 +80,4 @@ function ArchEditor(props: ArchEditorProps) {
   );
 }
 
-export default memo(ArchEditor);
+export default memo(Editor);

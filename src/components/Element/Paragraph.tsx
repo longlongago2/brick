@@ -1,8 +1,17 @@
 import React, { useCallback, memo, useState, useMemo } from 'react';
-import { Editor, Transforms } from 'slate';
+import { Editor, Transforms, Path } from 'slate';
 import { useSlate, ReactEditor, useReadOnly, useSelected } from 'slate-react';
 import { Dropdown, Button } from 'antd';
-import { DragOutlined, EnterOutlined, HolderOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
+import {
+  DragOutlined,
+  EnterOutlined,
+  HolderOutlined,
+  LoadingOutlined,
+  LockOutlined,
+  UnlockOutlined,
+} from '@ant-design/icons';
+import { useDrag, useDrop } from 'react-dnd';
+import classNames from 'classnames';
 import useStyled from './styled';
 
 import type { RenderElementProps } from 'slate-react';
@@ -10,6 +19,11 @@ import type { ParagraphElement } from 'slate';
 import type { DropDownProps } from 'antd';
 
 const trigger: DropDownProps['trigger'] = ['contextMenu'];
+
+interface DragItem extends ParagraphElement {
+  id: string;
+  path: Path;
+}
 
 function Paragraph(props: RenderElementProps) {
   const { attributes, children } = props;
@@ -19,15 +33,69 @@ function Paragraph(props: RenderElementProps) {
   // memorized
   const { paragraphLock, paragraph, dragButton } = useStyled();
 
-  const [dragging, setDragging] = useState(false);
-
   const editor = useSlate();
 
   const readOnly = useReadOnly();
 
   const selected = useSelected();
 
+  // draggable
+  const [allowDrag, setAllowDrag] = useState(false);
+
+  const [dragDirection, setDragDirection] = useState<'up' | 'down'>('down');
+
+  // 当本组件作为拖动源的行为
+  const [{ isDragging }, drag] = useDrag<DragItem, unknown, { isDragging: boolean }>({
+    type: element.type,
+    item: () => {
+      // 拖动源附带的数据
+      const key = ReactEditor.findKey(editor, element);
+      const path = ReactEditor.findPath(editor, element);
+      return { id: key.id, path, ...element };
+    },
+    collect: (monitor: any) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  // 当本组件作为拖动放置目标的行为
+  const [{ isOver, canDrop }, drop] = useDrop<DragItem, void, { isOver: boolean; canDrop: boolean }>({
+    accept: element.type,
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+      canDrop: monitor.canDrop(),
+    }),
+    // 当drag element悬停在组件上时调用
+    hover(item: DragItem) {
+      const dragPath = item.path;
+      const hoverPath = ReactEditor.findPath(editor, element);
+      if (Path.isBefore(dragPath, hoverPath)) {
+        setDragDirection('down');
+      } else {
+        setDragDirection('up');
+      }
+    },
+    // 当drag element释放在组件上时
+    drop(item: DragItem) {
+      const key = ReactEditor.findKey(editor, element);
+      const path = ReactEditor.findPath(editor, element);
+      const dragId = item.id;
+      const dropId = key.id;
+      // Don't replace items with themselves
+      if (dragId === dropId) return;
+      // Avoid locked paragraph
+      if (element.lock) return;
+      // Move
+      Transforms.moveNodes(editor, { at: item.path, to: path });
+    },
+  });
+
   // handler
+  const getDropRef = (ref: HTMLParagraphElement) => {
+    attributes.ref(ref); // 继承 slate attribute 自身的逻辑
+    drop(ref);
+  };
+
   const handleUpEnter = useCallback(() => {
     const paragraph: ParagraphElement = {
       type: 'paragraph',
@@ -48,21 +116,19 @@ function Paragraph(props: RenderElementProps) {
     Transforms.insertNodes(editor, paragraph, { at: Editor.end(editor, path), select: true });
   }, [editor, element]);
 
-  const handleMenuClick = useCallback<
-    Exclude<Exclude<DropDownProps['menu'], undefined>['onClick'], undefined>
-  >(
+  const handleMenuClick = useCallback<NonNullable<NonNullable<DropDownProps['menu']>['onClick']>>(
     ({ key }) => {
       if (key === 'up-enter') {
         handleUpEnter();
       } else if (key === 'down-enter') {
         handleDownEnter();
       } else if (key.indexOf('lock') > -1) {
-        setDragging(false);
+        setAllowDrag(false);
         editor.toggleLock('paragraph');
       } else if (key === 'allow-drag') {
-        setDragging(true);
+        setAllowDrag(true);
       } else if (key === 'not-allow-drag') {
-        setDragging(false);
+        setAllowDrag(false);
       }
     },
     [editor, handleDownEnter, handleUpEnter]
@@ -90,7 +156,7 @@ function Paragraph(props: RenderElementProps) {
             icon: <LockOutlined />,
           },
         !element.lock &&
-          (dragging
+          (allowDrag
             ? {
               key: 'not-allow-drag',
               label: '关闭段落拖动',
@@ -114,8 +180,10 @@ function Paragraph(props: RenderElementProps) {
       ].filter(Boolean as any as ExcludesFalse),
       onClick: handleMenuClick,
     }),
-    [dragging, element.lock, handleMenuClick]
+    [allowDrag, element.lock, handleMenuClick]
   );
+
+  const dragIcon = useMemo(() => (isDragging ? <LoadingOutlined spin /> : <HolderOutlined />), [isDragging]);
 
   // render
   if (readOnly) {
@@ -148,11 +216,30 @@ function Paragraph(props: RenderElementProps) {
   // 可拖动
   return (
     <Dropdown trigger={trigger} menu={menu}>
-      <p style={style} {...attributes} className={paragraph} draggable={dragging}>
+      <p
+        style={style}
+        {...attributes}
+        ref={getDropRef}
+        className={classNames(
+          paragraph,
+          {
+            draggable: allowDrag,
+            hovering: canDrop && isOver,
+            dragging: isDragging,
+          },
+          dragDirection
+        )}
+      >
         {children}
-        {dragging && (
-          <Button icon={<HolderOutlined />} size="small" className={dragButton} contentEditable={false}>
-            按住拖动
+        {allowDrag && (
+          <Button
+            ref={drag}
+            icon={dragIcon}
+            size="small"
+            className={dragButton}
+            contentEditable={false}
+          >
+            {isDragging ? '等待释放' : '按住拖动'}
           </Button>
         )}
       </p>

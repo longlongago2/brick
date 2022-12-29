@@ -24,10 +24,11 @@
     "resolveJsonModule": true,
     "strict": true,
     "skipLibCheck": true,
-    "baseUrl": "./",
+    "baseUrl": ".",
     "paths": {
-      "brick": ["src/index.ts"],
-      "src": ["src"],
+      "brick": ["src"],
+      "brick/*": ["src/*"], // support deep path e.g. brick/components/Editor
+      "src": ["src"]
     }
   },
   "include": ["src/**/*", "serve/**/*"]

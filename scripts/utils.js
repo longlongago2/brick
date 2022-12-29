@@ -90,7 +90,7 @@ export function extendTsupConfig(overrideOptions) {
 // Typescript: tsconfig.json => paths
 // Esllint: package.json => eslintConfig => import/resolver => alias
 export const alias = {
-  brick: resolveApp('./src/index.ts'),
+  brick: resolveApp('./src'),
   src: resolveApp('./src'),
 };
 

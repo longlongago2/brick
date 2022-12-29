@@ -1,6 +1,8 @@
 import React, { memo, useCallback } from 'react';
 import { Editable, useSlate } from 'slate-react';
 import { Range, Transforms } from 'slate';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { DndProvider, useDragDropManager } from 'react-dnd';
 import isHotkey, { isKeyHotkey } from 'is-hotkey';
 import classNames from 'classnames';
 import Leaf from '../Leaf';
@@ -17,9 +19,10 @@ export interface ContentProps {
   spellCheck?: boolean;
   autoFocus?: boolean;
   readOnly?: boolean;
+  preventDefaultShortcut?: boolean;
   style?: React.CSSProperties;
-  renderLeaf?: (props: RenderLeafProps, resolver: JSX.Element) => JSX.Element;
-  renderElement?: (props: RenderElementProps, resolver: JSX.Element) => JSX.Element;
+  renderLeaf?: (props: RenderLeafProps, leaf: JSX.Element) => JSX.Element;
+  renderElement?: (props: RenderElementProps, element: JSX.Element) => JSX.Element;
   onKeyboard?: React.KeyboardEventHandler<HTMLDivElement>;
 }
 
@@ -30,6 +33,7 @@ function Content(props: ContentProps) {
     spellCheck,
     autoFocus,
     readOnly,
+    preventDefaultShortcut,
     style,
     renderLeaf,
     renderElement,
@@ -39,6 +43,8 @@ function Content(props: ContentProps) {
   const editor = useSlate();
 
   const { content } = useStyled();
+
+  // const dragDropManager = useDragDropManager();
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -63,48 +69,51 @@ function Content(props: ContentProps) {
       }
 
       // 内置快捷键
-      // Marks shortcut
-      Object.keys(HOTKEYS.marks).forEach((hotkey) => {
-        if (isHotkey(hotkey, e)) {
-          e.preventDefault();
-          const mark = HOTKEYS.marks[hotkey];
-          editor.toggleMark(mark);
-        }
-      });
-      // Nodes shortcut
-      Object.keys(HOTKEYS.nodes).forEach((hotkey) => {
-        if (isHotkey(hotkey, e)) {
-          e.preventDefault();
-          const type = HOTKEYS.nodes[hotkey] as NoEffectWrapTypes;
-          editor.toggleElement(type);
-        }
-      });
-      // Aligns shortcut
-      Object.keys(HOTKEYS.aligns).forEach((hotkey) => {
-        if (isHotkey(hotkey, e)) {
-          e.preventDefault();
-          const align = HOTKEYS.aligns[hotkey];
-          editor.toggleAlign(align);
-        }
-      });
+      if (!preventDefaultShortcut) {
+        // Marks shortcut
+        Object.keys(HOTKEYS.marks).forEach((hotkey) => {
+          if (isHotkey(hotkey, e)) {
+            e.preventDefault();
+            const mark = HOTKEYS.marks[hotkey];
+            editor.toggleMark(mark);
+          }
+        });
+        // Nodes shortcut
+        Object.keys(HOTKEYS.nodes).forEach((hotkey) => {
+          if (isHotkey(hotkey, e)) {
+            e.preventDefault();
+            const type = HOTKEYS.nodes[hotkey] as NoEffectWrapTypes;
+            editor.toggleElement(type);
+          }
+        });
+        // Aligns shortcut
+        Object.keys(HOTKEYS.aligns).forEach((hotkey) => {
+          if (isHotkey(hotkey, e)) {
+            e.preventDefault();
+            const align = HOTKEYS.aligns[hotkey];
+            editor.toggleAlign(align);
+          }
+        });
+      }
+
       // 暴露接口：用户自定义行为
       if (onKeyboard) onKeyboard(e);
     },
-    [editor, onKeyboard]
+    [editor, onKeyboard, preventDefaultShortcut]
   );
 
   const receiveRenderLeaf = useCallback(
-    (props: RenderLeafProps, resolver: JSX.Element) => {
-      if (renderLeaf) return renderLeaf(props, resolver);
-      return resolver;
+    (props: RenderLeafProps, leaf: JSX.Element) => {
+      if (renderLeaf) return renderLeaf(props, leaf);
+      return leaf;
     },
     [renderLeaf]
   );
 
   const receiveRenderElement = useCallback(
-    (props: RenderElementProps, resolver: JSX.Element) => {
-      if (renderElement) return renderElement(props, resolver);
-      return resolver;
+    (props: RenderElementProps, element: JSX.Element) => {
+      if (renderElement) return renderElement(props, element);
+      return element;
     },
     [renderElement]
   );
@@ -121,6 +130,18 @@ function Content(props: ContentProps) {
     [receiveRenderElement]
   );
 
+  const preventDefaultDrag = useCallback(() => {
+    // true here, Slate will skip its own event handler
+    // returning false, Slate will execute its own event handler afterward
+    // TODO: 动态判断：当 react-dnd 拖动时，需要暂时阻止默认拖动处理程序，拖动结束后恢复
+    // const monitor = dragDropManager.getMonitor();
+    // const dragType = monitor.getItem();
+    // console.log(dragType);
+
+    // return false; // 执行默认拖动处理程序
+    return true; // 阻止默认拖动处理程序
+  }, []);
+
   return (
     <Editable
       className={classNames(content, className)}
@@ -132,9 +153,19 @@ function Content(props: ContentProps) {
       style={style}
       renderLeaf={handleRenderLeaf}
       renderElement={handleRenderElement}
+      onDrag={preventDefaultDrag}
+      onDragStart={preventDefaultDrag}
       onKeyDown={handleKeyDown}
     />
   );
 }
 
-export default memo(Content);
+const MemorizeContent = memo(Content);
+
+const DndContent = (props: ContentProps) => (
+  <DndProvider backend={HTML5Backend}>
+    <MemorizeContent {...props} />
+  </DndProvider>
+);
+
+export default memo(DndContent);

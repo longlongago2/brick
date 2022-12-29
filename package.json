@@ -90,7 +90,7 @@
           "map": [
             [
               "brick",
-              "./src/index.ts"
+              "./src"
             ],
             [
               "src",
@@ -187,6 +187,8 @@
     "antd": "^5.1.0",
     "classnames": "^2.3.2",
     "is-hotkey": "^0.2.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
     "react-draggable": "^4.4.5"
   }
 }

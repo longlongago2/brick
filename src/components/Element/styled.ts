@@ -46,9 +46,33 @@ export default function useStyled() {
     `,
     paragraph: css`
       position: relative;
-      &[draggable='true'] {
+      &.draggable {
         background-color: ${token.colorPrimaryBg};
         box-shadow: 0 0 0 7px ${token.colorPrimaryBg};
+      }
+      &.dragging {
+        opacity: 0.6;
+      }
+      &.hovering {
+        position: relative;
+        &::after {
+          position: absolute;
+          display: block;
+          content: '';
+          left: 0;
+          width: 100%;
+          border-top: 2px dashed ${token.colorBorder};
+        }
+        &.up {
+          &::after {
+            top: -7px;
+          }
+        }
+        &.down {
+          &::after {
+            bottom: -7px;
+          }
+        }
       }
     `,
     dragButton: css`
