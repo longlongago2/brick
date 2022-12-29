@@ -51,7 +51,7 @@ export default function useStyled() {
         box-shadow: 0 0 0 7px ${token.colorPrimaryBg};
       }
       &.dragging {
-        opacity: 0.6;
+        opacity: 0.7;
       }
       &.hovering {
         position: relative;

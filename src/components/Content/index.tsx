@@ -2,7 +2,7 @@ import React, { memo, useCallback } from 'react';
 import { Editable, useSlate } from 'slate-react';
 import { Range, Transforms } from 'slate';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { DndProvider, useDragDropManager } from 'react-dnd';
+import { DndProvider } from 'react-dnd';
 import isHotkey, { isKeyHotkey } from 'is-hotkey';
 import classNames from 'classnames';
 import Leaf from '../Leaf';
@@ -43,8 +43,6 @@ function Content(props: ContentProps) {
   const editor = useSlate();
 
   const { content } = useStyled();
-
-  // const dragDropManager = useDragDropManager();
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -130,16 +128,10 @@ function Content(props: ContentProps) {
     [receiveRenderElement]
   );
 
-  const preventDefaultDrag = useCallback(() => {
-    // true here, Slate will skip its own event handler
+  const preventDefaultDragStart = useCallback(() => {
+    // returning true, Slate will skip its own event handler
     // returning false, Slate will execute its own event handler afterward
-    // TODO: 动态判断：当 react-dnd 拖动时，需要暂时阻止默认拖动处理程序，拖动结束后恢复
-    // const monitor = dragDropManager.getMonitor();
-    // const dragType = monitor.getItem();
-    // console.log(dragType);
-
-    // return false; // 执行默认拖动处理程序
-    return true; // 阻止默认拖动处理程序
+    return true; // prevent its own event handler
   }, []);
 
   return (
@@ -153,8 +145,7 @@ function Content(props: ContentProps) {
       style={style}
       renderLeaf={handleRenderLeaf}
       renderElement={handleRenderElement}
-      onDrag={preventDefaultDrag}
-      onDragStart={preventDefaultDrag}
+      onDragStart={preventDefaultDragStart}
       onKeyDown={handleKeyDown}
     />
   );

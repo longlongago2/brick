@@ -231,15 +231,9 @@ function Paragraph(props: RenderElementProps) {
         )}
       >
         {children}
-        {allowDrag && (
-          <Button
-            ref={drag}
-            icon={dragIcon}
-            size="small"
-            className={dragButton}
-            contentEditable={false}
-          >
-            {isDragging ? '等待释放' : '按住拖动'}
+        {allowDrag && !isDragging && (
+          <Button ref={drag} icon={dragIcon} size="small" className={dragButton} contentEditable={false}>
+            按住拖动
           </Button>
         )}
       </p>
