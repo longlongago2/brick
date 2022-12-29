@@ -19,11 +19,10 @@ export interface ContentProps {
   spellCheck?: boolean;
   autoFocus?: boolean;
   readOnly?: boolean;
-  preventDefaultShortcut?: boolean;
   style?: React.CSSProperties;
   renderLeaf?: (props: RenderLeafProps, leaf: JSX.Element) => JSX.Element;
   renderElement?: (props: RenderElementProps, element: JSX.Element) => JSX.Element;
-  onKeyboard?: React.KeyboardEventHandler<HTMLDivElement>;
+  onKeyboard?: (event: React.KeyboardEvent<HTMLDivElement>) => boolean;
 }
 
 function Content(props: ContentProps) {
@@ -33,7 +32,6 @@ function Content(props: ContentProps) {
     spellCheck,
     autoFocus,
     readOnly,
-    preventDefaultShortcut,
     style,
     renderLeaf,
     renderElement,
@@ -66,38 +64,43 @@ function Content(props: ContentProps) {
         }
       }
 
-      // 内置快捷键
-      if (!preventDefaultShortcut) {
-        // Marks shortcut
-        Object.keys(HOTKEYS.marks).forEach((hotkey) => {
-          if (isHotkey(hotkey, e)) {
-            e.preventDefault();
-            const mark = HOTKEYS.marks[hotkey];
-            editor.toggleMark(mark);
-          }
-        });
-        // Nodes shortcut
-        Object.keys(HOTKEYS.nodes).forEach((hotkey) => {
-          if (isHotkey(hotkey, e)) {
-            e.preventDefault();
-            const type = HOTKEYS.nodes[hotkey] as NoEffectWrapTypes;
-            editor.toggleElement(type);
-          }
-        });
-        // Aligns shortcut
-        Object.keys(HOTKEYS.aligns).forEach((hotkey) => {
-          if (isHotkey(hotkey, e)) {
-            e.preventDefault();
-            const align = HOTKEYS.aligns[hotkey];
-            editor.toggleAlign(align);
-          }
-        });
-      }
+      let preventDefaultShortcut = false;
 
       // 暴露接口：用户自定义行为
-      if (onKeyboard) onKeyboard(e);
+      if (onKeyboard) {
+        // onKeyboard: e => true, 跳过内置快捷键处理
+        // onKeyboard: e => false, 将执行后续内置快捷键
+        preventDefaultShortcut = onKeyboard(e);
+        if (preventDefaultShortcut) return;
+      }
+
+      // 内置快捷键
+      // Marks shortcut
+      Object.keys(HOTKEYS.marks).forEach((hotkey) => {
+        if (isHotkey(hotkey, e)) {
+          e.preventDefault();
+          const mark = HOTKEYS.marks[hotkey];
+          editor.toggleMark(mark);
+        }
+      });
+      // Nodes shortcut
+      Object.keys(HOTKEYS.nodes).forEach((hotkey) => {
+        if (isHotkey(hotkey, e)) {
+          e.preventDefault();
+          const type = HOTKEYS.nodes[hotkey] as NoEffectWrapTypes;
+          editor.toggleElement(type);
+        }
+      });
+      // Aligns shortcut
+      Object.keys(HOTKEYS.aligns).forEach((hotkey) => {
+        if (isHotkey(hotkey, e)) {
+          e.preventDefault();
+          const align = HOTKEYS.aligns[hotkey];
+          editor.toggleAlign(align);
+        }
+      });
     },
-    [editor, onKeyboard, preventDefaultShortcut]
+    [editor, onKeyboard]
   );
 
   const receiveRenderLeaf = useCallback(
@@ -131,32 +134,29 @@ function Content(props: ContentProps) {
   const preventDefaultDragStart = useCallback(() => {
     // returning true, Slate will skip its own event handler
     // returning false, Slate will execute its own event handler afterward
-    return true; // prevent its own event handler
+    return true; // prevent its own event handler, avoiding conflicts with react-dnd.
+    // TODO: 使用react-dnd 需要解决两个问题：
+    // 1. 默认的文字拖动失效，变成复制了
+    // 2. 拖动的光标不见了
   }, []);
 
   return (
-    <Editable
-      className={classNames(content, className)}
-      role="textbox"
-      placeholder={placeholder}
-      spellCheck={spellCheck}
-      autoFocus={autoFocus}
-      readOnly={readOnly}
-      style={style}
-      renderLeaf={handleRenderLeaf}
-      renderElement={handleRenderElement}
-      onDragStart={preventDefaultDragStart}
-      onKeyDown={handleKeyDown}
-    />
+    <DndProvider backend={HTML5Backend}>
+      <Editable
+        className={classNames(content, className)}
+        role="textbox"
+        placeholder={placeholder}
+        spellCheck={spellCheck}
+        autoFocus={autoFocus}
+        readOnly={readOnly}
+        style={style}
+        renderLeaf={handleRenderLeaf}
+        renderElement={handleRenderElement}
+        onDragStart={preventDefaultDragStart}
+        onKeyDown={handleKeyDown}
+      />
+    </DndProvider>
   );
 }
 
-const MemorizeContent = memo(Content);
-
-const DndContent = (props: ContentProps) => (
-  <DndProvider backend={HTML5Backend}>
-    <MemorizeContent {...props} />
-  </DndProvider>
-);
-
-export default memo(DndContent);
+export default memo(Content);

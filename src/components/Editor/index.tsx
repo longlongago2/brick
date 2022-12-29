@@ -35,7 +35,6 @@ function Editor(props: EditorProps) {
     className,
     contentStyle,
     contentClassName,
-    preventDefaultShortcut,
     toolbarClassName,
     toolbarStyle,
     placeholder,
@@ -70,7 +69,6 @@ function Editor(props: EditorProps) {
           spellCheck={spellCheck}
           autoFocus={autoFocus}
           readOnly={readOnly}
-          preventDefaultShortcut={preventDefaultShortcut}
           renderElement={renderElement}
           renderLeaf={renderLeaf}
           onKeyboard={onKeyboard}

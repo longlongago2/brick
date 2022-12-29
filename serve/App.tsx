@@ -34,13 +34,25 @@ const initialValue: Descendant[] = [
 
 function App() {
   const renderElement = useCallback<NonNullable<EditorProps['renderElement']>>((props, element) => {
-    // TODO: ...此处可根据props数据处理自定义渲染模板
+    // ...此处可根据props数据处理自定义渲染模板
     return element; // 继承原始的渲染模板
+  }, []);
+
+  const handleKeyboard = useCallback(() => {
+    // ...此处处理键盘事件
+    // returning true, 阻止默认内置键盘处理程序
+    // returning false, 执行内置快捷键
+    return false; // is preventDefaultHandler
   }, []);
 
   return (
     <div>
-      <Editor value={initialValue} renderElement={renderElement} readOnly={false} />
+      <Editor
+        value={initialValue}
+        renderElement={renderElement}
+        readOnly={false}
+        onKeyboard={handleKeyboard}
+      />
     </div>
   );
 }
