@@ -134,11 +134,13 @@ function Content(props: ContentProps) {
   const preventDefaultDragStart = useCallback(() => {
     // returning true, Slate will skip its own event handler
     // returning false, Slate will execute its own event handler afterward
-    return true; // prevent its own event handler, avoiding conflicts with react-dnd.
+    const hasReactDnd = editor.hasDraggableNodes();
+    // prevent its own event handler, avoiding conflicts with react-dnd.
+    return hasReactDnd;
     // TODO: 使用react-dnd 需要解决两个问题：
     // 1. 默认的文字拖动失效，变成复制了
     // 2. 拖动的光标不见了
-  }, []);
+  }, [editor]);
 
   return (
     <DndProvider backend={HTML5Backend}>

@@ -6,23 +6,23 @@ import { useEditorState } from '../../hooks';
 import type { Descendant, Editor } from 'slate';
 import type { ThemeConfig } from 'antd/es/config-provider/context';
 
-export type SlateProviderProps = {
+export interface SlateProviderProps {
   value: Descendant[];
   children: React.ReactNode;
   editor?: Editor;
   theme?: ThemeConfig;
   onChange?: (value: Descendant[]) => void;
-};
+}
 
 function SlateProvider(props: SlateProviderProps) {
   const { editor, value, children, theme, onChange } = props;
 
   const _editor = useEditorState();
 
-  const editorState = useMemo(() => editor ?? _editor, [_editor, editor]);
+  const editorInner = useMemo(() => editor ?? _editor, [_editor, editor]);
 
   const slate = (
-    <Slate editor={editorState} value={value} onChange={onChange}>
+    <Slate editor={editorInner} value={value} onChange={onChange}>
       {children}
     </Slate>
   );

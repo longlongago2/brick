@@ -2,7 +2,7 @@ import { Editor, Element, Transforms, Range } from 'slate';
 import { ReactEditor } from 'slate-react';
 import { TEXT_ALIGN_TYPES, NO_EFFECT_WRAP_TYPES, LIST_TYPES } from './constant';
 
-import type { Text, Node, LinkElement, MarkKeys, ElementKeys } from 'slate';
+import type { Text, Node, LinkElement, MarkKeys, ElementKeys, ParagraphElement } from 'slate';
 import type { TextAlign, NoEffectWrapTypes } from './constant';
 
 export interface CommandEditor {
@@ -12,14 +12,45 @@ export interface CommandEditor {
   toggleElement: (type: NoEffectWrapTypes) => void;
   toggleAlign: (align: TextAlign) => void;
   toggleLock: (type: Element['type']) => void;
+  toggleDraggable: (type: Element['type'], options?: { unique: boolean }) => void;
   getElementFieldsValue: (fields?: ElementKeys | ElementKeys[], type?: Element['type']) => any;
   setLink: (url: string) => void;
   unsetLink: () => void;
   getBoundingClientRect: () => DOMRect | null;
+
+  /**
+   * @descriptionZH 挂载在实例上的一些额外的属性
+   * @descriptionEN some extra attributes on the instance
+   * @type {Record<string, any>}
+   * @memberof CommandEditor
+   */
+  extraProperty?: Record<string, any>;
+
+  /**
+   * @descriptionZH 添加额外属性
+   * @descriptionEN Add an extra attribute
+   * @memberof CommandEditor
+   */
+  addExtraProperty: (key: string, value: any) => void;
+
+  /**
+   * @descriptionZH 移除实例上指定的额外属性
+   * @descriptionEN Remove extra attributes specified on the instance
+   * @memberof CommandEditor
+   */
+  removeExtraProperty: (key: string) => void;
+
+  /**
+   * @descriptionZH 判断全文是否存在可拖动节点
+   * @descriptionEN Determine whether the editor has draggable nodes
+   * @memberof CommandEditor
+   */
+  hasDraggableNodes: () => boolean;
 }
 
 /**
- * @description Commands: 在实例上新增一些常用的命令
+ * @descriptionZH 命令方法: 在实例上新增一些常用的命令
+ * @descriptionEN Commands: Add some commonly used commands on the editor instance
  * @export
  * @template T
  * @param {T} editor
@@ -177,10 +208,72 @@ export function withCommand<T extends Editor>(editor: T) {
     });
   };
 
+  e.toggleDraggable = (type, options) => {
+    const { unique } = options || {};
+    const { selection } = editor;
+    if (!selection) return null;
+    const [match] = Array.from(
+      Editor.nodes(editor, {
+        at: Editor.unhangRange(editor, selection),
+        match: (n) => !Editor.isEditor(n) && Element.isElement(n) && n.type === type,
+      })
+    );
+    const element = match?.[0] as Element;
+    if (!element) return;
+
+    let prevDraggable;
+    if ('draggable' in element) {
+      prevDraggable = element.draggable;
+    }
+    const newProperties = {
+      draggable: !prevDraggable,
+    };
+    if (unique) {
+      // clear all draggable
+      Transforms.setNodes(
+        editor,
+        { draggable: false },
+        {
+          at: [],
+          match: (n) => !Editor.isEditor(n) && Element.isElement(n) && n.type === type,
+        }
+      );
+    }
+    // set new draggable
+    Transforms.setNodes(editor, newProperties);
+  };
+
   e.getBoundingClientRect = () => {
     if (!editor.selection) return null;
     const range = ReactEditor.toDOMRange(editor, editor.selection);
     return range.getBoundingClientRect();
+  };
+
+  e.addExtraProperty = (key, value) => {
+    if (editor.extraProperty) {
+      editor.extraProperty[key] = value;
+    } else {
+      editor.extraProperty = { [key]: value };
+    }
+  };
+
+  e.removeExtraProperty = (key) => {
+    if (editor.extraProperty) {
+      delete editor.extraProperty[key];
+    }
+  };
+
+  e.hasDraggableNodes = () => {
+    const [match] = Array.from(
+      Editor.nodes(editor, {
+        at: [], // whole editor
+        match: (n) => {
+          return !Editor.isEditor(n) && Element.isElement(n) && !!(n as ParagraphElement).draggable;
+        }
+      })
+    );
+    const ele = match?.[0];
+    return !!ele;
   };
 
   return e;

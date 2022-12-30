@@ -90,6 +90,7 @@ declare module 'slate' {
     type: 'paragraph';
     align?: TextAlign;
     lock?: boolean;
+    draggable?: boolean;
     children: Descendant[];
   };
 

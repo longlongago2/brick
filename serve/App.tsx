@@ -11,6 +11,7 @@ const initialValue: Descendant[] = [
   },
   {
     type: 'paragraph',
+    // draggable: true,
     children: [{ text: '1.这是一段普通的段落文字！' }],
   },
   {
