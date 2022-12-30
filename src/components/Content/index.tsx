@@ -137,9 +137,6 @@ function Content(props: ContentProps) {
     const hasReactDnd = editor.hasDraggableNodes();
     // prevent its own event handler, avoiding conflicts with react-dnd.
     return hasReactDnd;
-    // TODO: 使用react-dnd 需要解决两个问题：
-    // 1. 默认的文字拖动失效，变成复制了
-    // 2. 拖动的光标不见了
   }, [editor]);
 
   return (

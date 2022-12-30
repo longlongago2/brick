@@ -6,16 +6,81 @@ import type { Text, Node, LinkElement, MarkKeys, ElementKeys, ParagraphElement }
 import type { TextAlign, NoEffectWrapTypes } from './constant';
 
 export interface CommandEditor {
+  /**
+   * @descriptionZH 标记类型是否处于激活状态
+   * @descriptionEN
+   * @memberof CommandEditor
+   */
   isMarkActive: (name: MarkKeys) => boolean;
+
+  /**
+   * @descriptionZH 应用/取消标记类型
+   * @descriptionEN
+   * @memberof CommandEditor
+   */
   toggleMark: (name: MarkKeys) => void;
+
+  /**
+   * @descriptionZH 某节点类型是否处于当前焦点
+   * @descriptionEN
+   * @memberof CommandEditor
+   */
   isElementActive: (type: Element['type']) => boolean;
+
+  /**
+   * @descriptionZH 应用/取消某节点类型
+   * @descriptionEN
+   * @memberof CommandEditor
+   */
   toggleElement: (type: NoEffectWrapTypes) => void;
+
+  /**
+   * @descriptionZH 应用/取消该文本对齐方式
+   * @descriptionEN
+   * @memberof CommandEditor
+   */
   toggleAlign: (align: TextAlign) => void;
+
+  /**
+   * @descriptionZH 开启/关闭当前节点锁定状态
+   * @descriptionEN
+   * @memberof CommandEditor
+   */
   toggleLock: (type: Element['type']) => void;
-  toggleDraggable: (type: Element['type'], options?: { unique: boolean }) => void;
+
+  /**
+   * @descriptionZH 开启/关闭节点拖动。options.draggable：强制设置当前状态；options.unique: 状态唯一，即清除焦点外所有拖动状态，只应用焦点下的拖动状态
+   * @descriptionEN Turn on/off node draggable state
+   * @memberof CommandEditor
+   */
+  toggleDraggable: (type: Element['type'], options?: { unique?: boolean; draggable?: boolean }) => void;
+
+  /**
+   * @descriptionZH
+   * @descriptionEN
+   * @memberof CommandEditor
+   */
   getElementFieldsValue: (fields?: ElementKeys | ElementKeys[], type?: Element['type']) => any;
+
+  /**
+   * @descriptionZH
+   * @descriptionEN
+   * @memberof CommandEditor
+   */
   setLink: (url: string) => void;
+
+  /**
+   * @descriptionZH
+   * @descriptionEN
+   * @memberof CommandEditor
+   */
   unsetLink: () => void;
+
+  /**
+   * @descriptionZH
+   * @descriptionEN
+   * @memberof CommandEditor
+   */
   getBoundingClientRect: () => DOMRect | null;
 
   /**
@@ -209,7 +274,7 @@ export function withCommand<T extends Editor>(editor: T) {
   };
 
   e.toggleDraggable = (type, options) => {
-    const { unique } = options || {};
+    const { unique, draggable } = options || {};
     const { selection } = editor;
     if (!selection) return null;
     const [match] = Array.from(
@@ -226,8 +291,9 @@ export function withCommand<T extends Editor>(editor: T) {
       prevDraggable = element.draggable;
     }
     const newProperties = {
-      draggable: !prevDraggable,
+      draggable: draggable ?? !prevDraggable,
     };
+
     if (unique) {
       // clear all draggable
       Transforms.setNodes(
@@ -269,7 +335,7 @@ export function withCommand<T extends Editor>(editor: T) {
         at: [], // whole editor
         match: (n) => {
           return !Editor.isEditor(n) && Element.isElement(n) && !!(n as ParagraphElement).draggable;
-        }
+        },
       })
     );
     const ele = match?.[0];

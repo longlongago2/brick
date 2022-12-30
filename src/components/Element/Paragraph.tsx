@@ -1,17 +1,9 @@
-import React, { useCallback, memo, useState, useMemo } from 'react';
-import { Editor, Transforms, Path } from 'slate';
+import React, { useCallback, memo, useMemo } from 'react';
+import { Editor, Transforms } from 'slate';
 import { ReactEditor, useSlate, useReadOnly, useSelected } from 'slate-react';
-import { Dropdown, Button } from 'antd';
-import {
-  DragOutlined,
-  EnterOutlined,
-  HolderOutlined,
-  LoadingOutlined,
-  LockOutlined,
-  UnlockOutlined,
-} from '@ant-design/icons';
-import { useDrag, useDrop } from 'react-dnd';
-import classNames from 'classnames';
+import { Dropdown } from 'antd';
+import { DragOutlined, EnterOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
+import ParagraphDraggable from './ParagraphDraggable';
 import useStyled from './styled';
 
 import type { RenderElementProps } from 'slate-react';
@@ -20,18 +12,13 @@ import type { DropDownProps } from 'antd';
 
 const trigger: DropDownProps['trigger'] = ['contextMenu'];
 
-interface DragItem extends ParagraphElement {
-  id: string;
-  path: Path;
-}
-
 function Paragraph(props: RenderElementProps) {
   const { attributes, children } = props;
 
   const element = props.element as ParagraphElement;
 
   // memorized
-  const { paragraphLock, paragraph, dragButton } = useStyled();
+  const { paragraphLock } = useStyled();
 
   const editor = useSlate();
 
@@ -39,61 +26,7 @@ function Paragraph(props: RenderElementProps) {
 
   const selected = useSelected();
 
-  // draggable
-  const [dragDirection, setDragDirection] = useState<'up' | 'down'>('down');
-
-  const eleKey = ReactEditor.findKey(editor, element);
-
-  const elePath = ReactEditor.findPath(editor, element);
-
-  // 当本组件作为拖动源的行为
-  const [{ isDragging }, drag] = useDrag<DragItem, unknown, { isDragging: boolean }>({
-    type: element.type,
-    item: () => {
-      // 拖动源附带的数据
-      return { id: eleKey.id, path: elePath, ...element };
-    },
-    collect: (monitor: any) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  });
-
-  // 当本组件作为拖动放置目标的行为
-  const [{ isOver, canDrop }, drop] = useDrop<DragItem, void, { isOver: boolean; canDrop: boolean }>({
-    accept: element.type,
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-      canDrop: monitor.canDrop(),
-    }),
-    // 当drag element悬停在组件上时调用
-    hover(item: DragItem) {
-      const dragPath = item.path;
-      const hoverPath = elePath;
-      if (Path.isBefore(dragPath, hoverPath)) {
-        setDragDirection('down');
-      } else {
-        setDragDirection('up');
-      }
-    },
-    // 当drag element释放在组件上时
-    drop(item: DragItem) {
-      const dragId = item.id;
-      const dropId = eleKey.id;
-      // Don't replace items with themselves
-      if (dragId === dropId) return;
-      // Avoid locked paragraph
-      if (element.lock) return;
-      // Move
-      Transforms.moveNodes(editor, { at: item.path, to: elePath });
-    },
-  });
-
   // handler
-  const getDropRef = (ref: HTMLParagraphElement) => {
-    attributes.ref(ref); // 继承 slate attribute 自身的逻辑
-    drop(ref);
-  };
-
   const handleUpEnter = useCallback(() => {
     const paragraph: ParagraphElement = {
       type: 'paragraph',
@@ -122,6 +55,7 @@ function Paragraph(props: RenderElementProps) {
         handleDownEnter();
       } else if (key.indexOf('lock') > -1) {
         editor.toggleLock('paragraph');
+        editor.toggleDraggable('paragraph', { draggable: false });
       } else if (key === 'allow-drag') {
         editor.toggleDraggable('paragraph', { unique: true });
       } else if (key === 'not-allow-drag') {
@@ -140,8 +74,6 @@ function Paragraph(props: RenderElementProps) {
   );
 
   const draggable = useMemo(() => element.draggable, [element.draggable]);
-
-  const dragIcon = useMemo(() => (isDragging ? <LoadingOutlined spin /> : <HolderOutlined />), [isDragging]);
 
   const menu = useMemo<DropDownProps['menu']>(
     () => ({
@@ -185,18 +117,20 @@ function Paragraph(props: RenderElementProps) {
     [draggable, element.lock, handleMenuClick]
   );
 
+  const core = (
+    <p style={style} {...attributes}>
+      {children}
+    </p>
+  );
+
   // render
   if (readOnly) {
-    // 只读
-    return (
-      <p style={style} {...attributes}>
-        {children}
-      </p>
-    );
+    // 只读状态
+    return core;
   }
 
   if (element.lock) {
-    // 冻结锁定
+    // 冻结状态
     return (
       <Dropdown trigger={trigger} menu={menu}>
         <p
@@ -213,30 +147,15 @@ function Paragraph(props: RenderElementProps) {
     );
   }
 
-  // 可拖动
+  if (editor.hasDraggableNodes()) {
+    // 拖动状态
+    return <ParagraphDraggable {...props} trigger={trigger} menu={menu} />;
+  }
+
+  // 基础状态
   return (
     <Dropdown trigger={trigger} menu={menu}>
-      <p
-        style={style}
-        {...attributes}
-        ref={getDropRef}
-        className={classNames(
-          paragraph,
-          {
-            draggable,
-            hovering: canDrop && isOver,
-            dragging: isDragging,
-          },
-          dragDirection
-        )}
-      >
-        {children}
-        {draggable && !isDragging && (
-          <Button ref={drag} icon={dragIcon} size="small" className={dragButton} contentEditable={false}>
-            按住拖动
-          </Button>
-        )}
-      </p>
+      {core}
     </Dropdown>
   );
 }
