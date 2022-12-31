@@ -21,7 +21,7 @@ const compiler = webpack({
   plugins: [
     new ReactRefreshWebpackPlugin(),
     new HtmlWebpackPlugin({
-      title: 'brick.dev',
+      title: 'bricky.dev',
       template: resolveApp('./public/index.html'),
       scriptLoading: 'defer',
       favicon: resolveApp('./public/favicon.ico'),

@@ -26,8 +26,8 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "brick": ["src"],
-      "brick/*": ["src/*"], // support deep path e.g. brick/components/Editor
+      "bricky": ["src"],
+      "bricky/*": ["src/*"], // support deep path e.g. bricky/components/Editor
       "src": ["src"]
     }
   },

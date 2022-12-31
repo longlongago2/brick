@@ -1,5 +1,5 @@
 {
-  "name": "brick-editor",
+  "name": "bricky",
   "version": "0.0.1",
   "description": "A rich editor based on slate.js",
   "type": "module",
@@ -7,7 +7,7 @@
   "module": "esm/index.js",
   "types": "esm/index.d.ts",
   "typings": "esm/index.d.ts",
-  "unpkg": "dist/brick.umd.min.js",
+  "unpkg": "dist/bricky.umd.min.js",
   "files": [
     "/dist",
     "/esm",
@@ -28,7 +28,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/longlongago2/brick.git"
+    "url": "git+https://github.com/longlongago2/bricky.git"
   },
   "keywords": [
     "rich-editor",
@@ -36,15 +36,15 @@
     "editor",
     "editor",
     "slate",
-    "slatejs",
+    "slate.js",
     "react"
   ],
   "author": "longlongago2",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/longlongago2/brick/issues"
+    "url": "https://github.com/longlongago2/bricky/issues"
   },
-  "homepage": "https://github.com/longlongago2/brick#readme",
+  "homepage": "https://github.com/longlongago2/bricky#readme",
   "eslintConfig": {
     "env": {
       "browser": true,
@@ -98,7 +98,7 @@
         "alias": {
           "map": [
             [
-              "brick",
+              "bricky",
               "./src"
             ],
             [

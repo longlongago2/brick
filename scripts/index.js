@@ -33,9 +33,9 @@ async function runComplier() {
     devtool: false,
     output: {
       path: resolveApp('./dist'),
-      filename: 'brick.umd.min.js',
+      filename: 'bricky.umd.min.js',
       library: {
-        name: 'brick',
+        name: 'bricky',
         type: 'umd',
       },
       clean: true,

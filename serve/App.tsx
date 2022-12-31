@@ -1,8 +1,8 @@
 import React, { useCallback } from 'react';
-import { Editor } from 'brick';
+import { Editor } from 'bricky';
 
 import type { Descendant } from 'slate';
-import type { EditorProps } from 'brick/components/Editor';
+import type { EditorProps } from 'bricky/components/Editor';
 
 const initialValue: Descendant[] = [
   {
