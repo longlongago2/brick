@@ -29,11 +29,11 @@ function Link(props: RenderElementProps) {
 
   const { link } = useStyled();
 
+  const { baseResolver } = useBaseResolver();
+
   const linkEle = element as LinkElement;
 
   const paragraphLocked = editor.getElementFieldsValue('lock', 'paragraph');
-
-  const { baseResolver } = useBaseResolver();
 
   const linkToolbarResolver = useMemo<ToolbarButton>(
     () => baseResolver.find((_) => _.key === 'link') as ToolbarButton,

@@ -315,3 +315,12 @@ export function webpackPromise(config) {
     });
   });
 }
+
+export function copyDTS(srcDir, destDir) {
+  const files = fs.readdirSync(srcDir).filter((fn) => fn.endsWith('.d.ts'));
+  files.map((file) => {
+    const filePath = resolveApp(srcDir + '/' + file);
+    const destPath = resolveApp(destDir + '/' + file);
+    fs.copyFileSync(filePath, destPath);
+  });
+}

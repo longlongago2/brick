@@ -2,6 +2,7 @@ import { Descendant, BaseEditor } from 'slate';
 import { ReactEditor } from 'slate-react';
 import { HistoryEditor } from 'slate-history';
 import { CommandEditor } from './utils/withCommand';
+import { TextAlign } from './utils/constant';
 
 declare module 'slate' {
   export type BlockQuoteElement = {
@@ -96,17 +97,17 @@ declare module 'slate' {
 
   export type TableElement = {
     type: 'table';
-    children: TableRow[];
+    children: TableRowElement[];
+  };
+
+  export type TableRowElement = {
+    type: 'table-row';
+    children: TableCellElement[];
   };
 
   export type TableCellElement = {
     type: 'table-cell';
     children: CustomText[];
-  };
-
-  export type TableRowElement = {
-    type: 'table-row';
-    children: TableCell[];
   };
 
   export type VideoElement = {

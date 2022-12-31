@@ -17,6 +17,7 @@ import {
   getBanner,
   alias,
   externals,
+  copyDTS,
   webpackPromise,
   extendTsupConfig,
 } from './utils.js';
@@ -96,6 +97,7 @@ async function runComplier() {
     })
   )
     .then(() => {
+      copyDTS(resolveApp('src'), resolveApp('esm'));
       // build complete
       spinner
         .succeed(
@@ -133,6 +135,7 @@ async function runComplier() {
     })
   )
     .then(() => {
+      copyDTS(resolveApp('src'), resolveApp('lib'));
       // build complete
       spinner
         .succeed(
