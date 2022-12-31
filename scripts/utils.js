@@ -22,13 +22,13 @@ const datestring = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate(
 
 export const getBanner = (platform) => {
   if (platform === 'webpack') {
-    return `brick v${packageJSON.version} ${datestring}
+    return `${packageJSON.name} v${packageJSON.version} ${datestring}
 Copyright (c) 2022, NebulaeData Ltd.
 Released under the MIT License.`;
   }
   if (platform === 'tsup') {
     return `/**
- * brick v${packageJSON.version} ${datestring}
+ * ${packageJSON.name} v${packageJSON.version} ${datestring}
  * Copyright (c) 2022, NebulaeData Ltd.
  * Released under the MIT License.
  */
@@ -58,7 +58,7 @@ export function extendTsupConfig(overrideOptions) {
     silent: true,
     skipNodeModulesBundle: false,
     shims: false,
-    external: ['react', 'react-dom', 'slate', 'slate-react', 'slate-history', 'slate-hyperscript'], // bundle: true,生效, 与webpack external同步
+    external: ['react', 'react-dom', 'slate', 'slate-react', 'slate-history', 'slate-hyperscript'], // bundle: true, 集中打包生效, 与webpack external同步
     esbuildPlugins: [
       // 和webpack作用相同：svg作为react component 导入
       svgrPlugin(),

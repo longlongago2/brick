@@ -1,13 +1,22 @@
 {
-  "name": "brick",
+  "name": "brick-editor",
   "version": "0.0.1",
-  "description": "A rich editor based on slatejs",
+  "description": "A rich editor based on slate.js",
   "type": "module",
   "main": "lib/index.js",
   "module": "esm/index.js",
   "types": "esm/index.d.ts",
   "typings": "esm/index.d.ts",
   "unpkg": "dist/brick.umd.min.js",
+  "files": [
+    "/dist",
+    "/esm",
+    "/lib"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "sideEffects": false,
   "scripts": {
     "build": "node scripts/index.js",
