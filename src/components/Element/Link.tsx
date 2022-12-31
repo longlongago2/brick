@@ -29,26 +29,24 @@ function Link(props: RenderElementProps) {
 
   const { link } = useStyled();
 
-  const { baseResolver } = useBaseResolver();
+  const baseResolver = useBaseResolver();
 
   const linkEle = element as LinkElement;
 
   const paragraphLocked = editor.getElementFieldsValue('lock', 'paragraph');
 
-  const linkToolbarResolver = useMemo<ToolbarButton>(
+  const linkResolver = useMemo<ToolbarButton>(
     () => baseResolver.find((_) => _.key === 'link') as ToolbarButton,
     [baseResolver]
   );
-
-  const linkToolbarAttachRender = useMemo(() => linkToolbarResolver.attachRender, [linkToolbarResolver]);
 
   const handleMenuClick = useCallback<NonNullable<NonNullable<DropDownProps['menu']>['onClick']>>(
     ({ key }) => {
       if (key === 'unset') {
         editor.unsetLink();
       } else if (key === 'edit') {
-        if (linkToolbarResolver && linkToolbarResolver.onClick) {
-          linkToolbarResolver.onClick(editor, { target: 'emitter_edit' });
+        if (linkResolver && linkResolver.onClick) {
+          linkResolver.onClick(editor, { target: 'emitter_edit' });
         }
       } else if (key === 'copy') {
         copyToClipboard(linkEle.url)
@@ -62,7 +60,7 @@ function Link(props: RenderElementProps) {
         window.open(linkEle.url, '_blank');
       }
     },
-    [editor, linkEle, linkToolbarResolver]
+    [editor, linkEle, linkResolver]
   );
 
   const preventContextMenu: React.MouseEventHandler<HTMLSpanElement> = (e) => {
@@ -132,7 +130,7 @@ function Link(props: RenderElementProps) {
       <Dropdown trigger={trigger} menu={menu}>
         {core}
       </Dropdown>
-      {linkToolbarAttachRender}
+      {linkResolver.attachRender}
     </span>
   );
 }

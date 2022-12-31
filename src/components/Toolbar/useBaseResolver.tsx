@@ -328,7 +328,5 @@ export default function useBaseResolver() {
     ]
   );
 
-  const baseRender = useMemo(() => baseResolver.map((_) => _.attachRender).filter(Boolean), [baseResolver]);
-
-  return { baseResolver, baseRender };
+  return baseResolver;
 }

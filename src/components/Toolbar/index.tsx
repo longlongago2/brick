@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useMemo } from 'react';
 import { useSlate } from 'slate-react';
 import { Tooltip, Divider, Space } from 'antd';
-import { isFunction, isPowerArray } from '../../utils';
+import { isFunction, isObject, isPowerArray } from '../../utils';
 import Button from './Button';
 import Selector from './Select';
 import useBaseResolver from './useBaseResolver';
@@ -87,12 +87,14 @@ function Toolbar(props: ToolbarProps) {
   // memoize
   const editor = useSlate();
 
-  const { baseResolver, baseRender } = useBaseResolver();
+  const baseResolver = useBaseResolver();
 
   const _extraResolver = useMemo(() => extraResolver?.(editor) || [], [editor, extraResolver]);
 
   const getResolver = useCallback(() => {
-    let res = baseResolver.filter(({ key }) => !_extraResolver.find((_) => _.key === key)).concat(_extraResolver);
+    let res = baseResolver
+      .filter(({ key }) => !_extraResolver.find((_) => _.key === key))
+      .concat(_extraResolver);
     if (Array.isArray(include)) {
       res = res.filter(({ key }) => include.includes(key));
     }
@@ -209,7 +211,12 @@ function Toolbar(props: ToolbarProps) {
           return null;
         })}
       </Space>
-      {baseRender}
+      {resolver.map((item) => {
+        if (isObject(item) && 'attachRender' in item) {
+          return item.attachRender;
+        }
+        return null;
+      })}
     </>
   );
 }

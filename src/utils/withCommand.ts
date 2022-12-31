@@ -56,28 +56,28 @@ export interface CommandEditor {
   toggleDraggable: (type: Element['type'], options?: { unique?: boolean; draggable?: boolean }) => void;
 
   /**
-   * @descriptionZH
+   * @descriptionZH 获取指定节点的信息
    * @descriptionEN
    * @memberof CommandEditor
    */
   getElementFieldsValue: (fields?: ElementKeys | ElementKeys[], type?: Element['type']) => any;
 
   /**
-   * @descriptionZH
-   * @descriptionEN
+   * @descriptionZH 设置超链接，如果已存在超链接则更新，否则新增
+   * @descriptionEN set hyperlink
    * @memberof CommandEditor
    */
   setLink: (url: string) => void;
 
   /**
-   * @descriptionZH
-   * @descriptionEN
+   * @descriptionZH 取消超链接
+   * @descriptionEN cancel hyperlink
    * @memberof CommandEditor
    */
   unsetLink: () => void;
 
   /**
-   * @descriptionZH
+   * @descriptionZH 获取当前selection的DOMRect对象，其提供了selection的大小及其相对于视口的位置，常用于定位。
    * @descriptionEN
    * @memberof CommandEditor
    */
@@ -246,11 +246,13 @@ export function withCommand<T extends Editor>(editor: T) {
   e.setLink = (url) => {
     const isActive = e.isElementActive('link');
     if (isActive) {
-      // update: delete and then insert
-      Transforms.removeNodes(editor, {
+      // update: update node's url and keep text
+      Transforms.setNodes(editor, { url }, {
         match: (n) => !Editor.isEditor(n) && Element.isElement(n) && n.type === 'link',
       });
+      return;
     }
+    // insert
     const { selection } = editor;
     const isCollapsed = selection && Range.isCollapsed(selection);
     const link: LinkElement = {
