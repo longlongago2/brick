@@ -1,3 +1,3 @@
-export * from './useEditorState';
+export * from './useSlateEditor';
 export * from './useFormDialog';
 export * from './useForceUpdate';

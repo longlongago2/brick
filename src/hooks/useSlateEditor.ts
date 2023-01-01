@@ -10,7 +10,7 @@ import { withPrototype } from '../utils/withPrototype';
  * @export
  * @return {*}
  */
-export function useEditorState() {
+export function useSlateEditor() {
   const [editor] = useState(() => withCommand(withPrototype(withHistory(withReact(createEditor())))));
   return editor;
 }

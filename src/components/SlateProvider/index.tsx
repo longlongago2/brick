@@ -1,7 +1,7 @@
 import React, { memo, useMemo } from 'react';
 import { Slate } from 'slate-react';
 import { ConfigProvider } from 'antd';
-import { useEditorState } from '../../hooks';
+import { useSlateEditor } from '../../hooks';
 
 import type { Descendant, Editor } from 'slate';
 import type { ThemeConfig } from 'antd/es/config-provider/context';
@@ -17,12 +17,12 @@ export interface SlateProviderProps {
 function SlateProvider(props: SlateProviderProps) {
   const { editor, value, children, theme, onChange } = props;
 
-  const _editor = useEditorState();
+  const _editor = useSlateEditor();
 
-  const editorInner = useMemo(() => editor ?? _editor, [_editor, editor]);
+  const slateEditor = useMemo(() => editor ?? _editor, [_editor, editor]);
 
   const slate = (
-    <Slate editor={editorInner} value={value} onChange={onChange}>
+    <Slate editor={slateEditor} value={value} onChange={onChange}>
       {children}
     </Slate>
   );
