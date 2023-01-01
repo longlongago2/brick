@@ -9,7 +9,7 @@ export * from './utils/transformDOMToJSON';
 // components
 export { default as InlineChromiumBugfix } from './components/InlineChromiumBugfix';
 
-export { default as SlateProvider } from './components/SlateProvider';
+export { default as BrickyProvider } from './components/BrickyProvider';
 
 export { default as Content } from './components/Content';
 
