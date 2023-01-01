@@ -1,12 +1,12 @@
 import React, { memo, useMemo } from 'react';
 import { Slate } from 'slate-react';
 import { ConfigProvider } from 'antd';
-import { useEditorState } from '../../hooks';
+import { useBrickyEditor } from '../../hooks';
 
 import type { Descendant, Editor } from 'slate';
 import type { ThemeConfig } from 'antd/es/config-provider/context';
 
-export interface SlateProviderProps {
+export interface BrickyProviderProps {
   value: Descendant[];
   children: React.ReactNode;
   editor?: Editor;
@@ -14,15 +14,15 @@ export interface SlateProviderProps {
   onChange?: (value: Descendant[]) => void;
 }
 
-function SlateProvider(props: SlateProviderProps) {
+function BrickyProvider(props: BrickyProviderProps) {
   const { editor, value, children, theme, onChange } = props;
 
-  const _editor = useEditorState();
+  const _editor = useBrickyEditor();
 
-  const editorInner = useMemo(() => editor ?? _editor, [_editor, editor]);
+  const bricky = useMemo(() => editor ?? _editor, [_editor, editor]);
 
   const slate = (
-    <Slate editor={editorInner} value={value} onChange={onChange}>
+    <Slate editor={bricky} value={value} onChange={onChange}>
       {children}
     </Slate>
   );
@@ -34,4 +34,4 @@ function SlateProvider(props: SlateProviderProps) {
   return slate;
 }
 
-export default memo(SlateProvider);
+export default memo(BrickyProvider);

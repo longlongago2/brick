@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import SlateProvider from '../SlateProvider';
+import BrickyProvider from '../BrickyProvider';
 import Toolbar from '../Toolbar';
 import Content from '../Content';
 
@@ -52,7 +52,7 @@ function Editor(props: EditorProps) {
   } = props;
 
   return (
-    <SlateProvider editor={editor} value={value} onChange={onChange} theme={theme}>
+    <BrickyProvider editor={editor} value={value} onChange={onChange} theme={theme}>
       <div className={className}>
         <Toolbar
           className={toolbarClassName}
@@ -74,7 +74,7 @@ function Editor(props: EditorProps) {
           onKeyboard={onKeyboard}
         />
       </div>
-    </SlateProvider>
+    </BrickyProvider>
   );
 }
 
