@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useMemo } from 'react';
 import { useSlate } from 'slate-react';
 import { Tooltip, Divider, Space } from 'antd';
-import { isFunction, isObject, isPowerArray } from '../../utils';
+import { isFunction, isPowerArray } from '../../utils';
 import Button from './Button';
 import Selector from './Select';
 import useBaseResolver from './useBaseResolver';
@@ -17,7 +17,8 @@ export interface ToolbarButton {
   icon: React.ReactNode | ((editor: Editor) => React.ReactNode);
   title: React.ReactNode | ((editor: Editor) => React.ReactNode);
   active?: boolean | ((editor: Editor) => boolean);
-  attachRender?: React.ReactNode; // 附带渲染：例如弹出框等
+  disabled?: boolean | ((editor: Editor) => boolean);
+  attachRender?: React.ReactElement; // 附带渲染：例如弹出框等
   onClick?: (editor: Editor, e: any) => void;
 }
 
@@ -28,10 +29,11 @@ export interface ToolbarDropdown {
   title: React.ReactNode | ((editor: Editor) => React.ReactNode);
   width?: number;
   placeholder?: string;
+  disabled?: boolean | ((editor: Editor) => boolean);
   optionDisplayField?: keyof DropdownOption;
   options: DropdownOption[];
   activeKey?: DropdownOption['key'] | ((editor: Editor) => DropdownOption['key']);
-  attachRender?: React.ReactNode;
+  attachRender?: React.ReactElement;
   onSelect?: (editor: Editor, v: any, option: any) => void;
 }
 
@@ -41,7 +43,7 @@ export interface ToolbarElement {
   type: 'custom';
   title: React.ReactNode | ((editor: Editor) => React.ReactNode);
   element: React.ReactElement | ((editor: Editor) => React.ReactElement);
-  attachRender?: React.ReactNode;
+  attachRender?: React.ReactElement;
 }
 
 // 分割线
@@ -63,8 +65,12 @@ export interface ToolbarProps {
 }
 
 export const baseSort = [
+  'undo',
+  'redo',
+  'divider',
   'format',
   'divider',
+  'fontsize',
   'bold',
   'italic',
   'linethrough',
@@ -72,6 +78,9 @@ export const baseSort = [
   'code',
   'superscript',
   'subscript',
+  'divider',
+  'color',
+  'highlight',
   'divider',
   'align',
   'numbered-list',
@@ -147,12 +156,19 @@ function Toolbar(props: ToolbarProps) {
           if (type === 'button') {
             // 普通按钮
             let active = false;
+            let disabled = false;
             let icon: React.ReactNode = '';
 
             if (typeof item.active === 'boolean') {
               active = item.active;
             } else if (isFunction(item.active)) {
               active = item.active(editor);
+            }
+
+            if (typeof item.disabled === 'boolean') {
+              disabled = item.disabled;
+            } else if (isFunction(item.disabled)) {
+              disabled = item.disabled(editor);
             }
 
             if (isFunction(item.icon)) {
@@ -167,6 +183,7 @@ function Toolbar(props: ToolbarProps) {
                 active={active}
                 title={title}
                 icon={icon}
+                disabled={disabled}
                 dataset={item}
                 onClick={handleButtonClick}
               />
@@ -175,10 +192,18 @@ function Toolbar(props: ToolbarProps) {
           if (type === 'dropdown') {
             // 下拉按钮
             let value = '';
+            let disabled = false;
+
             if (typeof item.activeKey === 'string') {
               value = item.activeKey;
-            } else if (typeof item.activeKey === 'function') {
+            } else if (isFunction(item.activeKey)) {
               value = item.activeKey(editor);
+            }
+
+            if (typeof item.disabled === 'boolean') {
+              disabled = item.disabled;
+            } else if (isFunction(item.disabled)) {
+              disabled = item.disabled(editor);
             }
             return (
               <Selector<ToolbarDropdown>
@@ -187,6 +212,7 @@ function Toolbar(props: ToolbarProps) {
                 options={item.options}
                 title={title}
                 width={item.width}
+                disabled={disabled}
                 placeholder={item.placeholder}
                 dataset={item}
                 optionDisplayField={item.optionDisplayField}
@@ -212,8 +238,8 @@ function Toolbar(props: ToolbarProps) {
         })}
       </Space>
       {resolver.map((item) => {
-        if (isObject(item) && 'attachRender' in item) {
-          return item.attachRender;
+        if (typeof item === 'object' && 'attachRender' in item && item.attachRender) {
+          return React.cloneElement(item.attachRender, { key: item.key });
         }
         return null;
       })}

@@ -63,5 +63,44 @@ export default function useStyled() {
         top: unset !important;
       }
     `,
+    colorPicker: css`
+      position: relative;
+      text-align: center;
+      margin-top: -2px;
+      .color-picker--inner {
+        display: inline-block;
+        font-size: 14px;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      .color-picker--color {
+        position: absolute;
+        display: inline-block;
+        width: 100%;
+        height: 2px;
+        background-color: ${token.colorText};
+        margin: auto;
+        left: 0;
+        bottom: 2px;
+      }
+    `,
+    dropdownIcon: css`
+      color: ${token.colorTextPlaceholder};
+      font-size: 11px;
+    `,
+    dropdownButton: css`
+      padding: 0 3px !important;
+    `,
+    sketchPicker: css`
+      background-color: red;
+      input[id*='rc-editable-input'] {
+        border-radius: 3px;
+        box-shadow: none !important;
+        border: 1px solid ${token.colorBorder} !important;
+        outline: none;
+        &:focus {
+          outline: 1px solid ${token.colorPrimary};
+        }
+      }
+    `,
   };
 }

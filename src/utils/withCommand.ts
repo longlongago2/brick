@@ -14,6 +14,20 @@ export interface CommandEditor {
   isMarkActive: (name: MarkKeys) => boolean;
 
   /**
+   * @descriptionZH 获取标记类型的属性值
+   * @descriptionEN
+   * @memberof CommandEditor
+   */
+  getMarkProperty: (name: MarkKeys) => any;
+
+  /**
+   * @descriptionZH 设置标记类型的属性值
+   * @descriptionEN
+   * @memberof CommandEditor
+   */
+  setMarkProperty: (name: MarkKeys, value: any) => void;
+
+  /**
    * @descriptionZH 应用/取消标记类型
    * @descriptionEN
    * @memberof CommandEditor
@@ -129,6 +143,11 @@ export function withCommand<T extends Editor>(editor: T) {
     return Boolean(marks?.[name as keyof Omit<Text, 'text'>]);
   };
 
+  e.getMarkProperty = (name) => {
+    const marks = Editor.marks(editor);
+    return marks?.[name as keyof Omit<Text, 'text'>];
+  };
+
   e.toggleMark = (name) => {
     const isActive = e.isMarkActive(name);
     if (isActive) {
@@ -136,6 +155,12 @@ export function withCommand<T extends Editor>(editor: T) {
     } else {
       Editor.addMark(editor, name, true);
     }
+  };
+
+  e.setMarkProperty = (name, value) => {
+    const isActive = e.isMarkActive(name);
+    if (isActive) Editor.removeMark(editor, name);
+    Editor.addMark(editor, name, value);
   };
 
   e.isElementActive = (type) => {
@@ -247,9 +272,13 @@ export function withCommand<T extends Editor>(editor: T) {
     const isActive = e.isElementActive('link');
     if (isActive) {
       // update: update node's url and keep text
-      Transforms.setNodes(editor, { url }, {
-        match: (n) => !Editor.isEditor(n) && Element.isElement(n) && n.type === 'link',
-      });
+      Transforms.setNodes(
+        editor,
+        { url },
+        {
+          match: (n) => !Editor.isEditor(n) && Element.isElement(n) && n.type === 'link',
+        }
+      );
       return;
     }
     // insert

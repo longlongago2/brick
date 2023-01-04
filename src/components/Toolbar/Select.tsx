@@ -70,7 +70,7 @@ function Selector<DatasetType = any>(props: SelectProps<DatasetType>) {
     <Tooltip title={title} open={tooltipVisible} onOpenChange={handleTooltipVisibleChange} showArrow={false}>
       <Select
         style={_style}
-        listHeight={300}
+        listHeight={360}
         className={selector}
         open={dropdownVisible}
         virtual={false}

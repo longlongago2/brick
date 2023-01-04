@@ -6,41 +6,58 @@ function Leaf(props: RenderLeafProps) {
 
   const leaf = props.leaf;
 
+  const style: React.CSSProperties = {};
+
+  if ('fontsize' in leaf && leaf.fontsize) {
+    style.fontSize = leaf.fontsize;
+  }
+
+  if ('color' in leaf && leaf.color) {
+    style.color = leaf.color;
+  }
+
   let text = children;
 
   if ('bold' in leaf && leaf.bold) {
-    text = <strong>{text}</strong>;
+    text = <strong style={style}>{text}</strong>;
   }
 
   if ('code' in leaf && leaf.code) {
-    text = <code>{text}</code>;
+    text = <code style={style}>{text}</code>;
   }
 
   if ('italic' in leaf && leaf.italic) {
-    text = <em>{text}</em>;
+    text = <em style={style}>{text}</em>;
   }
 
   if ('underline' in leaf && leaf.underline) {
-    text = <u>{text}</u>;
+    text = <u style={style}>{text}</u>;
   }
 
   if ('linethrough' in leaf && leaf.linethrough) {
-    text = <s>{text}</s>;
+    text = <s style={style}>{text}</s>;
   }
 
   if ('highlight' in leaf && leaf.highlight) {
-    text = <mark>{text}</mark>;
+    if (typeof leaf.highlight === 'object') {
+      style.backgroundColor = leaf.highlight.color;
+    }
+    text = <mark style={style}>{text}</mark>;
   }
 
   if ('superscript' in leaf && leaf.superscript) {
-    text = <sup>{text}</sup>;
+    text = <sup style={style}>{text}</sup>;
   }
 
   if ('subscript' in leaf && leaf.subscript) {
-    text = <sub>{text}</sub>;
+    text = <sub style={style}>{text}</sub>;
   }
 
-  return <span {...attributes}>{text}</span>;
+  return (
+    <span style={style} {...attributes}>
+      {text}
+    </span>
+  );
 }
 
 export default memo(Leaf);
