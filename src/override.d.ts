@@ -137,9 +137,11 @@ declare module 'slate' {
     code?: boolean;
     underline?: boolean;
     linethrough?: boolean;
-    highlight?: boolean;
     superscript?: boolean;
     subscript?: boolean;
+    highlight?: boolean | { color: string };
+    fontsize?: number | string;
+    color?: string;
     text: string;
   };
 

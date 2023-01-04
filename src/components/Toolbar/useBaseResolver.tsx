@@ -13,23 +13,33 @@ import Icon, {
   UnorderedListOutlined,
   LinkOutlined,
   DisconnectOutlined,
+  HighlightOutlined,
 } from '@ant-design/icons';
-import { Form, Input } from 'antd';
+import { theme, Form, Input } from 'antd';
 import { useFormDialog } from 'src/hooks';
 import { LIST_TYPES } from 'src/utils/constant';
 import FormDialog from './FormDialog';
+import ColorPicker, { colorParse, colorStringify } from './ColorPicker';
 import CodeSvgr from 'src/assets/code.svg';
 import BlockQuoteSvgr from 'src/assets/block-quote.svg';
 import SuperscriptSvgr from 'src/assets/superscript.svg';
 import SubscriptSvgr from 'src/assets/subscript.svg';
+import UndoSvgr from 'src/assets/undo.svg';
+import RedoSvgr from 'src/assets/redo.svg';
 
+import type { Editor } from 'slate';
+import type { Color } from 'react-color';
 import type { ToolbarResolver } from '.';
 import type { FormDialogProps } from './FormDialog';
 
 const mp0 = { padding: 0, margin: 0 };
 
+const { useToken } = theme;
+
 export default function useBaseResolver() {
   const editor = useSlate();
+
+  const { token } = useToken();
 
   const {
     form: formLink,
@@ -51,8 +61,96 @@ export default function useBaseResolver() {
     [closeLink, editor]
   );
 
+  const handleColorChange = useCallback(
+    (v: Color) => {
+      editor.setMarkProperty('color', colorStringify(v));
+      ReactEditor.focus(editor);
+    },
+    [editor]
+  );
+
+  const handleHlColorChange = useCallback(
+    (v: Color) => {
+      editor.setMarkProperty('highlight', { color: colorStringify(v) });
+      ReactEditor.focus(editor);
+    },
+    [editor]
+  );
+
+  const colorIcon = useMemo(
+    () => <span style={{ display: 'inline-block', fontSize: 14, width: 13 }}>A</span>,
+    []
+  );
+
+  const defaultColor = useMemo(() => colorParse(token.colorText), [token.colorText]);
+
+  const getFontColorElement = useCallback(
+    (editor: Editor) => (
+      <ColorPicker
+        defaultValue={defaultColor}
+        value={editor.getMarkProperty('color')}
+        icon={colorIcon}
+        title="字体颜色"
+        onChange={handleColorChange}
+        onClick={handleColorChange}
+      />
+    ),
+    [colorIcon, defaultColor, handleColorChange]
+  );
+
+  const defaultHighlightColor = useMemo(() => colorParse(token.colorWarning), [token]);
+
+  const resolveHighlight = useCallback(
+    (editor: Editor) => {
+      const v = editor.getMarkProperty('highlight');
+
+      if (typeof v === 'boolean') {
+        // default highlight color
+        return defaultHighlightColor;
+      }
+      return v?.color;
+    },
+    [defaultHighlightColor]
+  );
+
+  const getHighlightElement = useCallback(
+    (editor: Editor) => (
+      <ColorPicker
+        defaultValue={defaultHighlightColor}
+        value={resolveHighlight(editor)}
+        icon={<HighlightOutlined />}
+        title="背景颜色"
+        onChange={handleHlColorChange}
+        onClick={handleHlColorChange}
+      />
+    ),
+    [defaultHighlightColor, handleHlColorChange, resolveHighlight]
+  );
+
   const baseResolver = useMemo<ToolbarResolver[]>(
     () => [
+      {
+        key: 'undo',
+        type: 'button',
+        icon: <Icon component={UndoSvgr} />,
+        title: '撤销 Ctrl+Z',
+        disabled: (editor) => editor.history.undos.length <= 0,
+        onClick(editor) {
+          editor.undo();
+          ReactEditor.focus(editor);
+        },
+      },
+      {
+        key: 'redo',
+        type: 'button',
+        icon: <Icon component={RedoSvgr} />,
+        title: '重做 Shift+Ctrl+Z',
+        disabled: (editor) => editor.history.redos.length <= 0,
+        onClick(editor) {
+          editor.redo();
+          ReactEditor.focus(editor);
+        },
+      },
       {
         key: 'bold',
         type: 'button',
@@ -267,10 +365,68 @@ export default function useBaseResolver() {
         },
       },
       {
+        key: 'fontsize',
+        type: 'dropdown',
+        title: '字号调整',
+        placeholder: '字号',
+        width: 80,
+        options: [
+          {
+            key: '12px',
+            label: '12px',
+          },
+          {
+            key: '13px',
+            label: '13px',
+          },
+          {
+            key: '14px',
+            label: '14px',
+          },
+          {
+            key: '15px',
+            label: '15px',
+          },
+          {
+            key: '16px',
+            label: '16px',
+          },
+          {
+            key: '19px',
+            label: '19px',
+          },
+          {
+            key: '22px',
+            label: '22px',
+          },
+          {
+            key: '24px',
+            label: '24px',
+          },
+          {
+            key: '29px',
+            label: '29px',
+          },
+          {
+            key: '32px',
+            label: '32px',
+          },
+          {
+            key: '40px',
+            label: '40px',
+          },
+        ],
+        activeKey: (editor) => editor.getMarkProperty('fontsize') || '16px',
+        onSelect(editor, v) {
+          editor.setMarkProperty('fontsize', v);
+          ReactEditor.focus(editor);
+        },
+      },
+      {
         key: 'align',
         type: 'dropdown',
         title: '文本对齐',
-        width: 65,
+        width: 60,
         optionDisplayField: 'icon',
         options: [
           {
@@ -315,10 +471,24 @@ export default function useBaseResolver() {
           ReactEditor.focus(editor);
         },
       },
+      {
+        key: 'color',
+        type: 'custom',
+        title: '字体颜色',
+        element: getFontColorElement,
+      },
+      {
+        key: 'highlight',
+        type: 'custom',
+        title: '背景高亮',
+        element: getHighlightElement,
+      },
     ],
     [
       closeLink,
       formLink,
+      getFontColorElement,
+      getHighlightElement,
       handleLinkFinish,
       linkDialogPos,
       linkDialogVisible,

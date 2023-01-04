@@ -26,7 +26,7 @@ export default function useStyled() {
         margin: 0;
       }
       mark {
-        background-color: #ffff00;
+        background-color: ${token.colorWarning};
       }
       s {
         color: ${token.colorTextDisabled};
