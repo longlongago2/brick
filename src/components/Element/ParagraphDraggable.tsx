@@ -22,7 +22,7 @@ function ParagraphDraggable(props: RenderElementProps & DropDownProps) {
   const element = props.element as ParagraphElement;
 
   // memorized
-  const { paragraph, dragButton } = useStyled();
+  const { paragraphDraggable, dragButton } = useStyled();
 
   const editor = useSlate();
 
@@ -99,7 +99,7 @@ function ParagraphDraggable(props: RenderElementProps & DropDownProps) {
         {...attributes}
         ref={getDropRef}
         className={classNames(
-          paragraph,
+          paragraphDraggable,
           {
             draggable,
             hovering: canDrop && isOver,

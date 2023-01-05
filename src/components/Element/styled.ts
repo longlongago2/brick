@@ -13,12 +13,15 @@ export default function useStyled() {
       transition: all 0.3s ease;
       &.image--block {
         display: block;
+        &.image--selected {
+          box-shadow: 0 0 0 0.5px ${token.colorPrimaryBorder} !important;
+        }
       }
       &.image--selected {
         background-color: ${token.colorPrimaryBg};
-        box-shadow: 0 0 0 0.5px ${token.colorPrimaryBorder};
+        box-shadow: 0 0 0 3px ${token.colorPrimaryBorder};
         border-radius: 2px;
-        opacity: 0.9;
+        opacity: 0.85;
       }
       &.image--selected-blur {
         box-shadow: 0 0 0 0.5px ${token.colorBorderSecondary};
@@ -44,7 +47,7 @@ export default function useStyled() {
       color: ${token.colorTextTertiary};
       opacity: 0.7;
     `,
-    paragraph: css`
+    paragraphDraggable: css`
       position: relative;
       &.draggable {
         background-color: ${token.colorPrimaryBg};

@@ -14,9 +14,9 @@ export const mapElementToJSON: Record<HTMLElement['nodeName'], any> = {
   H6: () => ({ type: 'heading-six' }),
   IMG: (el: HTMLImageElement) => ({
     type: 'image',
-    url: el.getAttribute('src'),
-    width: el.getAttribute('width'),
-    height: el.getAttribute('height'),
+    url: el.getAttribute('src') || undefined,
+    width: el.getAttribute('width') || undefined,
+    height: el.getAttribute('height') || undefined,
   }),
   LI: () => ({ type: 'list-item' }),
   OL: () => ({ type: 'numbered-list' }),

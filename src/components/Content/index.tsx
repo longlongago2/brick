@@ -42,10 +42,11 @@ function Content(props: ContentProps) {
 
   const { content } = useStyled();
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const stepOutOfInlineEle = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
       const { selection } = editor;
-      // Bugfix: 修复元素边界跳出时会间隔一个字符的问题
+
+      // 跳出行内元素边界：例如超链接，使用左右箭头键将跳出超链接作用范围。
       // Default left/right behavior is unit:'character'.
       // This fails to distinguish between two cursor positions, such as
       // <inline>foo<cursor/></inline> vs <inline>foo</inline><cursor/>.
@@ -53,24 +54,31 @@ function Content(props: ContentProps) {
       // This lets the user step into and out of the inline without stepping over characters.
       // You may wish to customize this further to only use unit:'offset' in specific cases.
       if (selection && Range.isCollapsed(selection)) {
-        const { nativeEvent } = e;
+        const { nativeEvent } = event;
         if (isKeyHotkey('left', nativeEvent)) {
-          e.preventDefault();
+          event.preventDefault();
           Transforms.move(editor, { unit: 'offset', reverse: true });
+          return;
         }
         if (isKeyHotkey('right', nativeEvent)) {
-          e.preventDefault();
+          event.preventDefault();
           Transforms.move(editor, { unit: 'offset' });
+          return;
         }
       }
+    },
+    [editor]
+  );
 
-      let preventDefaultShortcut = false;
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      stepOutOfInlineEle(e);
 
       // 暴露接口：用户自定义行为
       if (onKeyboard) {
         // onKeyboard: e => true, 跳过内置快捷键处理
         // onKeyboard: e => false, 将执行后续内置快捷键
-        preventDefaultShortcut = onKeyboard(e);
+        const preventDefaultShortcut = onKeyboard(e);
         if (preventDefaultShortcut) return;
       }
 
@@ -100,7 +108,7 @@ function Content(props: ContentProps) {
         }
       });
     },
-    [editor, onKeyboard]
+    [editor, onKeyboard, stepOutOfInlineEle]
   );
 
   const receiveRenderLeaf = useCallback(

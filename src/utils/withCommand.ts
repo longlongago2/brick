@@ -49,6 +49,13 @@ export interface CommandEditor {
   toggleElement: (type: NoEffectWrapTypes) => void;
 
   /**
+   * @descriptionZH 设置元素属性值
+   * @descriptionEN
+   * @memberof CommandEditor
+   */
+  setElementProperties: (type: Element['type'], properties: Record<string, any>) => void;
+
+  /**
    * @descriptionZH 应用/取消该文本对齐方式
    * @descriptionEN
    * @memberof CommandEditor
@@ -338,6 +345,12 @@ export function withCommand<T extends Editor>(editor: T) {
     }
     // set new draggable
     Transforms.setNodes(editor, newProperties);
+  };
+
+  e.setElementProperties = (type, properties) => {
+    Transforms.setNodes(editor, properties, {
+      match: (n) => !Editor.isEditor(n) && Element.isElement(n) && n.type === type,
+    });
   };
 
   e.getBoundingClientRect = () => {

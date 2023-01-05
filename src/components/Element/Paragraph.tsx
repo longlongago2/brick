@@ -1,7 +1,7 @@
 import React, { useCallback, memo, useMemo } from 'react';
+import { Dropdown } from 'antd';
 import { Editor, Transforms } from 'slate';
 import { ReactEditor, useSlate, useReadOnly, useSelected } from 'slate-react';
-import { Dropdown } from 'antd';
 import { DragOutlined, EnterOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
 import ParagraphDraggable from './ParagraphDraggable';
 import useStyled from './styled';
@@ -117,13 +117,13 @@ function Paragraph(props: RenderElementProps) {
     [draggable, element.lock, handleMenuClick]
   );
 
+  // render
   const core = (
     <p style={style} {...attributes}>
       {children}
     </p>
   );
 
-  // render
   if (readOnly) {
     // 只读状态
     return core;
