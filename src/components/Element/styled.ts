@@ -10,6 +10,8 @@ export default function useStyled() {
       position: relative;
       display: inline-block;
       font-size: 0;
+      clear: both;
+      overflow: hidden;
       transition: all 0.3s ease;
       &.image--block {
         display: block;
@@ -22,11 +24,19 @@ export default function useStyled() {
         box-shadow: 0 0 0 3px ${token.colorPrimaryBorder};
         border-radius: 2px;
         opacity: 0.85;
+        z-index: 1;
       }
       &.image--selected-blur {
         box-shadow: 0 0 0 0.5px ${token.colorBorderSecondary};
         background-color: rgba(0, 0, 0, 0.01);
+        z-index: 1;
       }
+    `,
+    imageCore: css`
+      position: relative;
+      font-size: 0;
+      display: inline-block;
+      width: 100%;
     `,
     link: css`
       display: inline-block;
@@ -42,46 +52,22 @@ export default function useStyled() {
         background-color: rgba(0, 0, 0, 0.01);
       }
     `,
-    paragraphLock: css`
+    paragraphLocked: css`
       cursor: default;
       color: ${token.colorTextTertiary};
       opacity: 0.7;
     `,
-    paragraphDraggable: css`
-      position: relative;
-      &.draggable {
-        background-color: ${token.colorPrimaryBg};
-        box-shadow: 0 0 0 7px ${token.colorPrimaryBg};
-      }
-      &.dragging {
-        opacity: 0.7;
-      }
-      &.hovering {
-        position: relative;
-        &::after {
-          position: absolute;
-          display: block;
-          content: '';
-          left: 0;
-          width: 100%;
-          border-top: 2px dashed ${token.colorBorder};
-        }
-        &.up {
-          &::after {
-            top: -7px;
-          }
-        }
-        &.down {
-          &::after {
-            bottom: -7px;
-          }
-        }
+    paragraphCore: css`
+      transition: all 0.3s ease;
+      &.selected {
+        background-color: rgba(0, 0, 0, 0.02);
+        box-shadow: 0 0 0 1px ${token.colorBorderSecondary};
       }
     `,
     dragButton: css`
       position: absolute;
-      top: -2px;
-      right: 0;
+      top: 2px;
+      right: 2px;
       cursor: move;
       display: flex;
       align-items: center;

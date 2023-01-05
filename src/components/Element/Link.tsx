@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useMemo } from 'react';
-import { useSelected, useFocused, useReadOnly, useSlate } from 'slate-react';
+import { useSelected, useFocused, useReadOnly, useSlate, ReactEditor } from 'slate-react';
 import { Dropdown, message } from 'antd';
 import Icon, { DisconnectOutlined, FormOutlined, GlobalOutlined } from '@ant-design/icons';
 import classNames from 'classnames';
@@ -44,6 +44,7 @@ function Link(props: RenderElementProps) {
     ({ key }) => {
       if (key === 'unset') {
         editor.unsetLink();
+        ReactEditor.focus(editor);
       } else if (key === 'edit') {
         if (linkResolver && linkResolver.onClick) {
           linkResolver.onClick(editor, { target: 'emitter_edit' });

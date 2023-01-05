@@ -53,10 +53,10 @@ export default function useBaseResolver() {
 
   const handleLinkFinish = useCallback<NonNullable<FormDialogProps['onFinish']>>(
     (values) => {
+      closeLink();
       const { url } = values;
       editor.setLink(url);
       ReactEditor.focus(editor);
-      closeLink();
     },
     [closeLink, editor]
   );
@@ -299,6 +299,7 @@ export default function useBaseResolver() {
           const isActive = editor.isElementActive('link');
           if (isActive) {
             editor.unsetLink();
+            ReactEditor.focus(editor);
           } else {
             const pos = editor.getBoundingClientRect();
             if (pos) {

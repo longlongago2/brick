@@ -9,6 +9,7 @@ import useStyled from './styled';
 import type { RenderElementProps } from 'slate-react';
 import type { ParagraphElement } from 'slate';
 import type { DropDownProps } from 'antd';
+import classNames from 'classnames';
 
 const trigger: DropDownProps['trigger'] = ['contextMenu'];
 
@@ -18,7 +19,7 @@ function Paragraph(props: RenderElementProps) {
   const element = props.element as ParagraphElement;
 
   // memorized
-  const { paragraphLock } = useStyled();
+  const { paragraphLocked, paragraphCore } = useStyled();
 
   const editor = useSlate();
 
@@ -119,7 +120,7 @@ function Paragraph(props: RenderElementProps) {
 
   // render
   const core = (
-    <p style={style} {...attributes}>
+    <p style={style} {...attributes} className={classNames(paragraphCore, { selected })}>
       {children}
     </p>
   );
@@ -136,7 +137,7 @@ function Paragraph(props: RenderElementProps) {
         <p
           style={style}
           {...attributes}
-          className={paragraphLock}
+          className={paragraphLocked}
           title="该段落已冻结，右键可解除"
           contentEditable={!selected}
           suppressContentEditableWarning={true}

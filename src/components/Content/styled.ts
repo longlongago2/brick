@@ -10,6 +10,11 @@ export default function useStyled() {
       padding: 10px;
       margin: 0;
       color: ${token.colorText};
+      p {
+        line-height: 1.74;
+        border-radius: 3px;
+        min-height: 28px;
+      }
       code {
         color: ${token.colorError};
         background-color: ${token.colorErrorBg};

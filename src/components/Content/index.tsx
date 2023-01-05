@@ -139,12 +139,13 @@ function Content(props: ContentProps) {
     [receiveRenderElement]
   );
 
-  const preventDefaultDragStart = useCallback(() => {
+  const preventDefaultDrag = useCallback(() => {
     // returning true, Slate will skip its own event handler
     // returning false, Slate will execute its own event handler afterward
     const hasReactDnd = editor.hasDraggableNodes();
+    const locked = !!editor.getElementFieldsValue('lock');
     // prevent its own event handler, avoiding conflicts with react-dnd.
-    return hasReactDnd;
+    return hasReactDnd || locked;
   }, [editor]);
 
   return (
@@ -159,7 +160,7 @@ function Content(props: ContentProps) {
         style={style}
         renderLeaf={handleRenderLeaf}
         renderElement={handleRenderElement}
-        onDragStart={preventDefaultDragStart}
+        onDragStart={preventDefaultDrag}
         onKeyDown={handleKeyDown}
       />
     </DndProvider>

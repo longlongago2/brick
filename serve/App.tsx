@@ -96,7 +96,7 @@ function App() {
   }, []);
 
   const handleChange = useCallback((v: Descendant[]) => {
-    console.log(v);
+    // console.log(v);
   }, []);
 
   return (

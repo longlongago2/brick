@@ -17,4 +17,4 @@ declare module '*.svg' {
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 
 // https://stackoverflow.com/questions/47632622/typescript-and-filter-boolean .filter(Boolean as any as ExcludesFalse),
-type ExcludesFalse = <T>(x: T | false) => x is T;
+type ExcludesFalse = <T>(x: T | false | undefined | null) => x is T;

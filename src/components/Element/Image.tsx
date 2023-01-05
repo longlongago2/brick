@@ -1,17 +1,19 @@
-import React, { memo, useMemo, useCallback, useState } from 'react';
+import React, { memo, useMemo, useCallback } from 'react';
 import { useSelected, useFocused, useSlate, ReactEditor } from 'slate-react';
 import Icon, {
   BlockOutlined,
+  CloseOutlined,
   FormOutlined,
   GlobalOutlined,
   PicCenterOutlined,
   PicLeftOutlined,
   PicRightOutlined,
 } from '@ant-design/icons';
-import { Dropdown } from 'antd';
+import { Dropdown, message } from 'antd';
 import classNames from 'classnames';
 import InlineSvgr from 'src/assets/inline.svg';
 import WrapSvgr from 'src/assets/wrap.svg';
+import { copyToClipboard } from 'src/utils';
 import DynamicElement from '../DynamicElement';
 import useStyled from './styled';
 
@@ -32,9 +34,7 @@ function Image(props: RenderElementProps) {
 
   const focused = useFocused();
 
-  const { image } = useStyled();
-
-  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+  const { image, imageCore } = useStyled();
 
   const paragraphLocked = editor.getElementFieldsValue('lock', 'paragraph');
 
@@ -45,32 +45,32 @@ function Image(props: RenderElementProps) {
     e.target.dispatchEvent(event);
   };
 
-  const handleMenuSelect = useCallback<NonNullable<NonNullable<DropDownProps['menu']>['onSelect']>>(
+  const handleMenuClick = useCallback<NonNullable<NonNullable<DropDownProps['menu']>['onClick']>>(
     ({ key }) => {
       const floatKeys = ['left', 'right']; // 浮动互斥选项
       const typeKeys = ['inline', 'block']; // 元素类型互斥选项
-      if ([...floatKeys, ...typeKeys].includes(key)) {
-        // 只有上述选项可选择
-        setSelectedKeys((keys) => {
-          if (floatKeys.includes(key)) {
-            // 处理浮动选项互斥
-            return keys.filter((_) => !floatKeys.find((__) => __ === _)).concat(key);
-          }
-          if (typeKeys.includes(key)) {
-            // 处理元素类型选项互斥
-            return keys.filter((_) => !typeKeys.find((__) => __ === _)).concat(key);
-          }
-          return keys.concat(key);
-        });
-      }
       // handler
       if (floatKeys.includes(key)) {
         // 设置浮动
-        editor.setElementProperties('image', { float: key });
+        const prefloat = editor.getElementFieldsValue('float', 'image');
+        const float = key;
+        editor.setElementProperties('image', { float: prefloat === float ? undefined : float });
         ReactEditor.focus(editor);
       } else if (typeKeys.includes(key)) {
         // 设置元素类型
-        editor.setElementProperties('image', { inline: key === 'inline' });
+        editor.setElementProperties('image', { inline: key === 'inline' }, { refactor: true });
+        ReactEditor.focus(editor);
+      } else if (key === 'copy') {
+        const url = editor.getElementFieldsValue('url', 'image');
+        copyToClipboard(url)
+          .then(() => {
+            message.success('图片地址已复制');
+          })
+          .catch(() => {
+            message.error('复制失败，浏览器不支持');
+          });
+      } else if (key === 'delete') {
+        editor.removeElement('image');
         ReactEditor.focus(editor);
       }
     },
@@ -81,6 +81,11 @@ function Image(props: RenderElementProps) {
     () => ({
       items: [
         {
+          key: 'delete',
+          label: '删除图片',
+          icon: <CloseOutlined style={{ color: 'red' }} />,
+        },
+        {
           key: 'edit',
           label: '编辑图片',
           icon: <FormOutlined />,
@@ -90,7 +95,7 @@ function Image(props: RenderElementProps) {
           label: '复制图片地址',
           icon: <GlobalOutlined />,
         },
-        !!imageEle.inline && {
+        imageEle.inline && {
           key: 'float',
           label: '设置浮动',
           icon: <PicCenterOutlined />,
@@ -126,10 +131,12 @@ function Image(props: RenderElementProps) {
         },
       ].filter(Boolean as any as ExcludesFalse),
       selectable: true,
-      selectedKeys,
-      onSelect: handleMenuSelect,
+      selectedKeys: [editor.isInline(imageEle) ? 'inline' : 'block', imageEle.float].filter(
+        Boolean as any as ExcludesFalse
+      ),
+      onClick: handleMenuClick,
     }),
-    [handleMenuSelect, imageEle, selectedKeys]
+    [editor, handleMenuClick, imageEle]
   );
 
   const style = useMemo<React.CSSProperties | undefined>(
@@ -138,15 +145,22 @@ function Image(props: RenderElementProps) {
   );
 
   const core = (
-    <DynamicElement tag={imageEle.inline ? 'span' : 'div'} contentEditable={false}>
+    <span contentEditable={false} className={imageCore}>
       <img src={imageEle.url} width={imageEle.width} height={imageEle.height} />
-    </DynamicElement>
+    </span>
   );
 
   if (paragraphLocked) {
     // 段落冻结
     return (
-      <DynamicElement tag={imageEle.inline ? 'span' : 'section'} style={style} {...attributes}>
+      <DynamicElement
+        tag={imageEle.inline ? 'span' : 'section'}
+        style={style}
+        {...attributes}
+        className={classNames(image, {
+          'image--block': !imageEle.inline,
+        })}
+      >
         {children}
         {core}
       </DynamicElement>
