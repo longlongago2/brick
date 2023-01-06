@@ -79,6 +79,7 @@ declare module 'slate' {
     height?: number;
     inline?: boolean;
     float?: 'left' | 'right';
+    align?: TextAlign;
     children: EmptyText[];
   };
 

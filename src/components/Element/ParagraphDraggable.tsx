@@ -50,7 +50,7 @@ function ParagraphDraggable(props: RenderElementProps & DropDownProps) {
           paragraphCore,
           {
             [blockSelected]: selected,
-            '--selected-blur': selected && !focused,
+            [`${blockSelected}--blur`]: selected && !focused,
           },
           classes
         )}

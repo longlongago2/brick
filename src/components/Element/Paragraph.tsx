@@ -127,7 +127,7 @@ function Paragraph(props: RenderElementProps) {
       {...attributes}
       className={classNames(paragraphCore, {
         [blockSelected]: selected,
-        '--selected-blur': selected && !focused,
+        [`${blockSelected}--blur`]: selected && !focused,
       })}
     >
       {children}

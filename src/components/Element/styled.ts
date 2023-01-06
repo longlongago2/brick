@@ -11,7 +11,7 @@ export default function useStyled() {
       background-color: rgba(0, 0, 0, 0.02);
       box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
       z-index: 1;
-      &.--selected-blur {
+      &--blur {
         background-color: transparent;
       }
     `,
@@ -20,7 +20,7 @@ export default function useStyled() {
       background-color: ${token.colorPrimaryBg};
       box-shadow: 0 0 0 0.5px ${token.colorPrimaryBorder};
       z-index: 1;
-      &.--selected-blur {
+      &--blur {
         background-color: ${token.colorBgContainerDisabled};
         box-shadow: 0 0 0 0.5px ${token.colorBorder};
       }
@@ -30,9 +30,9 @@ export default function useStyled() {
       display: inline-block;
       font-size: 0;
       clear: both;
-      overflow: hidden;
+      vertical-align: bottom;
       transition: all 0.3s ease;
-      &.--image-block {
+      &--block {
         display: block;
         margin: 16px 0;
       }

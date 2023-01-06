@@ -15,6 +15,7 @@ import InlineSvgr from 'src/assets/inline.svg';
 import WrapSvgr from 'src/assets/wrap.svg';
 import { copyToClipboard } from 'src/utils';
 import DynamicElement from '../DynamicElement';
+import ImageEnhancer from '../ImageEnhancer';
 import useStyled from './styled';
 
 import type { RenderElementProps } from 'slate-react';
@@ -139,14 +140,24 @@ function Image(props: RenderElementProps) {
     [editor, handleMenuClick, imageEle]
   );
 
-  const style = useMemo<React.CSSProperties | undefined>(
-    () => (imageEle.inline && imageEle.float ? { float: imageEle.float } : undefined),
-    [imageEle]
-  );
+  const getStyle = useCallback(() => {
+    const style: React.CSSProperties = {};
+    if (imageEle.inline && imageEle.float) {
+      style.float = imageEle.float;
+    }
+    if (!imageEle.inline && imageEle.align) {
+      style.textAlign = imageEle.align;
+    }
+    return style;
+  }, [imageEle]);
+
+  const style = useMemo<React.CSSProperties>(() => getStyle(), [getStyle]);
+
+  const imageSelected = imageEle.inline ? inlineSelected : blockSelected;
 
   const core = (
     <span contentEditable={false} className={imageCore}>
-      <img src={imageEle.url} width={imageEle.width} height={imageEle.height} />
+      <ImageEnhancer src={imageEle.url} width={imageEle.width} height={imageEle.height} />
     </span>
   );
 
@@ -158,7 +169,7 @@ function Image(props: RenderElementProps) {
         style={style}
         {...attributes}
         className={classNames(image, {
-          '--image-block': !imageEle.inline,
+          [`${image}--block`]: !imageEle.inline,
         })}
       >
         {children}
@@ -173,10 +184,9 @@ function Image(props: RenderElementProps) {
       style={style}
       {...attributes}
       className={classNames(image, {
-        '--image-block': !imageEle.inline,
-        // selected focus
-        [imageEle.inline ? inlineSelected : blockSelected]: selected,
-        '--selected-blur': selected && !focused,
+        [`${image}--block`]: !imageEle.inline,
+        [imageSelected]: selected,
+        [`${imageSelected}--blur`]: selected && !focused,
       })}
       onContextMenu={preventContextMenu}
     >

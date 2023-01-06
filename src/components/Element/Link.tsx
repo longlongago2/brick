@@ -112,7 +112,7 @@ function Link(props: RenderElementProps) {
       href={linkEle.url}
       className={classNames(link, {
         [inlineSelected]: selected,
-        '--selected-blur': selected && !focused,
+        [`${inlineSelected}--blur`]: selected && !focused,
       })}
     >
       <InlineChromiumBugfix />
