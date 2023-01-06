@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { Editor } from 'slate';
 import { ReactEditor, useSlate } from 'slate-react';
 import Icon, {
   BoldOutlined,
@@ -27,7 +28,6 @@ import SubscriptSvgr from 'src/assets/subscript.svg';
 import UndoSvgr from 'src/assets/undo.svg';
 import RedoSvgr from 'src/assets/redo.svg';
 
-import type { Editor } from 'slate';
 import type { Color } from 'react-color';
 import type { ToolbarResolver } from '.';
 import type { FormDialogProps } from './FormDialog';
@@ -213,6 +213,11 @@ export default function useBaseResolver() {
         title: '上标 Ctrl+.',
         active: (editor) => editor.isMarkActive('superscript'),
         onClick(editor) {
+          // 上标/下标 互斥
+          const isActive = editor.isMarkActive('subscript');
+          if (isActive) {
+            Editor.removeMark(editor, 'subscript');
+          }
           editor.toggleMark('superscript');
           ReactEditor.focus(editor);
         },
@@ -224,6 +229,11 @@ export default function useBaseResolver() {
         title: '下标 Ctrl+,',
         active: (editor) => editor.isMarkActive('subscript'),
         onClick(editor) {
+          // 上标/下标 互斥
+          const isActive = editor.isMarkActive('superscript');
+          if (isActive) {
+            Editor.removeMark(editor, 'superscript');
+          }
           editor.toggleMark('subscript');
           ReactEditor.focus(editor);
         },

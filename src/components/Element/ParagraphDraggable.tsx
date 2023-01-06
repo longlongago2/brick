@@ -1,6 +1,8 @@
 import React, { memo, useMemo } from 'react';
 import { Button, Dropdown } from 'antd';
+import { useSelected, useFocused } from 'slate-react';
 import { HolderOutlined } from '@ant-design/icons';
+import classNames from 'classnames';
 import { useReactDnd } from 'src/hooks';
 import useStyled from './styled';
 
@@ -14,7 +16,11 @@ function ParagraphDraggable(props: RenderElementProps & DropDownProps) {
   const element = props.element as ParagraphElement;
 
   // memorized
-  const { dragButton } = useStyled();
+  const { dragButton, paragraphCore, blockSelected } = useStyled();
+
+  const selected = useSelected();
+
+  const focused = useFocused();
 
   // draggable
   const { drag, drop, classes, isDragging } = useReactDnd({ element });
@@ -40,7 +46,14 @@ function ParagraphDraggable(props: RenderElementProps & DropDownProps) {
         style={style}
         {...attributes}
         ref={getDropRef}
-        className={classes}
+        className={classNames(
+          paragraphCore,
+          {
+            [blockSelected]: selected,
+            '--selected-blur': selected && !focused,
+          },
+          classes
+        )}
       >
         {children}
         {element.draggable && !isDragging && (

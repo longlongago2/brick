@@ -27,7 +27,7 @@ function Link(props: RenderElementProps) {
 
   const readOnly = useReadOnly();
 
-  const { link } = useStyled();
+  const { link, inlineSelected } = useStyled();
 
   const baseResolver = useBaseResolver();
 
@@ -111,8 +111,8 @@ function Link(props: RenderElementProps) {
       {...attributes}
       href={linkEle.url}
       className={classNames(link, {
-        'link--selected': selected,
-        'link--selected-blur': selected && !focused,
+        [inlineSelected]: selected,
+        '--selected-blur': selected && !focused,
       })}
     >
       <InlineChromiumBugfix />

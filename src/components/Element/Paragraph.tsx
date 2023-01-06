@@ -1,7 +1,7 @@
 import React, { useCallback, memo, useMemo } from 'react';
 import { Dropdown } from 'antd';
 import { Editor, Transforms } from 'slate';
-import { ReactEditor, useSlate, useReadOnly, useSelected } from 'slate-react';
+import { ReactEditor, useSlate, useReadOnly, useSelected, useFocused } from 'slate-react';
 import { DragOutlined, EnterOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
 import ParagraphDraggable from './ParagraphDraggable';
 import useStyled from './styled';
@@ -19,13 +19,15 @@ function Paragraph(props: RenderElementProps) {
   const element = props.element as ParagraphElement;
 
   // memorized
-  const { paragraphLocked, paragraphCore } = useStyled();
+  const { paragraphLocked, paragraphCore, blockSelected } = useStyled();
 
   const editor = useSlate();
 
   const readOnly = useReadOnly();
 
   const selected = useSelected();
+
+  const focused = useFocused();
 
   // handler
   const handleUpEnter = useCallback(() => {
@@ -120,7 +122,14 @@ function Paragraph(props: RenderElementProps) {
 
   // render
   const core = (
-    <p style={style} {...attributes} className={classNames(paragraphCore, { selected })}>
+    <p
+      style={style}
+      {...attributes}
+      className={classNames(paragraphCore, {
+        [blockSelected]: selected,
+        '--selected-blur': selected && !focused,
+      })}
+    >
       {children}
     </p>
   );

@@ -6,6 +6,25 @@ const { useToken } = theme;
 export default function useStyled() {
   const { token } = useToken();
   return {
+    blockSelected: css`
+      position: relative;
+      background-color: rgba(0, 0, 0, 0.02);
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+      z-index: 1;
+      &.--selected-blur {
+        background-color: transparent;
+      }
+    `,
+    inlineSelected: css`
+      position: relative;
+      background-color: ${token.colorPrimaryBg};
+      box-shadow: 0 0 0 0.5px ${token.colorPrimaryBorder};
+      z-index: 1;
+      &.--selected-blur {
+        background-color: ${token.colorBgContainerDisabled};
+        box-shadow: 0 0 0 0.5px ${token.colorBorder};
+      }
+    `,
     image: css`
       position: relative;
       display: inline-block;
@@ -13,23 +32,9 @@ export default function useStyled() {
       clear: both;
       overflow: hidden;
       transition: all 0.3s ease;
-      &.image--block {
+      &.--image-block {
         display: block;
-        &.image--selected {
-          box-shadow: 0 0 0 0.5px ${token.colorPrimaryBorder} !important;
-        }
-      }
-      &.image--selected {
-        background-color: ${token.colorPrimaryBg};
-        box-shadow: 0 0 0 3px ${token.colorPrimaryBorder};
-        border-radius: 2px;
-        opacity: 0.85;
-        z-index: 1;
-      }
-      &.image--selected-blur {
-        box-shadow: 0 0 0 0.5px ${token.colorBorderSecondary};
-        background-color: rgba(0, 0, 0, 0.01);
-        z-index: 1;
+        margin: 16px 0;
       }
     `,
     imageCore: css`
@@ -41,16 +46,8 @@ export default function useStyled() {
     link: css`
       display: inline-block;
       color: ${token.colorLink};
+      border-radius: ${token.borderRadiusXS}px;
       transition: all 0.3s ease;
-      &.link--selected {
-        background-color: ${token.colorPrimaryBg};
-        box-shadow: 0 0 0 0.5px ${token.colorPrimaryBorder};
-        border-radius: 2px;
-      }
-      &.link--selected-blur {
-        box-shadow: 0 0 0 0.5px ${token.colorBorderSecondary};
-        background-color: rgba(0, 0, 0, 0.01);
-      }
     `,
     paragraphLocked: css`
       cursor: default;
@@ -58,11 +55,8 @@ export default function useStyled() {
       opacity: 0.7;
     `,
     paragraphCore: css`
+      position: relative;
       transition: all 0.3s ease;
-      &.selected {
-        background-color: rgba(0, 0, 0, 0.02);
-        box-shadow: 0 0 0 1px ${token.colorBorderSecondary};
-      }
     `,
     dragButton: css`
       position: absolute;

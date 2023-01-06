@@ -34,7 +34,7 @@ function Image(props: RenderElementProps) {
 
   const focused = useFocused();
 
-  const { image, imageCore } = useStyled();
+  const { image, imageCore, inlineSelected, blockSelected } = useStyled();
 
   const paragraphLocked = editor.getElementFieldsValue('lock', 'paragraph');
 
@@ -158,7 +158,7 @@ function Image(props: RenderElementProps) {
         style={style}
         {...attributes}
         className={classNames(image, {
-          'image--block': !imageEle.inline,
+          '--image-block': !imageEle.inline,
         })}
       >
         {children}
@@ -173,9 +173,10 @@ function Image(props: RenderElementProps) {
       style={style}
       {...attributes}
       className={classNames(image, {
-        'image--block': !imageEle.inline,
-        'image--selected': selected,
-        'image--selected-blur': selected && !focused,
+        '--image-block': !imageEle.inline,
+        // selected focus
+        [imageEle.inline ? inlineSelected : blockSelected]: selected,
+        '--selected-blur': selected && !focused,
       })}
       onContextMenu={preventContextMenu}
     >
