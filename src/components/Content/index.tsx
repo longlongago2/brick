@@ -1,6 +1,6 @@
 import React, { memo, useCallback } from 'react';
-import { Editable, useSlate } from 'slate-react';
-import { Range, Transforms } from 'slate';
+import { Editable, useSlate, ReactEditor } from 'slate-react';
+import { Range, Transforms, Editor, Element as SlateElement } from 'slate';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
 import isHotkey, { isKeyHotkey } from 'is-hotkey';
@@ -42,10 +42,11 @@ function Content(props: ContentProps) {
 
   const { content } = useStyled();
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const stepOutOfInlineEle = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
       const { selection } = editor;
-      // Bugfix: 修复元素边界跳出时会间隔一个字符的问题
+
+      // 跳出行内元素边界：例如超链接，使用左右箭头键将跳出超链接作用范围。
       // Default left/right behavior is unit:'character'.
       // This fails to distinguish between two cursor positions, such as
       // <inline>foo<cursor/></inline> vs <inline>foo</inline><cursor/>.
@@ -53,24 +54,31 @@ function Content(props: ContentProps) {
       // This lets the user step into and out of the inline without stepping over characters.
       // You may wish to customize this further to only use unit:'offset' in specific cases.
       if (selection && Range.isCollapsed(selection)) {
-        const { nativeEvent } = e;
+        const { nativeEvent } = event;
         if (isKeyHotkey('left', nativeEvent)) {
-          e.preventDefault();
+          event.preventDefault();
           Transforms.move(editor, { unit: 'offset', reverse: true });
+          return;
         }
         if (isKeyHotkey('right', nativeEvent)) {
-          e.preventDefault();
+          event.preventDefault();
           Transforms.move(editor, { unit: 'offset' });
+          return;
         }
       }
+    },
+    [editor]
+  );
 
-      let preventDefaultShortcut = false;
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      stepOutOfInlineEle(e);
 
       // 暴露接口：用户自定义行为
       if (onKeyboard) {
         // onKeyboard: e => true, 跳过内置快捷键处理
         // onKeyboard: e => false, 将执行后续内置快捷键
-        preventDefaultShortcut = onKeyboard(e);
+        const preventDefaultShortcut = onKeyboard(e);
         if (preventDefaultShortcut) return;
       }
 
@@ -100,7 +108,7 @@ function Content(props: ContentProps) {
         }
       });
     },
-    [editor, onKeyboard]
+    [editor, onKeyboard, stepOutOfInlineEle]
   );
 
   const receiveRenderLeaf = useCallback(
@@ -131,13 +139,54 @@ function Content(props: ContentProps) {
     [receiveRenderElement]
   );
 
-  const preventDefaultDragStart = useCallback(() => {
-    // returning true, Slate will skip its own event handler
-    // returning false, Slate will execute its own event handler afterward
-    const hasReactDnd = editor.hasDraggableNodes();
-    // prevent its own event handler, avoiding conflicts with react-dnd.
-    return hasReactDnd;
-  }, [editor]);
+  const preventDefaultDrop = useCallback<React.DragEventHandler<HTMLDivElement>>(
+    (e) => {
+      // returning true, Slate will skip its own event handler
+      // returning false, Slate will execute its own event handler afterward
+      let locked = false;
+      const hasReactDnd = editor.hasDraggableNodes();
+      // 因为此处 editor.getElementFieldsValue('lock'); 获取的是拖动前的值，不是放置目标的值
+      // 所以此处根据 document element(e.target) 寻找 slate element(ParagraphElement)
+      const node = ReactEditor.toSlateNode(editor, e.target as Node);
+      const path = ReactEditor.findPath(editor, node);
+      const [match] = Array.from(
+        Editor.nodes(editor, {
+          at: path,
+          match: (n) => !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === 'paragraph',
+        })
+      );
+      const element = match?.[0] as SlateElement;
+      if ('lock' in element) {
+        locked = !!element.lock;
+      }
+      if (locked) {
+        // 阻止浏览器默认拖放
+        e.stopPropagation();
+        e.preventDefault();
+      }
+      // 阻止slate默认拖放
+      return hasReactDnd || locked;
+    },
+    [editor]
+  );
+
+  const preventDefaultDrag = useCallback<React.DragEventHandler<HTMLDivElement>>(
+    (e) => {
+      // returning true, Slate will skip its own event handler
+      // returning false, Slate will execute its own event handler afterward
+      const hasReactDnd = editor.hasDraggableNodes();
+      const locked = !!editor.getElementFieldsValue('lock');
+      // prevent its own event handler, avoiding conflicts with react-dnd.
+      if (locked) {
+        // 阻止浏览器默认拖动
+        e.stopPropagation();
+        e.preventDefault();
+      }
+      // 阻止slate默认拖动
+      return hasReactDnd || locked;
+    },
+    [editor]
+  );
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -151,7 +200,8 @@ function Content(props: ContentProps) {
         style={style}
         renderLeaf={handleRenderLeaf}
         renderElement={handleRenderElement}
-        onDragStart={preventDefaultDragStart}
+        onDragStart={preventDefaultDrag}
+        onDrop={preventDefaultDrop}
         onKeyDown={handleKeyDown}
       />
     </DndProvider>

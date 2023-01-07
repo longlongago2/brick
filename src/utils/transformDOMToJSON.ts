@@ -1,9 +1,12 @@
 import { jsx } from 'slate-hyperscript';
 
+import type { ImageElement, LinkElement } from 'slate';
+
 export const mapElementToJSON: Record<HTMLElement['nodeName'], any> = {
-  A: (el: HTMLLinkElement) => ({
+  A: (el: HTMLLinkElement): LinkElement => ({
     type: 'link',
-    url: el.getAttribute('href'),
+    url: el.getAttribute('href') ?? '',
+    children: [{ text: '' }],
   }),
   BLOCKQUOTE: () => ({ type: 'quote' }),
   H1: () => ({ type: 'heading-one' }),
@@ -12,12 +15,20 @@ export const mapElementToJSON: Record<HTMLElement['nodeName'], any> = {
   H4: () => ({ type: 'heading-four' }),
   H5: () => ({ type: 'heading-five' }),
   H6: () => ({ type: 'heading-six' }),
-  IMG: (el: HTMLImageElement) => ({
-    type: 'image',
-    url: el.getAttribute('src'),
-    width: el.getAttribute('width'),
-    height: el.getAttribute('height'),
-  }),
+  IMG: (el: HTMLImageElement): ImageElement => {
+    const url = el.getAttribute('src');
+    const width = el.getAttribute('width');
+    const height = el.getAttribute('height');
+    const inline = el.getAttribute('data-element');
+    return {
+      type: 'image',
+      url: url ?? '',
+      width: width ? Number(width) : undefined,
+      height: height ? Number(height) : undefined,
+      inline: inline ? inline === 'inline' : undefined,
+      children: [{ text: '' }],
+    };
+  },
   LI: () => ({ type: 'list-item' }),
   OL: () => ({ type: 'numbered-list' }),
   P: () => ({ type: 'paragraph' }),

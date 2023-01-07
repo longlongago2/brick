@@ -49,6 +49,24 @@ export interface CommandEditor {
   toggleElement: (type: NoEffectWrapTypes) => void;
 
   /**
+   * @descriptionZH 设置元素属性值 `refactor:true`重构：先删后增，解决inline转换问题
+   * @descriptionEN
+   * @memberof CommandEditor
+   */
+  setElementProperties: (
+    type: Element['type'],
+    properties: Record<string, any>,
+    options?: { refactor: boolean }
+  ) => void;
+
+  /**
+   * @descriptionZH 移除指定类型元素
+   * @descriptionEN
+   * @memberof CommandEditor
+   */
+  removeElement: (type: Element['type']) => void;
+
+  /**
    * @descriptionZH 应用/取消该文本对齐方式
    * @descriptionEN
    * @memberof CommandEditor
@@ -338,6 +356,35 @@ export function withCommand<T extends Editor>(editor: T) {
     }
     // set new draggable
     Transforms.setNodes(editor, newProperties);
+  };
+
+  e.setElementProperties = (type, properties, options) => {
+    if (options?.refactor) {
+      // 先删后增：解决行内元素和块级元素相互转换不生效的问题
+      const { selection } = editor;
+      if (!selection) return null;
+      const [match] = Array.from(
+        Editor.nodes(editor, {
+          at: Editor.unhangRange(editor, selection),
+          match: (n) => !Editor.isEditor(n) && Element.isElement(n) && n.type === type,
+        })
+      );
+      const preElement = match?.[0];
+      Transforms.removeNodes(editor, {
+        match: (n) => !Editor.isEditor(n) && Element.isElement(n) && n.type === type,
+      });
+      Transforms.insertNodes(editor, { ...preElement, ...properties });
+      return;
+    }
+    Transforms.setNodes(editor, properties, {
+      match: (n) => !Editor.isEditor(n) && Element.isElement(n) && n.type === type,
+    });
+  };
+
+  e.removeElement = (type) => {
+    Transforms.removeNodes(editor, {
+      match: (n) => !Editor.isEditor(n) && Element.isElement(n) && n.type === type,
+    });
   };
 
   e.getBoundingClientRect = () => {

@@ -6,79 +6,62 @@ const { useToken } = theme;
 export default function useStyled() {
   const { token } = useToken();
   return {
+    blockSelected: css`
+      position: relative;
+      background-color: ${token.colorFillQuaternary};
+      box-shadow: 0 0 0 1px ${token.colorFillSecondary};
+      z-index: 1;
+      &--blur {
+        background-color: transparent;
+      }
+    `,
+    inlineSelected: css`
+      position: relative;
+      background-color: ${token.colorPrimaryBg};
+      box-shadow: 0 0 0 0.5px ${token.colorPrimaryBorder};
+      z-index: 1;
+      &--blur {
+        background-color: ${token.colorBgContainerDisabled};
+        box-shadow: 0 0 0 0.5px ${token.colorBorder};
+      }
+    `,
     image: css`
       position: relative;
       display: inline-block;
       font-size: 0;
+      clear: both;
+      vertical-align: bottom;
       transition: all 0.3s ease;
-      &.image--block {
+      &--block {
         display: block;
+        margin: 16px 0;
       }
-      &.image--selected {
-        background-color: ${token.colorPrimaryBg};
-        box-shadow: 0 0 0 0.5px ${token.colorPrimaryBorder};
-        border-radius: 2px;
-        opacity: 0.9;
-      }
-      &.image--selected-blur {
-        box-shadow: 0 0 0 0.5px ${token.colorBorderSecondary};
-        background-color: rgba(0, 0, 0, 0.01);
-      }
+    `,
+    imageCore: css`
+      position: relative;
+      font-size: 0;
+      display: inline-block;
+      width: 100%;
     `,
     link: css`
       display: inline-block;
       color: ${token.colorLink};
+      border-radius: ${token.borderRadiusXS}px;
       transition: all 0.3s ease;
-      &.link--selected {
-        background-color: ${token.colorPrimaryBg};
-        box-shadow: 0 0 0 0.5px ${token.colorPrimaryBorder};
-        border-radius: 2px;
-      }
-      &.link--selected-blur {
-        box-shadow: 0 0 0 0.5px ${token.colorBorderSecondary};
-        background-color: rgba(0, 0, 0, 0.01);
-      }
     `,
-    paragraphLock: css`
-      cursor: default;
-      color: ${token.colorTextTertiary};
-      opacity: 0.7;
-    `,
-    paragraph: css`
+    paragraphCore: css`
       position: relative;
-      &.draggable {
-        background-color: ${token.colorPrimaryBg};
-        box-shadow: 0 0 0 7px ${token.colorPrimaryBg};
-      }
-      &.dragging {
+      transition: all 0.3s ease;
+      &--locked {
+        cursor: default;
+        color: ${token.colorTextTertiary};
         opacity: 0.7;
-      }
-      &.hovering {
-        position: relative;
-        &::after {
-          position: absolute;
-          display: block;
-          content: '';
-          left: 0;
-          width: 100%;
-          border-top: 2px dashed ${token.colorBorder};
-        }
-        &.up {
-          &::after {
-            top: -7px;
-          }
-        }
-        &.down {
-          &::after {
-            bottom: -7px;
-          }
-        }
       }
     `,
     dragButton: css`
       position: absolute;
-      top: -2px;
-      right: 0;
+      top: 2px;
+      right: 2px;
       cursor: move;
       display: flex;
       align-items: center;

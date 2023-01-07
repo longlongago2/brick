@@ -78,6 +78,8 @@ declare module 'slate' {
     width?: number;
     height?: number;
     inline?: boolean;
+    float?: 'left' | 'right';
+    align?: TextAlign;
     children: EmptyText[];
   };
 

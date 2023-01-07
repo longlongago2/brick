@@ -1,7 +1,7 @@
 import React, { useCallback, memo, useMemo } from 'react';
-import { Editor, Transforms } from 'slate';
-import { ReactEditor, useSlate, useReadOnly, useSelected } from 'slate-react';
 import { Dropdown } from 'antd';
+import { Editor, Transforms } from 'slate';
+import { ReactEditor, useSlate, useReadOnly, useSelected, useFocused } from 'slate-react';
 import { DragOutlined, EnterOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
 import ParagraphDraggable from './ParagraphDraggable';
 import useStyled from './styled';
@@ -9,6 +9,7 @@ import useStyled from './styled';
 import type { RenderElementProps } from 'slate-react';
 import type { ParagraphElement } from 'slate';
 import type { DropDownProps } from 'antd';
+import classNames from 'classnames';
 
 const trigger: DropDownProps['trigger'] = ['contextMenu'];
 
@@ -18,13 +19,15 @@ function Paragraph(props: RenderElementProps) {
   const element = props.element as ParagraphElement;
 
   // memorized
-  const { paragraphLock } = useStyled();
+  const { paragraphCore, blockSelected } = useStyled();
 
   const editor = useSlate();
 
   const readOnly = useReadOnly();
 
   const selected = useSelected();
+
+  const focused = useFocused();
 
   // handler
   const handleUpEnter = useCallback(() => {
@@ -81,12 +84,12 @@ function Paragraph(props: RenderElementProps) {
         element.lock
           ? {
             key: 'unlock',
-            label: '解除冻结',
+            label: '解除锁定',
             icon: <UnlockOutlined />,
           }
           : {
             key: 'lock',
-            label: '冻结段落',
+            label: '锁定段落',
             icon: <LockOutlined />,
           },
         !element.lock &&
@@ -117,29 +120,27 @@ function Paragraph(props: RenderElementProps) {
     [draggable, element.lock, handleMenuClick]
   );
 
-  const core = (
-    <p style={style} {...attributes}>
-      {children}
-    </p>
-  );
-
   // render
+  // 只读状态
   if (readOnly) {
-    // 只读状态
-    return core;
+    return (
+      <p style={style} {...attributes} className={paragraphCore}>
+        {children}
+      </p>
+    );
   }
 
+  // 锁定状态
   if (element.lock) {
-    // 冻结状态
     return (
       <Dropdown trigger={trigger} menu={menu}>
         <p
           style={style}
           {...attributes}
-          className={paragraphLock}
-          title="该段落已冻结，右键可解除"
-          contentEditable={!selected}
+          className={classNames(paragraphCore, `${paragraphCore}--locked`)}
+          title="该段落已锁定，右键可解除"
           suppressContentEditableWarning={true}
+          contentEditable={!selected}
         >
           {children}
         </p>
@@ -147,15 +148,24 @@ function Paragraph(props: RenderElementProps) {
     );
   }
 
+  // 拖动状态
   if (editor.hasDraggableNodes()) {
-    // 拖动状态
     return <ParagraphDraggable {...props} trigger={trigger} menu={menu} />;
   }
 
-  // 基础状态
+  // 编辑状态
   return (
     <Dropdown trigger={trigger} menu={menu}>
-      {core}
+      <p
+        style={style}
+        {...attributes}
+        className={classNames(paragraphCore, {
+          [blockSelected]: selected,
+          [`${blockSelected}--blur`]: selected && !focused,
+        })}
+      >
+        {children}
+      </p>
     </Dropdown>
   );
 }
