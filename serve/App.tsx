@@ -68,7 +68,7 @@ const initialValue: Descendant[] = [
     lock: true,
     children: [
       {
-        text: '4.这是被冻结的段落，不可操作，右键可解除冻结。',
+        text: '4.这是被锁定的段落，不可操作，右键可解除锁定。',
       },
     ],
   },
@@ -95,9 +95,9 @@ function App() {
     return false; // is preventDefaultHandler
   }, []);
 
-  const handleChange = useCallback((v: Descendant[]) => {
-    // console.log(v);
-  }, []);
+  // const handleChange = useCallback((v: Descendant[]) => {
+  //   console.log(v);
+  // }, []);
 
   return (
     <div>
@@ -106,7 +106,7 @@ function App() {
         renderElement={renderElement}
         readOnly={false}
         onKeyboard={handleKeyboard}
-        onChange={handleChange}
+        // onChange={handleChange}
       />
     </div>
   );

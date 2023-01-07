@@ -49,14 +49,14 @@ export default function useStyled() {
       border-radius: ${token.borderRadiusXS}px;
       transition: all 0.3s ease;
     `,
-    paragraphLocked: css`
-      cursor: default;
-      color: ${token.colorTextTertiary};
-      opacity: 0.7;
-    `,
     paragraphCore: css`
       position: relative;
       transition: all 0.3s ease;
+      &--locked {
+        cursor: default;
+        color: ${token.colorTextTertiary};
+        opacity: 0.7;
+      }
     `,
     dragButton: css`
       position: absolute;

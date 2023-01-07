@@ -33,7 +33,7 @@ function Link(props: RenderElementProps) {
 
   const linkEle = element as LinkElement;
 
-  const paragraphLocked = editor.getElementFieldsValue('lock', 'paragraph');
+  const locked = editor.getElementFieldsValue('lock', 'paragraph');
 
   const linkResolver = useMemo<ToolbarButton>(
     () => baseResolver.find((_) => _.key === 'link') as ToolbarButton,
@@ -98,7 +98,8 @@ function Link(props: RenderElementProps) {
     [handleMenuClick]
   );
 
-  if (readOnly) {
+  // 只读状态 / 锁定状态
+  if (readOnly || locked) {
     return (
       <a {...attributes} href={linkEle.url} className={link}>
         {children}
@@ -106,30 +107,22 @@ function Link(props: RenderElementProps) {
     );
   }
 
-  const core = (
-    <a
-      {...attributes}
-      href={linkEle.url}
-      className={classNames(link, {
-        [inlineSelected]: selected,
-        [`${inlineSelected}--blur`]: selected && !focused,
-      })}
-    >
-      <InlineChromiumBugfix />
-      {children}
-      <InlineChromiumBugfix />
-    </a>
-  );
-
-  if (paragraphLocked) {
-    // 段落锁定
-    return core;
-  }
-
+  // 编辑状态
   return (
     <span onContextMenu={preventContextMenu}>
       <Dropdown trigger={trigger} menu={menu}>
-        {core}
+        <a
+          {...attributes}
+          href={linkEle.url}
+          className={classNames(link, {
+            [inlineSelected]: selected,
+            [`${inlineSelected}--blur`]: selected && !focused,
+          })}
+        >
+          <InlineChromiumBugfix />
+          {children}
+          <InlineChromiumBugfix />
+        </a>
       </Dropdown>
       {linkResolver.attachRender}
     </span>

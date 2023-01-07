@@ -1,5 +1,5 @@
 import React, { memo, useMemo, useCallback } from 'react';
-import { useSelected, useFocused, useSlate, ReactEditor } from 'slate-react';
+import { useSelected, useFocused, useReadOnly, useSlate, ReactEditor } from 'slate-react';
 import Icon, {
   BlockOutlined,
   CloseOutlined,
@@ -35,9 +35,11 @@ function Image(props: RenderElementProps) {
 
   const focused = useFocused();
 
+  const readOnly = useReadOnly();
+
   const { image, imageCore, inlineSelected, blockSelected } = useStyled();
 
-  const paragraphLocked = editor.getElementFieldsValue('lock', 'paragraph');
+  const locked = editor.getElementFieldsValue('lock', 'paragraph');
 
   const preventContextMenu: React.MouseEventHandler<HTMLSpanElement> = (e) => {
     e.preventDefault();
@@ -166,7 +168,7 @@ function Image(props: RenderElementProps) {
     <span contentEditable={false} className={imageCore}>
       <ImageEnhancer
         active={selected}
-        showNative={paragraphLocked}
+        showNative={locked || readOnly}
         src={imageEle.url}
         width={imageEle.width}
         height={imageEle.height}
@@ -176,8 +178,8 @@ function Image(props: RenderElementProps) {
     </span>
   );
 
-  if (paragraphLocked) {
-    // 段落冻结
+  // 只读状态 / 锁定状态
+  if (readOnly || locked) {
     return (
       <DynamicElement
         tag={imageEle.inline ? 'span' : 'section'}
@@ -193,6 +195,10 @@ function Image(props: RenderElementProps) {
     );
   }
 
+  // 拖动状态
+  // TODO: 参考ParagraphDraggable.tsx
+
+  // 编辑状态
   return (
     <DynamicElement
       tag={imageEle.inline ? 'span' : 'section'}

@@ -19,7 +19,7 @@ function Paragraph(props: RenderElementProps) {
   const element = props.element as ParagraphElement;
 
   // memorized
-  const { paragraphLocked, paragraphCore, blockSelected } = useStyled();
+  const { paragraphCore, blockSelected } = useStyled();
 
   const editor = useSlate();
 
@@ -84,12 +84,12 @@ function Paragraph(props: RenderElementProps) {
         element.lock
           ? {
             key: 'unlock',
-            label: '解除冻结',
+            label: '解除锁定',
             icon: <UnlockOutlined />,
           }
           : {
             key: 'lock',
-            label: '冻结段落',
+            label: '锁定段落',
             icon: <LockOutlined />,
           },
         !element.lock &&
@@ -121,35 +121,26 @@ function Paragraph(props: RenderElementProps) {
   );
 
   // render
-  const core = (
-    <p
-      style={style}
-      {...attributes}
-      className={classNames(paragraphCore, {
-        [blockSelected]: selected,
-        [`${blockSelected}--blur`]: selected && !focused,
-      })}
-    >
-      {children}
-    </p>
-  );
-
+  // 只读状态
   if (readOnly) {
-    // 只读状态
-    return core;
+    return (
+      <p style={style} {...attributes} className={paragraphCore}>
+        {children}
+      </p>
+    );
   }
 
+  // 锁定状态
   if (element.lock) {
-    // 冻结状态
     return (
       <Dropdown trigger={trigger} menu={menu}>
         <p
           style={style}
           {...attributes}
-          className={paragraphLocked}
-          title="该段落已冻结，右键可解除"
-          contentEditable={!selected}
+          className={classNames(paragraphCore, `${paragraphCore}--locked`)}
+          title="该段落已锁定，右键可解除"
           suppressContentEditableWarning={true}
+          contentEditable={!selected}
         >
           {children}
         </p>
@@ -157,15 +148,24 @@ function Paragraph(props: RenderElementProps) {
     );
   }
 
+  // 拖动状态
   if (editor.hasDraggableNodes()) {
-    // 拖动状态
     return <ParagraphDraggable {...props} trigger={trigger} menu={menu} />;
   }
 
-  // 基础状态
+  // 编辑状态
   return (
     <Dropdown trigger={trigger} menu={menu}>
-      {core}
+      <p
+        style={style}
+        {...attributes}
+        className={classNames(paragraphCore, {
+          [blockSelected]: selected,
+          [`${blockSelected}--blur`]: selected && !focused,
+        })}
+      >
+        {children}
+      </p>
     </Dropdown>
   );
 }

@@ -116,8 +116,6 @@ export function useReactDnd<
       const dropId = eleKey.id;
       // Don't replace items with themselves
       if (dragId === dropId) return;
-      // Avoid locked paragraph
-      if ('lock' in element && element.lock) return;
       // Move
       Transforms.moveNodes(editor, { at: item.path, to: elePath });
     },

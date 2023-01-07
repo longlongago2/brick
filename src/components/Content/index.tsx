@@ -1,6 +1,6 @@
 import React, { memo, useCallback } from 'react';
-import { Editable, useSlate } from 'slate-react';
-import { Range, Transforms } from 'slate';
+import { Editable, useSlate, ReactEditor } from 'slate-react';
+import { Range, Transforms, Editor, Element as SlateElement } from 'slate';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
 import isHotkey, { isKeyHotkey } from 'is-hotkey';
@@ -139,17 +139,50 @@ function Content(props: ContentProps) {
     [receiveRenderElement]
   );
 
+  const preventDefaultDrop = useCallback<React.DragEventHandler<HTMLDivElement>>(
+    (e) => {
+      // returning true, Slate will skip its own event handler
+      // returning false, Slate will execute its own event handler afterward
+      let locked = false;
+      const hasReactDnd = editor.hasDraggableNodes();
+      // 因为此处 editor.getElementFieldsValue('lock'); 获取的是拖动前的值，不是放置目标的值
+      // 所以此处根据 document element(e.target) 寻找 slate element(ParagraphElement)
+      const node = ReactEditor.toSlateNode(editor, e.target as Node);
+      const path = ReactEditor.findPath(editor, node);
+      const [match] = Array.from(
+        Editor.nodes(editor, {
+          at: path,
+          match: (n) => !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === 'paragraph',
+        })
+      );
+      const element = match?.[0] as SlateElement;
+      if ('lock' in element) {
+        locked = !!element.lock;
+      }
+      if (locked) {
+        // 阻止浏览器默认拖放
+        e.stopPropagation();
+        e.preventDefault();
+      }
+      // 阻止slate默认拖放
+      return hasReactDnd || locked;
+    },
+    [editor]
+  );
+
   const preventDefaultDrag = useCallback<React.DragEventHandler<HTMLDivElement>>(
     (e) => {
       // returning true, Slate will skip its own event handler
       // returning false, Slate will execute its own event handler afterward
       const hasReactDnd = editor.hasDraggableNodes();
       const locked = !!editor.getElementFieldsValue('lock');
+      // prevent its own event handler, avoiding conflicts with react-dnd.
       if (locked) {
+        // 阻止浏览器默认拖动
         e.stopPropagation();
         e.preventDefault();
       }
-      // prevent its own event handler, avoiding conflicts with react-dnd.
+      // 阻止slate默认拖动
       return hasReactDnd || locked;
     },
     [editor]
@@ -168,6 +201,7 @@ function Content(props: ContentProps) {
         renderLeaf={handleRenderLeaf}
         renderElement={handleRenderElement}
         onDragStart={preventDefaultDrag}
+        onDrop={preventDefaultDrop}
         onKeyDown={handleKeyDown}
       />
     </DndProvider>

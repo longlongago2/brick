@@ -39,7 +39,7 @@ function ParagraphDraggable(props: RenderElementProps & DropDownProps) {
     [element.align]
   );
 
-  // render
+  // render：继承编辑状态，只增加拖动环节
   return (
     <Dropdown trigger={trigger} menu={menu}>
       <p
