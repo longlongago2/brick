@@ -21,16 +21,17 @@ export default function useStyled() {
       border: 2px solid #2f8ef4;
       box-sizing: border-box;
       background-color: rgba(0, 0, 0, 0.2);
-      z-index: 99;
+      pointer-events: none;
+      z-index: 9;
       &--handle {
+        position: absolute;
         width: 14px;
         height: 14px;
         padding: 0;
         margin: 0;
-        border: 3px solid #fff;
+        border: 3px solid ${token.colorBgContainer};
         background-color: #2f8ef4;
         border-radius: 50%;
-        position: absolute;
         box-sizing: border-box;
       }
       &--handle-tl {
@@ -65,6 +66,10 @@ export default function useStyled() {
         font-size: 12px;
         color: #fff;
         line-height: 1;
+        &::after {
+          display: inline;
+          content: attr(data-size);
+        }
       }
       &--preview {
         position: absolute;
@@ -78,12 +83,30 @@ export default function useStyled() {
         margin: 0;
         border: 0;
         border-radius: 50%;
+        pointer-events: all;
         transition: all 0.3s ease;
         &:hover {
           cursor: pointer;
           background-color: rgba(255, 255, 255, 0.7);
           color: ${token.colorTextSecondary};
         }
+      }
+    `,
+    modal: css`
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      backdrop-filter: blur(55px) grayscale(10%);
+      > img {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: auto !important;
+        height: 100% !important;
+        transition: all 0.3 ease;
       }
     `,
   };

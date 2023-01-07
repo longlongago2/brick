@@ -46,6 +46,13 @@ function Image(props: RenderElementProps) {
     e.target.dispatchEvent(event);
   };
 
+  const handleImageSizeChange = useCallback(
+    (size: [number, number]) => {
+      editor.setElementProperties('image', { width: size[0], height: size[1] });
+    },
+    [editor]
+  );
+
   const handleMenuClick = useCallback<NonNullable<NonNullable<DropDownProps['menu']>['onClick']>>(
     ({ key }) => {
       const floatKeys = ['left', 'right']; // 浮动互斥选项
@@ -157,7 +164,15 @@ function Image(props: RenderElementProps) {
 
   const core = (
     <span contentEditable={false} className={imageCore}>
-      <ImageEnhancer src={imageEle.url} width={imageEle.width} height={imageEle.height} />
+      <ImageEnhancer
+        active={selected}
+        showNative={paragraphLocked}
+        src={imageEle.url}
+        width={imageEle.width}
+        height={imageEle.height}
+        inline={imageEle.inline}
+        onSizeChange={handleImageSizeChange}
+      />
     </span>
   );
 

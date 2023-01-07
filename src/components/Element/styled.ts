@@ -8,8 +8,8 @@ export default function useStyled() {
   return {
     blockSelected: css`
       position: relative;
-      background-color: rgba(0, 0, 0, 0.02);
-      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+      background-color: ${token.colorFillQuaternary};
+      box-shadow: 0 0 0 1px ${token.colorFillSecondary};
       z-index: 1;
       &--blur {
         background-color: transparent;
