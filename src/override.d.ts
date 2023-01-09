@@ -74,6 +74,7 @@ declare module 'slate' {
 
   export type ImageElement = {
     type: 'image';
+    source: 'local' | 'remote',
     url: string;
     width?: number;
     height?: number;

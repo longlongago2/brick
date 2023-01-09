@@ -12,6 +12,9 @@ export interface FormDialogProps extends Omit<ModalProps, 'modalRender' | 'destr
   defaultPosition?: DraggableProps['defaultPosition'];
   position?: DraggableProps['position'];
   draggable?: boolean;
+  layout?: FormProps['layout'],
+  labelCol?: FormProps['labelCol'],
+  wrapperCol?: FormProps['wrapperCol'],
   onFinish?: FormProps['onFinish'];
   onFinishFailed?: FormProps['onFinishFailed'];
   onFieldsChange?: FormProps['onFieldsChange'];
@@ -25,6 +28,9 @@ function FormDialog(props: FormDialogProps) {
     defaultPosition,
     position,
     draggable,
+    layout = 'vertical',
+    labelCol,
+    wrapperCol,
     wrapClassName,
     children,
     onFinish,
@@ -92,7 +98,9 @@ function FormDialog(props: FormDialogProps) {
     >
       <Form
         form={form}
-        layout="vertical"
+        layout={layout}
+        labelCol={labelCol}
+        wrapperCol={wrapperCol}
         onFinish={onFinish}
         onFinishFailed={onFinishFailed}
         onFieldsChange={onFieldsChange}

@@ -92,7 +92,7 @@ export interface CommandEditor {
    * @descriptionEN
    * @memberof CommandEditor
    */
-  getElementFieldsValue: (fields?: ElementKeys | ElementKeys[], type?: Element['type']) => any;
+  getElementFieldsValue: (fields?: ElementKeys | ElementKeys[] | true, type?: Element['type']) => any;
 
   /**
    * @descriptionZH 设置超链接，如果已存在超链接则更新，否则新增
@@ -257,6 +257,7 @@ export function withCommand<T extends Editor>(editor: T) {
   };
 
   e.getElementFieldsValue = (fields, type) => {
+    if (!fields) return null;
     const { selection } = editor;
     if (!selection) return null;
     const [match] = Array.from(
@@ -273,17 +274,17 @@ export function withCommand<T extends Editor>(editor: T) {
     );
     const ele = match?.[0];
     if (!ele) return null;
-    if (fields) {
-      // 根据fields，返回不同的数据格式
-      if (Array.isArray(fields)) {
-        // 多个字段值组成的数组
-        return fields.map((key) => ele[key as keyof Node]);
-      }
-      // 单个字段值
-      return ele[fields as keyof Node];
+
+    // 返回所有字段值
+    if (fields === true) return ele;
+
+    // 返回多个字段值组成的数组
+    if (Array.isArray(fields)) {
+      return fields.map((key) => ele[key as keyof Node]);
     }
-    // fields is undefined, return all element data
-    return ele;
+
+    // 单个字段值
+    return ele[fields as keyof Node];
   };
 
   e.setLink = (url) => {

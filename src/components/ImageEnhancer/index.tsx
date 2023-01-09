@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { useEventListener } from 'ahooks';
+import { useEventListener, useMount } from 'ahooks';
 import { EyeFilled } from '@ant-design/icons';
 import classNames from 'classnames';
 import useStyled from './styled';
@@ -18,18 +18,10 @@ export interface ImageEnhancerProps extends React.ImgHTMLAttributes<HTMLImageEle
 export type Direction = 'tl' | 'tr' | 'bl' | 'br';
 
 function ImageEnhancer(props: ImageEnhancerProps) {
-  const {
-    width = 50,
-    height = 50,
-    inline,
-    zIndex = 999,
-    showNative,
-    active,
-    onSizeChange,
-    ...restProps
-  } = props;
+  const { width, height, inline, zIndex = 999, showNative, active, onSizeChange, ...restProps } = props;
 
   // memoize
+  const imgRef = useRef<HTMLImageElement>(null);
   const handleRef = useRef<HTMLSpanElement>(null);
   const sizeRef = useRef<HTMLSpanElement>(null);
   const moving = useRef<Direction | null>(null);
@@ -96,25 +88,27 @@ function ImageEnhancer(props: ImageEnhancerProps) {
     if (!moving.current) return;
     if (!handleRef.current) return;
     if (!sizeRef.current) return;
+    if (!imgRef.current) return;
     const offsetW = e.clientX - startX.current;
     const offsetH = e.clientY - startY.current;
-    let w = size[0];
-    let h = size[1];
+    const rect = imgRef.current.getBoundingClientRect(); // 原始图片数据
+    let w = size[0] ?? rect.width;
+    let h = size[1] ?? rect.height;
     if (moving.current === 'br') {
-      w = size[0] + offsetW > 0 ? size[0] + offsetW : 0;
-      h = size[1] + offsetH > 0 ? size[1] + offsetH : 0;
+      w = w + offsetW > 0 ? w + offsetW : 0;
+      h = h + offsetH > 0 ? h + offsetH : 0;
     }
     if (moving.current === 'bl') {
-      w = size[0] - offsetW > 0 ? size[0] - offsetW : 0;
-      h = size[1] + offsetH > 0 ? size[1] + offsetH : 0;
+      w = w - offsetW > 0 ? w - offsetW : 0;
+      h = h + offsetH > 0 ? h + offsetH : 0;
     }
     if (moving.current === 'tl') {
-      w = size[0] - offsetW > 0 ? size[0] - offsetW : 0;
-      h = size[1] - offsetH > 0 ? size[1] - offsetH : 0;
+      w = w - offsetW > 0 ? w - offsetW : 0;
+      h = h - offsetH > 0 ? h - offsetH : 0;
     }
     if (moving.current === 'tr') {
-      w = size[0] + offsetW;
-      h = size[1] - offsetH;
+      w = w + offsetW;
+      h = h - offsetH;
     }
     handleRef.current.style.width = `${w}px`;
     handleRef.current.style.height = `${h}px`;
@@ -137,6 +131,15 @@ function ImageEnhancer(props: ImageEnhancerProps) {
 
   useEventListener('mouseup', handleMoveStop);
 
+  useMount(() => {
+    if (!imgRef.current) return;
+    const rect = imgRef.current.getBoundingClientRect();
+    console.log(rect);// FIXME: 上传的base64图片 有时候获取不到长宽
+
+    if (width === undefined || width === null) setSize((v) => [rect.width, v[1]]);
+    if (height === undefined || height === null) setSize((v) => [v[0], rect.height]);
+  });
+
   useEffect(() => {
     if (!active) moving.current = null;
   }, [active]);
@@ -144,7 +147,13 @@ function ImageEnhancer(props: ImageEnhancerProps) {
   // render
   // data-element：提供拖动复制粘贴，获取信息使用，详情请见 src\utils\transformDOMToJSON.ts
   const core = (
-    <img width={size[0]} height={size[1]} {...restProps} data-element={inline ? 'inline' : 'block'} />
+    <img
+      ref={imgRef}
+      width={size[0]}
+      height={size[1]}
+      {...restProps}
+      data-element={inline ? 'inline' : 'block'}
+    />
   );
 
   if (showNative) {
@@ -163,7 +172,6 @@ function ImageEnhancer(props: ImageEnhancerProps) {
       onDragStart={handleDragStart}
     >
       {core}
-      {/* resizer */}
       {active && (
         <span
           ref={handleRef}
@@ -197,11 +205,10 @@ function ImageEnhancer(props: ImageEnhancerProps) {
           ></button>
         </span>
       )}
-      {/* previewer */}
       {preview &&
         ReactDOM.createPortal(
           <div className={modal} style={{ zIndex }} onClick={handlePreview}>
-            {core}
+            <img {...restProps} />
           </div>,
           document.body
         )}

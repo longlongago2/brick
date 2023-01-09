@@ -16,6 +16,7 @@ import WrapSvgr from 'src/assets/wrap.svg';
 import { copyToClipboard } from 'src/utils';
 import DynamicElement from '../DynamicElement';
 import ImageEnhancer from '../ImageEnhancer';
+import useBaseResolver from '../Toolbar/useBaseResolver';
 import useStyled from './styled';
 
 import type { RenderElementProps } from 'slate-react';
@@ -36,6 +37,10 @@ function Image(props: RenderElementProps) {
   const focused = useFocused();
 
   const readOnly = useReadOnly();
+
+  const baseResolver = useBaseResolver();
+
+  const imageResolver = useMemo(() => baseResolver.find((item) => item.key === 'image'), [baseResolver]);
 
   const { image, imageCore, inlineSelected, blockSelected } = useStyled();
 
@@ -82,9 +87,12 @@ function Image(props: RenderElementProps) {
       } else if (key === 'delete') {
         editor.removeElement('image');
         ReactEditor.focus(editor);
+      } else if (key === 'edit') {
+        if (imageResolver && 'onClick' in imageResolver && imageResolver.onClick)
+          imageResolver.onClick(editor, { target: 'emitter_edit' });
       }
     },
-    [editor]
+    [editor, imageResolver]
   );
 
   const menu = useMemo<DropDownProps['menu']>(
@@ -215,6 +223,7 @@ function Image(props: RenderElementProps) {
       <Dropdown trigger={trigger} menu={menu}>
         {core}
       </Dropdown>
+      {imageResolver?.attachRender}
     </DynamicElement>
   );
 }

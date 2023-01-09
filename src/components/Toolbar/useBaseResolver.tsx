@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
-import { Editor } from 'slate';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Editor, Transforms } from 'slate';
 import { ReactEditor, useSlate } from 'slate-react';
 import Icon, {
   BoldOutlined,
@@ -16,10 +16,11 @@ import Icon, {
   DisconnectOutlined,
   HighlightOutlined,
 } from '@ant-design/icons';
-import { theme, Form, Input } from 'antd';
+import { theme, Form, Input, Radio, message, InputNumber } from 'antd';
 import { useFormDialog } from 'src/hooks';
 import { LIST_TYPES } from 'src/utils/constant';
 import FormDialog from './FormDialog';
+import FileUpload from '../FileUpload';
 import ColorPicker, { colorParse, colorStringify } from './ColorPicker';
 import CodeSvgr from 'src/assets/code.svg';
 import BlockQuoteSvgr from 'src/assets/block-quote.svg';
@@ -27,19 +28,55 @@ import SuperscriptSvgr from 'src/assets/superscript.svg';
 import SubscriptSvgr from 'src/assets/subscript.svg';
 import UndoSvgr from 'src/assets/undo.svg';
 import RedoSvgr from 'src/assets/redo.svg';
+import ImageSvgr from 'src/assets/image.svg';
 
+import type { ImageElement } from 'slate';
 import type { Color } from 'react-color';
 import type { ToolbarResolver } from '.';
 import type { FormDialogProps } from './FormDialog';
 
+const { useToken } = theme;
+
 const mp0 = { padding: 0, margin: 0 };
 
-const { useToken } = theme;
+const w88 = { width: 88 };
+
+const span4 = { span: 4 };
+
+const alignCenter: React.CSSProperties = { textAlign: 'center' };
+
+const required = [{ required: true }];
+
+const imgSourceOptions = [
+  {
+    label: '本地上传',
+    value: 'local',
+  },
+  {
+    label: '远程图片',
+    value: 'remote',
+  },
+];
+
+const imgElementOptions = [
+  {
+    label: '行内元素',
+    value: true,
+  },
+  {
+    label: '块级元素',
+    value: false,
+  },
+];
+
+const defaultImgSource = 'local';
 
 export default function useBaseResolver() {
   const editor = useSlate();
 
   const { token } = useToken();
+
+  const [imgSource, setImgSource] = useState(defaultImgSource);
 
   const {
     form: formLink,
@@ -47,18 +84,79 @@ export default function useBaseResolver() {
     setVisible: setLinkDialogVisible,
     pos: linkDialogPos,
     setPos: setLinkDialogPos,
-    close: closeLink,
+    close: closeLinkDialog,
     submit: submitLink,
+  } = useFormDialog();
+
+  const {
+    form: formImage,
+    visible: imageDialogVisible,
+    setVisible: setImageDialogVisible,
+    close: closeImageDialog,
+    submit: submitImage,
+    mode: imageDialogMode,
+    setMode: setImageDialogMode,
+    loading: imgDialogLoading,
   } = useFormDialog();
 
   const handleLinkFinish = useCallback<NonNullable<FormDialogProps['onFinish']>>(
     (values) => {
-      closeLink();
+      closeLinkDialog();
       const { url } = values;
       editor.setLink(url);
       ReactEditor.focus(editor);
     },
-    [closeLink, editor]
+    [closeLinkDialog, editor]
+  );
+
+  const _closeImageDialog = useCallback(() => {
+    setImgSource(defaultImgSource);
+    closeImageDialog();
+  }, [closeImageDialog]);
+
+  const handleImageFinish = useCallback<NonNullable<FormDialogProps['onFinish']>>(
+    async (values) => {
+      const { source, file, url: _url, inline, width, height } = values;
+      let url = _url;
+      if (source === 'local') {
+        const fileUpload = editor.extraProperty?.fileUpload;
+        if (fileUpload) {
+          url = await fileUpload(file);
+        } else {
+          // default base64
+          url = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function () {
+              resolve(reader.result);
+            };
+            reader.onerror = function (error) {
+              reject(error);
+            };
+          }).catch(() => '');
+        }
+      }
+      if (imageDialogMode === 'update') {
+        // 编辑
+        editor.setElementProperties('image', { source, url, inline, width, height }, { refactor: true });
+        _closeImageDialog();
+        ReactEditor.focus(editor);
+        return;
+      }
+      // 新增
+      Transforms.insertNodes(editor, {
+        type: 'image',
+        source,
+        url,
+        inline,
+        width,
+        height,
+        children: [{ text: '' }],
+      });
+      _closeImageDialog();
+      ReactEditor.focus(editor);
+    },
+    [_closeImageDialog, editor, imageDialogMode]
   );
 
   const handleColorChange = useCallback(
@@ -75,6 +173,15 @@ export default function useBaseResolver() {
       ReactEditor.focus(editor);
     },
     [editor]
+  );
+
+  const handleImageDialogValuesChange = useCallback<NonNullable<FormDialogProps['onValuesChange']>>(
+    (changedValues) => {
+      if (changedValues.source) {
+        setImgSource(changedValues.source);
+      }
+    },
+    []
   );
 
   const colorIcon = useMemo(
@@ -283,10 +390,9 @@ export default function useBaseResolver() {
             width={355}
             draggable
             title="超链接"
-            mask={false}
             open={linkDialogVisible}
             defaultPosition={linkDialogPos}
-            onCancel={closeLink}
+            onCancel={closeLinkDialog}
             onOk={submitLink}
             onFinish={handleLinkFinish}
           >
@@ -296,27 +402,102 @@ export default function useBaseResolver() {
           </FormDialog>
         ),
         onClick(editor, e) {
-          // 处理特殊请求，一般从Content：即文本编辑区中发出
-          if (e?.target === 'emitter_edit') {
-            // 编辑请求
-            const url = editor.getElementFieldsValue('url', 'link');
+          const { selection } = editor;
+          if (!selection) {
+            message.warning('请先选定文本区！');
+            return;
+          }
+
+          const open = () => {
             const pos = editor.getBoundingClientRect();
-            formLink.setFieldsValue({ url });
             if (pos) setLinkDialogPos({ x: pos.x + pos.width, y: pos.y + pos.height });
             setLinkDialogVisible(true);
             return;
+          };
+
+          // 处理特殊请求，一般从Content：即文本编辑区中发出
+          if (e?.target === 'emitter_edit') {
+            // 编辑请求：更新赋值
+            const url = editor.getElementFieldsValue('url', 'link');
+            formLink.setFieldsValue({ url });
+            open();
+            return;
           }
+
           const isActive = editor.isElementActive('link');
           if (isActive) {
+            // 已有超链接状态
             editor.unsetLink();
             ReactEditor.focus(editor);
-          } else {
-            const pos = editor.getBoundingClientRect();
-            if (pos) {
-              setLinkDialogPos({ x: pos.x + pos.width, y: pos.y + pos.height });
-              setLinkDialogVisible(true);
-            }
+            return;
           }
+
+          open();
+        },
+      },
+      {
+        key: 'image',
+        type: 'button',
+        icon: <Icon component={ImageSvgr} />,
+        title: '图片',
+        disabled: (editor) => editor.isElementActive('image'),
+        attachRender: (
+          <FormDialog
+            form={formImage}
+            width={355}
+            confirmLoading={imgDialogLoading}
+            draggable
+            layout="horizontal"
+            labelCol={span4}
+            title="图片"
+            open={imageDialogVisible}
+            onCancel={_closeImageDialog}
+            onOk={submitImage}
+            onFinish={handleImageFinish}
+            onValuesChange={handleImageDialogValuesChange}
+          >
+            <Form.Item name="source" initialValue={defaultImgSource} style={alignCenter}>
+              <Radio.Group optionType="button" options={imgSourceOptions} />
+            </Form.Item>
+            {imgSource === 'local' && (
+              <Form.Item label="上传" name="file" rules={required}>
+                <FileUpload placeholder="请选择文件上传" accept=".jpg, .jpeg, .png, .gif, .svg" />
+              </Form.Item>
+            )}
+            {imgSource === 'remote' && (
+              <Form.Item label="地址" name="url" rules={required}>
+                <Input placeholder="请输入图片地址" allowClear />
+              </Form.Item>
+            )}
+            <Form.Item label="元素" name="inline" rules={required} initialValue={true}>
+              <Radio.Group optionType="button" options={imgElementOptions} />
+            </Form.Item>
+            <Form.Item label="宽度" name="width">
+              <InputNumber step="0.1" precision={2} min={1} placeholder="auto (px)" style={w88} />
+            </Form.Item>
+            <Form.Item label="高度" name="height">
+              <InputNumber step="0.1" precision={2} min={1} placeholder="auto (px)" style={w88} />
+            </Form.Item>
+          </FormDialog>
+        ),
+        onClick(editor, e) {
+          const { selection } = editor;
+          if (!selection) {
+            message.warning('请先选定文本区！');
+            return;
+          }
+
+          if (e?.target === 'emitter_edit') {
+            // 编辑请求
+            const ele = editor.getElementFieldsValue(true, 'image') as ImageElement;
+            formImage.setFieldsValue({ ...ele, inline: !!ele.inline });
+            setImgSource(ele.source || defaultImgSource);
+            setImageDialogMode('update');
+            setImageDialogVisible(true);
+            return;
+          }
+
+          setImageDialogVisible(true);
         },
       },
       {
@@ -496,15 +677,25 @@ export default function useBaseResolver() {
       },
     ],
     [
-      closeLink,
+      _closeImageDialog,
+      closeLinkDialog,
+      formImage,
       formLink,
       getFontColorElement,
       getHighlightElement,
+      handleImageDialogValuesChange,
+      handleImageFinish,
       handleLinkFinish,
+      imageDialogVisible,
+      imgDialogLoading,
+      imgSource,
       linkDialogPos,
       linkDialogVisible,
+      setImageDialogMode,
+      setImageDialogVisible,
       setLinkDialogPos,
       setLinkDialogVisible,
+      submitImage,
       submitLink,
     ]
   );

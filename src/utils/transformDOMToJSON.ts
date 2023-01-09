@@ -22,6 +22,7 @@ export const mapElementToJSON: Record<HTMLElement['nodeName'], any> = {
     const inline = el.getAttribute('data-element');
     return {
       type: 'image',
+      source: 'remote',
       url: url ?? '',
       width: width ? Number(width) : undefined,
       height: height ? Number(height) : undefined,
