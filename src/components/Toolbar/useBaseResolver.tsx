@@ -390,6 +390,7 @@ export default function useBaseResolver() {
             width={355}
             draggable
             title="超链接"
+            mask={false}
             open={linkDialogVisible}
             defaultPosition={linkDialogPos}
             onCancel={closeLinkDialog}

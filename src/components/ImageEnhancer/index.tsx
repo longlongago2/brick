@@ -3,11 +3,12 @@ import ReactDOM from 'react-dom';
 import { useEventListener, useMount } from 'ahooks';
 import { EyeFilled } from '@ant-design/icons';
 import classNames from 'classnames';
+import { useNextTick } from 'src/hooks';
 import useStyled from './styled';
 
 export interface ImageEnhancerProps extends React.ImgHTMLAttributes<HTMLImageElement> {
-  width?: number;
-  height?: number;
+  width?: number | string;
+  height?: number | string;
   inline?: boolean;
   zIndex?: number;
   showNative?: boolean; // 显示原始图片
@@ -16,6 +17,8 @@ export interface ImageEnhancerProps extends React.ImgHTMLAttributes<HTMLImageEle
 }
 
 export type Direction = 'tl' | 'tr' | 'bl' | 'br';
+
+export type Size = [string | number | undefined, string | number | undefined];
 
 function ImageEnhancer(props: ImageEnhancerProps) {
   const { width, height, inline, zIndex = 999, showNative, active, onSizeChange, ...restProps } = props;
@@ -28,11 +31,13 @@ function ImageEnhancer(props: ImageEnhancerProps) {
   const startX = useRef(0);
   const startY = useRef(0);
 
-  const [size, setSize] = useState([width, height]);
+  const [size, setSize] = useState<Size>([width, height]);
 
   const [preview, setPreview] = useState(false);
 
   const { enhancer, resizable, modal } = useStyled();
+
+  const nextTick = useNextTick();
 
   // handler
   const handleMoveStart = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, direction: Direction) => {
@@ -92,8 +97,8 @@ function ImageEnhancer(props: ImageEnhancerProps) {
     const offsetW = e.clientX - startX.current;
     const offsetH = e.clientY - startY.current;
     const rect = imgRef.current.getBoundingClientRect(); // 原始图片数据
-    let w = size[0] ?? rect.width;
-    let h = size[1] ?? rect.height;
+    let w = Number(size[0] ?? rect.width);
+    let h = Number(size[1] ?? rect.height);
     if (moving.current === 'br') {
       w = w + offsetW > 0 ? w + offsetW : 0;
       h = h + offsetH > 0 ? h + offsetH : 0;
@@ -132,12 +137,21 @@ function ImageEnhancer(props: ImageEnhancerProps) {
   useEventListener('mouseup', handleMoveStop);
 
   useMount(() => {
-    if (!imgRef.current) return;
-    const rect = imgRef.current.getBoundingClientRect();
-    console.log(rect);// FIXME: 上传的base64图片 有时候获取不到长宽
-
-    if (width === undefined || width === null) setSize((v) => [rect.width, v[1]]);
-    if (height === undefined || height === null) setSize((v) => [v[0], rect.height]);
+    // 赋值：size 初始值
+    nextTick(() => {
+      if (!imgRef.current) return;
+      const rect = imgRef.current.getBoundingClientRect();
+      setSize((v) => {
+        let next = v;
+        if (next[0] === undefined || next[0] === null || next[0] === '') {
+          next = [rect.width, next[1]];
+        }
+        if (next[1] === undefined || next[1] === null || next[1] === '') {
+          next = [next[0], rect.height];
+        }
+        return next;
+      });
+    });
   });
 
   useEffect(() => {
