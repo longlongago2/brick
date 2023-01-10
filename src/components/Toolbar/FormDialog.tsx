@@ -12,9 +12,9 @@ export interface FormDialogProps extends Omit<ModalProps, 'modalRender' | 'destr
   defaultPosition?: DraggableProps['defaultPosition'];
   position?: DraggableProps['position'];
   draggable?: boolean;
-  layout?: FormProps['layout'],
-  labelCol?: FormProps['labelCol'],
-  wrapperCol?: FormProps['wrapperCol'],
+  layout?: FormProps['layout'];
+  labelCol?: FormProps['labelCol'];
+  wrapperCol?: FormProps['wrapperCol'];
   onFinish?: FormProps['onFinish'];
   onFinishFailed?: FormProps['onFinishFailed'];
   onFieldsChange?: FormProps['onFieldsChange'];
@@ -49,9 +49,7 @@ function FormDialog(props: FormDialogProps) {
   const handleDragStart = useCallback((_event: DraggableEvent, uiData: DraggableData) => {
     const { clientWidth, clientHeight } = window.document.documentElement;
     const targetRect = draggleRef.current?.getBoundingClientRect();
-    if (!targetRect) {
-      return;
-    }
+    if (!targetRect) return;
     // 设置拖动边界
     setBounds({
       left: -targetRect.left + uiData.x,

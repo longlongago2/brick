@@ -15,15 +15,19 @@ import Icon, {
   LinkOutlined,
   DisconnectOutlined,
   HighlightOutlined,
+  FileSearchOutlined,
+  RightOutlined,
+  DownOutlined,
 } from '@ant-design/icons';
-import { theme, Form, Input, Radio, message, InputNumber } from 'antd';
+import { theme, Form, Input, Radio, message, InputNumber, Button, Space, Row, Col } from 'antd';
 import { useFormDialog } from 'src/hooks';
+import { getScrollBarWidth } from 'src/utils';
 import { LIST_TYPES } from 'src/utils/constant';
 import FormDialog from './FormDialog';
 import FileUpload from '../FileUpload';
 import ColorPicker, { colorParse, colorStringify } from './ColorPicker';
 import CodeSvgr from 'src/assets/code.svg';
-import BlockQuoteSvgr from 'src/assets/block-quote.svg';
+import BlockQuoteSvgr from 'src/assets/quote.svg';
 import SuperscriptSvgr from 'src/assets/superscript.svg';
 import SubscriptSvgr from 'src/assets/subscript.svg';
 import UndoSvgr from 'src/assets/undo.svg';
@@ -43,7 +47,13 @@ const w88 = { width: 88 };
 
 const span4 = { span: 4 };
 
+const pb24 = { paddingBottom: 24 };
+
 const alignCenter: React.CSSProperties = { textAlign: 'center' };
+
+const alignRight: React.CSSProperties = { textAlign: 'right' };
+
+const searchTypeStyle = { width: 25, height: '100%', fontSize: 12 };
 
 const required = [{ required: true }];
 
@@ -78,6 +88,8 @@ export default function useBaseResolver() {
 
   const [imgSource, setImgSource] = useState(defaultImgSource);
 
+  const [searchType, setSearchType] = useState<'search' | 'replace'>('search');
+
   const {
     form: formLink,
     visible: linkDialogVisible,
@@ -92,11 +104,23 @@ export default function useBaseResolver() {
     form: formImage,
     visible: imageDialogVisible,
     setVisible: setImageDialogVisible,
+    pos: imageDialogPos,
+    setPos: setImageDialogPos,
     close: closeImageDialog,
     submit: submitImage,
     mode: imageDialogMode,
     setMode: setImageDialogMode,
     loading: imgDialogLoading,
+  } = useFormDialog();
+
+  const {
+    form: formSearch,
+    visible: searchDialogVisible,
+    setVisible: setSearchDialogVisible,
+    pos: searchDialogPos,
+    setPos: setSearchDialogPos,
+    close: closeSearchDialog,
+    submit: submitSearch,
   } = useFormDialog();
 
   const handleLinkFinish = useCallback<NonNullable<FormDialogProps['onFinish']>>(
@@ -184,9 +208,18 @@ export default function useBaseResolver() {
     []
   );
 
+  const handleSearchTypeChange = useCallback(() => {
+    setSearchType((v) => (v === 'search' ? 'replace' : 'search'));
+  }, []);
+
   const colorIcon = useMemo(
     () => <span style={{ display: 'inline-block', fontSize: 14, width: 13 }}>A</span>,
     []
+  );
+
+  const searchTypeIcon = useMemo(
+    () => (searchType === 'search' ? <RightOutlined /> : <DownOutlined />),
+    [searchType]
   );
 
   const defaultColor = useMemo(() => colorParse(token.colorText), [token.colorText]);
@@ -451,6 +484,8 @@ export default function useBaseResolver() {
             layout="horizontal"
             labelCol={span4}
             title="图片"
+            mask={false}
+            defaultPosition={imageDialogPos}
             open={imageDialogVisible}
             onCancel={_closeImageDialog}
             onOk={submitImage}
@@ -488,17 +523,24 @@ export default function useBaseResolver() {
             return;
           }
 
+          const open = () => {
+            const pos = editor.getBoundingClientRect();
+            if (pos) setImageDialogPos({ x: pos.x + pos.width, y: pos.y + pos.height });
+            setImageDialogVisible(true);
+            return;
+          };
+
           if (e?.target === 'emitter_edit') {
             // 编辑请求
             const ele = editor.getElementFieldsValue(true, 'image') as ImageElement;
             formImage.setFieldsValue({ ...ele, inline: !!ele.inline });
             setImgSource(ele.source || defaultImgSource);
             setImageDialogMode('update');
-            setImageDialogVisible(true);
+            open();
             return;
           }
 
-          setImageDialogVisible(true);
+          open();
         },
       },
       {
@@ -676,26 +718,104 @@ export default function useBaseResolver() {
         title: '背景高亮',
         element: getHighlightElement,
       },
+      {
+        key: 'search',
+        type: 'button',
+        title: '查找替换',
+        icon: <FileSearchOutlined />,
+        attachRender: (
+          <FormDialog
+            form={formSearch}
+            open={searchDialogVisible}
+            title="查找与替换"
+            width={370}
+            footer={null}
+            draggable
+            defaultPosition={searchDialogPos}
+            mask={false}
+            onCancel={closeSearchDialog}
+          >
+            <Row>
+              <Col flex="35px" style={pb24}>
+                <Button
+                  title="切换模式"
+                  icon={searchTypeIcon}
+                  style={searchTypeStyle}
+                  onClick={handleSearchTypeChange}
+                />
+              </Col>
+              <Col flex="auto">
+                <Form.Item name="search">
+                  <Input placeholder="查找" allowClear suffix="124" />
+                </Form.Item>
+                {searchType === 'replace' && (
+                  <Form.Item name="replace">
+                    <Input placeholder="替换" allowClear />
+                  </Form.Item>
+                )}
+              </Col>
+            </Row>
+            <Form.Item style={alignRight}>
+              <Space>
+                <Button>上一个</Button>
+                <Button>下一个</Button>
+                {searchType === 'replace' && (
+                  <>
+                    <Button type="primary" ghost>
+                      替换
+                    </Button>
+                    <Button type="primary" ghost>
+                      全部替换
+                    </Button>
+                  </>
+                )}
+              </Space>
+            </Form.Item>
+          </FormDialog>
+        ),
+        onClick(editor) {
+          const target = editor.getEditableDOM();
+          const pos = target.getBoundingClientRect();
+          const sw = getScrollBarWidth();
+          const computedStyle = window.getComputedStyle(target);
+          const { paddingTop, paddingRight } = computedStyle;
+          const pt = Number(paddingTop.replace('px', ''));
+          const pr = Number(paddingRight.replace('px', ''));
+          if (pos) setSearchDialogPos({ x: pos.x + pos.width - 370 - pr + sw, y: pos.y + pt });
+          setSearchDialogVisible(true);
+        },
+      },
     ],
     [
       _closeImageDialog,
       closeLinkDialog,
+      closeSearchDialog,
       formImage,
       formLink,
+      formSearch,
       getFontColorElement,
       getHighlightElement,
       handleImageDialogValuesChange,
       handleImageFinish,
       handleLinkFinish,
+      handleSearchTypeChange,
+      imageDialogPos,
       imageDialogVisible,
       imgDialogLoading,
       imgSource,
       linkDialogPos,
       linkDialogVisible,
+      searchDialogPos,
+      searchDialogVisible,
+      searchType,
+      searchTypeIcon,
       setImageDialogMode,
+      setImageDialogPos,
       setImageDialogVisible,
       setLinkDialogPos,
       setLinkDialogVisible,
+      setSearchDialogPos,
+      setSearchDialogVisible,
       submitImage,
       submitLink,
     ]

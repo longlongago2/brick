@@ -90,6 +90,8 @@ export const baseSort = [
   'block-quote',
   'link',
   'image',
+  'divider',
+  'search',
 ];
 
 function Toolbar(props: ToolbarProps) {
@@ -233,7 +235,7 @@ function Toolbar(props: ToolbarProps) {
               jsxElement = item.element;
             }
             return (
-              <Tooltip key={item.key} title={title}>
+              <Tooltip key={item.key} title={title} showArrow={false}>
                 {jsxElement}
               </Tooltip>
             );

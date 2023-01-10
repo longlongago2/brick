@@ -116,6 +116,13 @@ export interface CommandEditor {
   getBoundingClientRect: () => DOMRect | null;
 
   /**
+   * @descriptionZH 获取编辑区DOM
+   * @descriptionEN
+   * @memberof CommandEditor
+   */
+  getEditableDOM: () => HTMLElement;
+
+  /**
    * @descriptionZH 挂载在实例上的一些额外的属性
    * @descriptionEN some extra attributes on the instance
    * @type {Record<string, any>}
@@ -393,6 +400,8 @@ export function withCommand<T extends Editor>(editor: T) {
     const range = ReactEditor.toDOMRange(editor, editor.selection);
     return range.getBoundingClientRect();
   };
+
+  e.getEditableDOM = () => ReactEditor.toDOMNode(editor, editor);
 
   e.addExtraProperty = (key, value) => {
     if (editor.extraProperty) {

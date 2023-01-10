@@ -131,3 +131,28 @@ export function copyToClipboard(text: string) {
     textArea.remove();
   });
 }
+
+/**
+ * @description 获取滚动条宽度
+ * @export
+ * @return {*}
+ */
+export function getScrollBarWidth() {
+  const scrollHeight = document.body.scrollHeight;
+  const innerHeight = window.innerHeight || document.documentElement.clientHeight;
+  const hasScrollbar = scrollHeight > innerHeight;
+  if (!hasScrollbar) return 0;
+  const outer = document.createElement('div');
+  outer.style.overflow = 'scroll';
+  outer.style.height = '200px';
+  outer.style.width = '100px';
+  document.body.appendChild(outer);
+  const widthNoScroll = outer.offsetWidth;
+  const inner = document.createElement('div');
+  inner.style.width = '100%';
+  outer.appendChild(inner);
+  const widthWithScroll = inner.offsetWidth;
+  const scrollBarWidth = widthNoScroll - widthWithScroll;
+  outer.remove();
+  return scrollBarWidth;
+}
