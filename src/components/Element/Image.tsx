@@ -88,8 +88,9 @@ function Image(props: RenderElementProps) {
         editor.removeElement('image');
         ReactEditor.focus(editor);
       } else if (key === 'edit') {
-        if (imageResolver && 'onClick' in imageResolver && imageResolver.onClick)
-          imageResolver.onClick(editor, { target: 'emitter_edit' });
+        if (imageResolver && 'onClick' in imageResolver) {
+          imageResolver.onClick?.(editor, { target: 'emitter_edit' });
+        }
       }
     },
     [editor, imageResolver]

@@ -123,6 +123,13 @@ export interface CommandEditor {
   getEditableDOM: () => HTMLElement;
 
   /**
+   * @descriptionZH 获取当前编辑区搜索结果
+   * @descriptionEN
+   * @memberof CommandEditor
+   */
+  getEditableSearchResult: () => any[];
+
+  /**
    * @descriptionZH 挂载在实例上的一些额外的属性
    * @descriptionEN some extra attributes on the instance
    * @type {Record<string, any>}
@@ -402,6 +409,20 @@ export function withCommand<T extends Editor>(editor: T) {
   };
 
   e.getEditableDOM = () => ReactEditor.toDOMNode(editor, editor);
+
+  e.getEditableSearchResult = () => {
+    const textbox = editor.getEditableDOM();
+    const res = textbox.querySelectorAll('mark[data-slate-decorate-search]');
+    const nodes = Array.from(res).map((ele) => {
+      const node = ReactEditor.toSlateNode(editor, ele);
+      return {
+        key: ele.getAttribute('data-slate-decorate-search'),
+        value: 'text' in node && node.text,
+        search: ele.textContent,
+      };
+    });
+    return nodes;
+  };
 
   e.addExtraProperty = (key, value) => {
     if (editor.extraProperty) {

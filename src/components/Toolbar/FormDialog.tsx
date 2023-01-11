@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { Form, FormProps, Modal } from 'antd';
+import { useSlate } from 'slate-react';
 import Draggable from 'react-draggable';
 import classNames from 'classnames';
 import useStyled from './styled';
@@ -39,6 +40,8 @@ function FormDialog(props: FormDialogProps) {
     onValuesChange,
     ...restProps
   } = props;
+
+  const editor = useSlate();
 
   const [bounds, setBounds] = useState({ left: 0, top: 0, bottom: 0, right: 0 });
 
@@ -84,10 +87,16 @@ function FormDialog(props: FormDialogProps) {
     [dragHandler, draggable, title]
   );
 
+  const getContainer = useCallback(() => {
+    const container = editor.getEditableDOM();
+    return container.parentNode as HTMLElement;
+  }, [editor]);
+
   return (
     <Modal
       cancelText="取消"
       okText="确定"
+      getContainer={getContainer}
       {...restProps}
       title={_title}
       wrapClassName={classNames([(position || defaultPosition) && dragModal, wrapClassName].filter(Boolean))}

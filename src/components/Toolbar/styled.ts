@@ -104,5 +104,12 @@ export default function useStyled() {
         }
       }
     `,
+    searchIndicator: css`
+      position: absolute;
+      top: 4px;
+      right: 8px;
+      font-size: 14px;
+      color: ${token.colorTextTertiary};
+    `,
   };
 }

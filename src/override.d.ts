@@ -74,7 +74,7 @@ declare module 'slate' {
 
   export type ImageElement = {
     type: 'image';
-    source: 'local' | 'remote',
+    source: 'local' | 'remote';
     url: string;
     width?: number;
     height?: number;
@@ -142,7 +142,7 @@ declare module 'slate' {
     linethrough?: boolean;
     superscript?: boolean;
     subscript?: boolean;
-    highlight?: boolean | { color: string };
+    highlight?: boolean | { color: string; searchkey?: string };
     fontsize?: number | string;
     color?: string;
     text: string;

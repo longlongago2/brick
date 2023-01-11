@@ -22,8 +22,8 @@ const initialValue: Descendant[] = [
       {
         type: 'image',
         url: 'https://img2.baidu.com/it/u=4261212628,2246376874&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500',
-        width: 200,
-        height: 200,
+        width: 100,
+        height: 100,
         inline: true,
         source: 'remote',
         children: [

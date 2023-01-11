@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Editor, Transforms } from 'slate';
 import { ReactEditor, useSlate } from 'slate-react';
 import Icon, {
@@ -20,8 +20,8 @@ import Icon, {
   DownOutlined,
 } from '@ant-design/icons';
 import { theme, Form, Input, Radio, message, InputNumber, Button, Space, Row, Col } from 'antd';
-import { useFormDialog } from 'src/hooks';
-import { getScrollBarWidth } from 'src/utils';
+import debounce from 'lodash/debounce';
+import { useFormDialog, useAccessories } from 'src/hooks';
 import { LIST_TYPES } from 'src/utils/constant';
 import FormDialog from './FormDialog';
 import FileUpload from '../FileUpload';
@@ -33,6 +33,7 @@ import SubscriptSvgr from 'src/assets/subscript.svg';
 import UndoSvgr from 'src/assets/undo.svg';
 import RedoSvgr from 'src/assets/redo.svg';
 import ImageSvgr from 'src/assets/image.svg';
+import useStyled from './styled';
 
 import type { ImageElement } from 'slate';
 import type { Color } from 'react-color';
@@ -51,11 +52,13 @@ const pb24 = { paddingBottom: 24 };
 
 const alignCenter: React.CSSProperties = { textAlign: 'center' };
 
-const alignRight: React.CSSProperties = { textAlign: 'right' };
+const alignRight: React.CSSProperties = { textAlign: 'right', marginBottom: 0 };
 
-const searchTypeStyle = { width: 25, height: '100%', fontSize: 12 };
+const searchTypeStyle: React.CSSProperties = { width: 25, height: '100%', fontSize: 12, borderRadius: 2 };
 
 const required = [{ required: true }];
+
+const noMsgRequired = [{ required: true, message: '' }];
 
 const imgSourceOptions = [
   {
@@ -86,9 +89,17 @@ export default function useBaseResolver() {
 
   const { token } = useToken();
 
+  const { searchIndicator } = useStyled();
+
+  const { setSearch, searchResult, setActiveSearchKey } = useAccessories();
+
   const [imgSource, setImgSource] = useState(defaultImgSource);
 
   const [searchType, setSearchType] = useState<'search' | 'replace'>('search');
+
+  const [activeSearchIndex, setActiveSearchIndex] = useState<number | null>(null);
+
+  const replaceType = useRef<'curr' | 'all' | null>(null);
 
   const {
     form: formLink,
@@ -120,7 +131,6 @@ export default function useBaseResolver() {
     pos: searchDialogPos,
     setPos: setSearchDialogPos,
     close: closeSearchDialog,
-    submit: submitSearch,
   } = useFormDialog();
 
   const handleLinkFinish = useCallback<NonNullable<FormDialogProps['onFinish']>>(
@@ -210,6 +220,80 @@ export default function useBaseResolver() {
 
   const handleSearchTypeChange = useCallback(() => {
     setSearchType((v) => (v === 'search' ? 'replace' : 'search'));
+    // clear errors
+    formSearch.setFields([
+      {
+        name: 'search',
+        errors: [],
+      },
+    ]);
+  }, [formSearch]);
+
+  const handleSearchResultPrev = useCallback(() => {
+    if (searchResult.length <= 0) return;
+    let next;
+    let activeKey = '';
+    if (activeSearchIndex === null) {
+      next = 0;
+    } else {
+      next = activeSearchIndex - 1 >= 0 ? activeSearchIndex - 1 : searchResult.length - 1;
+    }
+    activeKey = searchResult[next]?.key || '';
+    setActiveSearchIndex(next);
+    setActiveSearchKey(activeKey);
+  }, [activeSearchIndex, searchResult, setActiveSearchKey]);
+
+  const handleSearchResultNext = useCallback(() => {
+    if (searchResult.length <= 0) return;
+    let next;
+    let activeKey = '';
+    if (activeSearchIndex === null) {
+      next = 0;
+    } else {
+      next = activeSearchIndex + 1 > searchResult.length - 1 ? 0 : activeSearchIndex + 1;
+    }
+    activeKey = searchResult[next]?.key || '';
+    setActiveSearchIndex(next);
+    setActiveSearchKey(activeKey);
+  }, [activeSearchIndex, searchResult, setActiveSearchKey]);
+
+  const handleSearchOrReplaceFinish = useCallback<NonNullable<FormDialogProps['onFinish']>>((values) => {
+    // 替换/全部替换
+    console.log(values);
+    console.log(replaceType.current);
+  }, []);
+
+  const handleSearchValuesChange = useCallback<NonNullable<FormDialogProps['onValuesChange']>>(
+    (changedValues) => {
+      if (changedValues.search !== undefined) {
+        // 1.更新search value
+        setSearch(changedValues.search);
+        // 2.清除数据
+        setActiveSearchKey('');
+        setActiveSearchIndex(null);
+      }
+    },
+    [setActiveSearchKey, setSearch]
+  );
+
+  const handleSearchValuesDebounce = useMemo(
+    () => debounce(handleSearchValuesChange, 250),
+    [handleSearchValuesChange]
+  );
+
+  const handleSearchDialogCancel = useCallback(() => {
+    closeSearchDialog();
+    setSearch('');
+    setActiveSearchIndex(null);
+    setActiveSearchKey('');
+  }, [closeSearchDialog, setActiveSearchKey, setSearch]);
+
+  const handleReplaceCurr = useCallback(() => {
+    replaceType.current = 'curr';
+  }, []);
+
+  const handleReplaceAll = useCallback(() => {
+    replaceType.current = 'all';
   }, []);
 
   const colorIcon = useMemo(
@@ -721,7 +805,7 @@ export default function useBaseResolver() {
       {
         key: 'search',
         type: 'button',
-        title: '查找替换',
+        title: '查找替换 Ctrl+F',
         icon: <FileSearchOutlined />,
         attachRender: (
           <FormDialog
@@ -733,7 +817,9 @@ export default function useBaseResolver() {
             draggable
             defaultPosition={searchDialogPos}
             mask={false}
-            onCancel={closeSearchDialog}
+            onCancel={handleSearchDialogCancel}
+            onValuesChange={handleSearchValuesDebounce}
+            onFinish={handleSearchOrReplaceFinish}
           >
             <Row>
               <Col flex="35px" style={pb24}>
@@ -745,26 +831,32 @@ export default function useBaseResolver() {
                 />
               </Col>
               <Col flex="auto">
-                <Form.Item name="search">
-                  <Input placeholder="查找" allowClear suffix="124" />
+                <Form.Item name="search" rules={noMsgRequired}>
+                  <Input placeholder="查找" autoFocus autoComplete="off" />
                 </Form.Item>
+                {/* 不能使用Input suffix 会导致编辑中Input更新渲染失焦 */}
+                {searchResult.length > 0 && (
+                  <span className={searchIndicator}>
+                    {`${activeSearchIndex !== null ? activeSearchIndex + 1 : '?'}/${searchResult.length}`}
+                  </span>
+                )}
                 {searchType === 'replace' && (
-                  <Form.Item name="replace">
-                    <Input placeholder="替换" allowClear />
+                  <Form.Item name="replace" rules={noMsgRequired}>
+                    <Input placeholder="替换" autoComplete="off" />
                   </Form.Item>
                 )}
               </Col>
             </Row>
             <Form.Item style={alignRight}>
               <Space>
-                <Button>上一个</Button>
-                <Button>下一个</Button>
+                <Button onClick={handleSearchResultPrev}>上一个</Button>
+                <Button onClick={handleSearchResultNext}>下一个</Button>
                 {searchType === 'replace' && (
                   <>
-                    <Button type="primary" ghost>
+                    <Button htmlType="submit" type="primary" ghost onClick={handleReplaceCurr}>
                       替换
                     </Button>
-                    <Button type="primary" ghost>
+                    <Button htmlType="submit" type="primary" ghost onClick={handleReplaceAll}>
                       全部替换
                     </Button>
                   </>
@@ -776,20 +868,19 @@ export default function useBaseResolver() {
         onClick(editor) {
           const target = editor.getEditableDOM();
           const pos = target.getBoundingClientRect();
-          const sw = getScrollBarWidth();
           const computedStyle = window.getComputedStyle(target);
           const { paddingTop, paddingRight } = computedStyle;
           const pt = Number(paddingTop.replace('px', ''));
           const pr = Number(paddingRight.replace('px', ''));
-          if (pos) setSearchDialogPos({ x: pos.x + pos.width - 370 - pr + sw, y: pos.y + pt });
+          if (pos) setSearchDialogPos({ x: pos.x + pos.width - 370 - pr, y: pos.y + pt });
           setSearchDialogVisible(true);
         },
       },
     ],
     [
       _closeImageDialog,
+      activeSearchIndex,
       closeLinkDialog,
-      closeSearchDialog,
       formImage,
       formLink,
       formSearch,
@@ -798,7 +889,14 @@ export default function useBaseResolver() {
       handleImageDialogValuesChange,
       handleImageFinish,
       handleLinkFinish,
+      handleReplaceAll,
+      handleReplaceCurr,
+      handleSearchDialogCancel,
+      handleSearchOrReplaceFinish,
+      handleSearchResultNext,
+      handleSearchResultPrev,
       handleSearchTypeChange,
+      handleSearchValuesDebounce,
       imageDialogPos,
       imageDialogVisible,
       imgDialogLoading,
@@ -807,6 +905,8 @@ export default function useBaseResolver() {
       linkDialogVisible,
       searchDialogPos,
       searchDialogVisible,
+      searchIndicator,
+      searchResult.length,
       searchType,
       searchTypeIcon,
       setImageDialogMode,

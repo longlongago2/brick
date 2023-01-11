@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { useAccessories } from 'src/hooks';
 import type { RenderLeafProps } from 'slate-react';
 
 function Leaf(props: RenderLeafProps) {
@@ -7,6 +8,8 @@ function Leaf(props: RenderLeafProps) {
   const leaf = props.leaf;
 
   const style: React.CSSProperties = {};
+
+  const { activeSearchKey } = useAccessories();
 
   if ('fontsize' in leaf && leaf.fontsize) {
     style.fontSize = leaf.fontsize;
@@ -39,10 +42,21 @@ function Leaf(props: RenderLeafProps) {
   }
 
   if ('highlight' in leaf && leaf.highlight) {
+    let searchkey;
     if (typeof leaf.highlight === 'object') {
-      style.backgroundColor = leaf.highlight.color;
+      searchkey = leaf.highlight.searchkey;
+      if (activeSearchKey === searchkey) {
+        // search result active
+        style.backgroundColor = '#ff9632';
+      } else {
+        style.backgroundColor = leaf.highlight.color;
+      }
     }
-    text = <mark style={style}>{text}</mark>;
+    text = (
+      <mark style={style} {...(!!searchkey && { 'data-slate-decorate-search': searchkey })}>
+        {text}
+      </mark>
+    );
   }
 
   if ('superscript' in leaf && leaf.superscript) {
