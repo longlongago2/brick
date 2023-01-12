@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useNextTick } from 'src/hooks';
 import type { Editor } from 'slate';
+import type { SearchResult } from 'src/utils/withCommand';
 
 export default function useAccessories(getEditor: () => Editor) {
   const editorFn = useRef(getEditor);
@@ -14,20 +15,28 @@ export default function useAccessories(getEditor: () => Editor) {
 
   const [activeSearchKey, setActiveSearchKey] = useState('');
 
-  const [searchResult, setSearchResult] = useState<any[]>([]);
+  const [searchResult, setSearchResult] = useState<SearchResult[]>([]);
 
   const handleSetSearch = useCallback(
     (v: string) => {
       setSearch(v);
+      // 需要等待search界面更新完成
       nextTick(() => {
         const _editor = editorFn.current();
-        // 需要等待search界面更新完成
         const nodes = _editor.getEditableSearchResult();
         setSearchResult(nodes);
       });
     },
     [nextTick]
   );
+
+  const update = useCallback(() => {
+    nextTick(() => {
+      const _editor = editorFn.current();
+      const nodes = _editor.getEditableSearchResult();
+      setSearchResult(nodes);
+    });
+  }, [nextTick]);
 
   const handleSetSearchKey = useCallback((v: string) => {
     setActiveSearchKey(v);
@@ -50,11 +59,11 @@ export default function useAccessories(getEditor: () => Editor) {
         // scrollintoview
         const _editor = editorFn.current();
         const textbox = _editor.getEditableDOM();
-        const ele = textbox.querySelector(`mark[data-slate-decorate-search="${activeSearchKey}"]`);
+        const ele = textbox.querySelector(`mark[data-slate-decorate-search-key="${activeSearchKey}"]`);
         ele?.scrollIntoView();
       }
     });
   }, [activeSearchKey, nextTick]);
 
-  return accessories;
+  return { accessories, update };
 }

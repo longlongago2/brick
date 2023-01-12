@@ -1,3 +1,4 @@
+import { SearchResult } from 'bricky/utils/withCommand';
 import React from 'react';
 
 export interface AccessoryValues {
@@ -5,7 +6,7 @@ export interface AccessoryValues {
   setSearch: (value: string) => void;
   activeSearchKey: string;
   setActiveSearchKey: (value: string) => void;
-  searchResult: any[];
+  searchResult: SearchResult[];
 }
 
 const Accessories = React.createContext<AccessoryValues>({

@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useMemo } from 'react';
 import { Editable, useSlate, ReactEditor } from 'slate-react';
-import { Range, Transforms, Editor, Element as SlateElement, Text } from 'slate';
+import { Range, Transforms, Editor, Element as SlateElement } from 'slate';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
 import isHotkey, { isKeyHotkey } from 'is-hotkey';
@@ -10,9 +10,9 @@ import { useAccessories } from 'src/hooks';
 import useBaseResolver from '../Toolbar/useBaseResolver';
 import Leaf from '../Leaf';
 import Element from '../Element';
+import decorate from './decorate';
 import useStyled from './styled';
 
-import type { BaseRange, MarkText } from 'slate';
 import type { RenderLeafProps, RenderElementProps } from 'slate-react';
 import type { EditableProps } from 'slate-react/dist/components/editable';
 import type { NoEffectWrapTypes } from 'src/utils/constant';
@@ -29,8 +29,6 @@ export interface ContentProps {
   renderElement?: (props: RenderElementProps, element: JSX.Element) => JSX.Element;
   onKeyboard?: (event: React.KeyboardEvent<HTMLDivElement>) => boolean;
 }
-
-type DecorateRange = BaseRange & Omit<MarkText, 'text'>;
 
 function Content(props: ContentProps) {
   const {
@@ -162,31 +160,8 @@ function Content(props: ContentProps) {
   );
 
   // 装饰器
-  const decorate = useCallback<NonNullable<EditableProps['decorate']>>(
-    ([node, path]) => {
-      const ranges: DecorateRange[] = [];
-
-      if (search && Text.isText(node)) {
-        const { text } = node;
-        const parts = text.split(search);
-        let offset = 0;
-
-        parts.forEach((part, i) => {
-          if (i !== 0) {
-            const uuid = Math.random().toString(36).slice(2);
-            ranges.push({
-              anchor: { path, offset: offset - search.length },
-              focus: { path, offset },
-              highlight: { color: '#ffff00', searchkey: uuid }, // MarkText properties 搜索利用高亮属性高亮搜索内容
-            });
-          }
-
-          offset = offset + part.length + search.length;
-        });
-      }
-
-      return ranges;
-    },
+  const getDecorate = useCallback<NonNullable<EditableProps['decorate']>>(
+    (entry) => decorate(entry)({ search }),
     [search]
   );
 
@@ -250,7 +225,7 @@ function Content(props: ContentProps) {
           autoFocus={autoFocus}
           readOnly={readOnly}
           style={style}
-          decorate={decorate}
+          decorate={getDecorate}
           renderLeaf={handleRenderLeaf}
           renderElement={handleRenderElement}
           onDragStart={preventDefaultDrag}

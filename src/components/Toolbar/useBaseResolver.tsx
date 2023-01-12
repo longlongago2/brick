@@ -22,6 +22,7 @@ import Icon, {
 import { theme, Form, Input, Radio, message, InputNumber, Button, Space, Row, Col } from 'antd';
 import debounce from 'lodash/debounce';
 import { useFormDialog, useAccessories } from 'src/hooks';
+import { isPowerArray } from 'src/utils';
 import { LIST_TYPES } from 'src/utils/constant';
 import FormDialog from './FormDialog';
 import FileUpload from '../FileUpload';
@@ -39,6 +40,7 @@ import type { ImageElement } from 'slate';
 import type { Color } from 'react-color';
 import type { ToolbarResolver } from '.';
 import type { FormDialogProps } from './FormDialog';
+import type { SearchResult } from 'src/utils/withCommand';
 
 const { useToken } = theme;
 
@@ -229,8 +231,9 @@ export default function useBaseResolver() {
     ]);
   }, [formSearch]);
 
+  // 上一个
   const handleSearchResultPrev = useCallback(() => {
-    if (searchResult.length <= 0) return;
+    if (!isPowerArray(searchResult)) return;
     let next;
     let activeKey = '';
     if (activeSearchIndex === null) {
@@ -243,8 +246,9 @@ export default function useBaseResolver() {
     setActiveSearchKey(activeKey);
   }, [activeSearchIndex, searchResult, setActiveSearchKey]);
 
+  // 下一个
   const handleSearchResultNext = useCallback(() => {
-    if (searchResult.length <= 0) return;
+    if (!isPowerArray(searchResult)) return;
     let next;
     let activeKey = '';
     if (activeSearchIndex === null) {
@@ -257,16 +261,40 @@ export default function useBaseResolver() {
     setActiveSearchKey(activeKey);
   }, [activeSearchIndex, searchResult, setActiveSearchKey]);
 
-  const handleSearchOrReplaceFinish = useCallback<NonNullable<FormDialogProps['onFinish']>>((values) => {
-    // 替换/全部替换
-    console.log(searchResult);
-    console.log(values);
-    console.log(replaceType.current);
-    if (!activeSearchIndex) return;
-    const activeItem = searchResult[activeSearchIndex];
-    console.log(activeItem);
-
-  }, [activeSearchIndex, searchResult]);
+  // 替换
+  const handleSearchOrReplaceFinish = useCallback<NonNullable<FormDialogProps['onFinish']>>(
+    (values) => {
+      if (!isPowerArray(searchResult)) return;
+      const replaceText = (item: SearchResult) => {
+        const { path, offset, search } = item;
+        const rangeDelete = {
+          anchor: { path, offset },
+          focus: { path, offset: offset + search.length },
+        };
+        Transforms.delete(editor, { at: rangeDelete });
+        const rangeInsert = {
+          anchor: { path, offset },
+          focus: { path, offset },
+        };
+        Transforms.insertText(editor, values.replace, { at: rangeInsert });
+      };
+      // 当前替换
+      if (replaceType.current === 'curr') {
+        if (activeSearchIndex === null || activeSearchIndex === undefined) return;
+        const item = searchResult[activeSearchIndex];
+        replaceText(item);
+      }
+      // 全部替换
+      if (replaceType.current === 'all') {
+        searchResult.forEach((item) => {
+          replaceText(item);
+        });
+      }
+      // 重置选中
+      setActiveSearchIndex(null);
+    },
+    [activeSearchIndex, editor, searchResult]
+  );
 
   const handleSearchValuesChange = useCallback<NonNullable<FormDialogProps['onValuesChange']>>(
     (changedValues) => {

@@ -1,9 +1,10 @@
 import { Editor, Element, Transforms, Range } from 'slate';
 import { ReactEditor } from 'slate-react';
 import { TEXT_ALIGN_TYPES, NO_EFFECT_WRAP_TYPES, LIST_TYPES } from './constant';
-
-import type { Text, Node, LinkElement, MarkKeys, ElementKeys, ParagraphElement } from 'slate';
+import type { Text, Node, LinkElement, MarkKeys, ElementKeys, ParagraphElement, Path } from 'slate';
 import type { TextAlign, NoEffectWrapTypes } from './constant';
+
+export type SearchResult = { key: string; offset: number; search: string; node: Node; path: Path };
 
 export interface CommandEditor {
   /**
@@ -127,7 +128,7 @@ export interface CommandEditor {
    * @descriptionEN
    * @memberof CommandEditor
    */
-  getEditableSearchResult: () => any[];
+  getEditableSearchResult: () => SearchResult[];
 
   /**
    * @descriptionZH 挂载在实例上的一些额外的属性
@@ -412,13 +413,19 @@ export function withCommand<T extends Editor>(editor: T) {
 
   e.getEditableSearchResult = () => {
     const textbox = editor.getEditableDOM();
-    const res = textbox.querySelectorAll('mark[data-slate-decorate-search]');
+    const res = textbox.querySelectorAll('mark[data-slate-decorate-search-key]');
     const nodes = Array.from(res).map((ele) => {
       const node = ReactEditor.toSlateNode(editor, ele);
+      const path = ReactEditor.findPath(editor, node);
+      const key = ele.getAttribute('data-slate-decorate-search-key') ?? '';
+      const search = ele.textContent ?? '';
+      const offset = Number(ele.getAttribute('data-slate-decorate-search-offset') ?? 0);
       return {
-        key: ele.getAttribute('data-slate-decorate-search'),
-        value: 'text' in node && node.text,
-        search: ele.textContent,
+        key,
+        offset, // 当前搜索结果偏移量
+        search, // 搜索关键字
+        node, // 搜索结果所处的Node
+        path, // 搜索结果所处的Node path
       };
     });
     return nodes;

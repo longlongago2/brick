@@ -42,10 +42,14 @@ function Leaf(props: RenderLeafProps) {
   }
 
   if ('highlight' in leaf && leaf.highlight) {
-    let searchkey;
+    let key;
+    let offset;
+    let isSearched = false;
     if (typeof leaf.highlight === 'object') {
-      searchkey = leaf.highlight.searchkey;
-      if (!!searchkey && activeSearchKey === searchkey) {
+      key = leaf.highlight.search?.key;
+      offset = leaf.highlight.search?.offset;
+      isSearched = !!leaf.highlight.search;
+      if (isSearched && activeSearchKey === key) {
         // Active of search result highlight
         style.backgroundColor = '#ff9632';
       } else {
@@ -53,8 +57,12 @@ function Leaf(props: RenderLeafProps) {
         style.backgroundColor = leaf.highlight.color;
       }
     }
+    const _attributes = isSearched && {
+      'data-slate-decorate-search-key': key,
+      'data-slate-decorate-search-offset': offset,
+    };
     text = (
-      <mark style={style} {...(!!searchkey && { 'data-slate-decorate-search': searchkey })}>
+      <mark style={style} {..._attributes}>
         {text}
       </mark>
     );

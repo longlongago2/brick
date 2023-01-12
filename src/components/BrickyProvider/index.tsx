@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { Slate } from 'slate-react';
 import { ConfigProvider } from 'antd';
 import { useBrickyEditor } from 'src/hooks';
@@ -24,11 +24,16 @@ function BrickyProvider(props: BrickyProviderProps) {
 
   const bricky = useMemo(() => editor ?? _editor, [_editor, editor]);
 
-  const accessories = useAccessories(() => bricky);
+  const { accessories, update } = useAccessories(() => bricky);
+
+  const handleChange = useCallback((value: Descendant[]) => {
+    onChange?.(value);
+    update();
+  }, [onChange, update]);
 
   // render
   const slate = (
-    <Slate editor={bricky} value={value} onChange={onChange}>
+    <Slate editor={bricky} value={value} onChange={handleChange}>
       <AccessoriesProvider value={accessories}>{children}</AccessoriesProvider>
     </Slate>
   );
