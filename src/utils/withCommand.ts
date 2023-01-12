@@ -1,9 +1,10 @@
 import { Editor, Element, Transforms, Range } from 'slate';
 import { ReactEditor } from 'slate-react';
 import { TEXT_ALIGN_TYPES, NO_EFFECT_WRAP_TYPES, LIST_TYPES } from './constant';
-
-import type { Text, Node, LinkElement, MarkKeys, ElementKeys, ParagraphElement } from 'slate';
+import type { Text, Node, LinkElement, MarkKeys, ElementKeys, ParagraphElement, Path } from 'slate';
 import type { TextAlign, NoEffectWrapTypes } from './constant';
+
+export type SearchResult = { key: string; offset: number; search: string; node: Node; path: Path };
 
 export interface CommandEditor {
   /**
@@ -92,7 +93,7 @@ export interface CommandEditor {
    * @descriptionEN
    * @memberof CommandEditor
    */
-  getElementFieldsValue: (fields?: ElementKeys | ElementKeys[], type?: Element['type']) => any;
+  getElementFieldsValue: (fields?: ElementKeys | ElementKeys[] | true, type?: Element['type']) => any;
 
   /**
    * @descriptionZH 设置超链接，如果已存在超链接则更新，否则新增
@@ -114,6 +115,20 @@ export interface CommandEditor {
    * @memberof CommandEditor
    */
   getBoundingClientRect: () => DOMRect | null;
+
+  /**
+   * @descriptionZH 获取编辑区DOM
+   * @descriptionEN
+   * @memberof CommandEditor
+   */
+  getEditableDOM: () => HTMLElement;
+
+  /**
+   * @descriptionZH 获取当前编辑区搜索结果
+   * @descriptionEN
+   * @memberof CommandEditor
+   */
+  getEditableSearchResult: () => SearchResult[];
 
   /**
    * @descriptionZH 挂载在实例上的一些额外的属性
@@ -257,6 +272,7 @@ export function withCommand<T extends Editor>(editor: T) {
   };
 
   e.getElementFieldsValue = (fields, type) => {
+    if (!fields) return null;
     const { selection } = editor;
     if (!selection) return null;
     const [match] = Array.from(
@@ -273,17 +289,17 @@ export function withCommand<T extends Editor>(editor: T) {
     );
     const ele = match?.[0];
     if (!ele) return null;
-    if (fields) {
-      // 根据fields，返回不同的数据格式
-      if (Array.isArray(fields)) {
-        // 多个字段值组成的数组
-        return fields.map((key) => ele[key as keyof Node]);
-      }
-      // 单个字段值
-      return ele[fields as keyof Node];
+
+    // 返回所有字段值
+    if (fields === true) return ele;
+
+    // 返回多个字段值组成的数组
+    if (Array.isArray(fields)) {
+      return fields.map((key) => ele[key as keyof Node]);
     }
-    // fields is undefined, return all element data
-    return ele;
+
+    // 单个字段值
+    return ele[fields as keyof Node];
   };
 
   e.setLink = (url) => {
@@ -391,6 +407,28 @@ export function withCommand<T extends Editor>(editor: T) {
     if (!editor.selection) return null;
     const range = ReactEditor.toDOMRange(editor, editor.selection);
     return range.getBoundingClientRect();
+  };
+
+  e.getEditableDOM = () => ReactEditor.toDOMNode(editor, editor);
+
+  e.getEditableSearchResult = () => {
+    const textbox = editor.getEditableDOM();
+    const res = textbox.querySelectorAll('mark[data-slate-decorate-search-key]');
+    const nodes = Array.from(res).map((ele) => {
+      const node = ReactEditor.toSlateNode(editor, ele);
+      const path = ReactEditor.findPath(editor, node);
+      const key = ele.getAttribute('data-slate-decorate-search-key') ?? '';
+      const search = ele.textContent ?? '';
+      const offset = Number(ele.getAttribute('data-slate-decorate-search-offset') ?? 0);
+      return {
+        key,
+        offset, // 当前搜索结果偏移量
+        search, // 搜索关键字
+        node, // 搜索结果所处的Node
+        path, // 搜索结果所处的Node path
+      };
+    });
+    return nodes;
   };
 
   e.addExtraProperty = (key, value) => {

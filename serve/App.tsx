@@ -22,9 +22,10 @@ const initialValue: Descendant[] = [
       {
         type: 'image',
         url: 'https://img2.baidu.com/it/u=4261212628,2246376874&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500',
-        width: 200,
-        height: 200,
+        width: 100,
+        height: 100,
         inline: true,
+        source: 'remote',
         children: [
           {
             text: '',
@@ -49,6 +50,7 @@ const initialValue: Descendant[] = [
     url: 'https://img1.baidu.com/it/u=184851089,3620794628&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500',
     width: 200,
     height: 200,
+    source: 'remote',
     children: [
       {
         text: '',
@@ -88,6 +90,18 @@ function App() {
     return element; // 继承原始的渲染模板
   }, []);
 
+  // const handleFileUpload = useCallback<NonNullable<EditorProps['fileUpload']>>((file) => {
+  //   // TODO: 模拟上传file，并返回最终的地址
+  //   console.log(file);
+  //   return new Promise((resolve) => {
+  //     setTimeout(() => {
+  //       resolve(
+  //         'https://img1.baidu.com/it/u=184851089,3620794628&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500'
+  //       );
+  //     }, 350);
+  //   });
+  // }, []);
+
   const handleKeyboard = useCallback(() => {
     // ...此处处理键盘事件
     // returning true, 阻止默认内置键盘处理程序
@@ -95,9 +109,9 @@ function App() {
     return false; // is preventDefaultHandler
   }, []);
 
-  // const handleChange = useCallback((v: Descendant[]) => {
-  //   console.log(v);
-  // }, []);
+  const handleChange = useCallback((v: Descendant[]) => {
+    console.log(v);
+  }, []);
 
   return (
     <div>
@@ -105,8 +119,9 @@ function App() {
         value={initialValue}
         renderElement={renderElement}
         readOnly={false}
+        // fileUpload={handleFileUpload}
         onKeyboard={handleKeyboard}
-        // onChange={handleChange}
+        onChange={handleChange}
       />
     </div>
   );

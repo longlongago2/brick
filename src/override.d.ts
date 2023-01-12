@@ -74,6 +74,7 @@ declare module 'slate' {
 
   export type ImageElement = {
     type: 'image';
+    source: 'local' | 'remote';
     url: string;
     width?: number;
     height?: number;
@@ -133,6 +134,14 @@ declare module 'slate' {
     children: EmptyText[];
   };
 
+  export type AdvancedHighlight = {
+    color: string;
+    search?: {
+      key: string;
+      offset: number;
+    };
+  };
+
   export type MarkText = {
     bold?: boolean;
     italic?: boolean;
@@ -141,7 +150,7 @@ declare module 'slate' {
     linethrough?: boolean;
     superscript?: boolean;
     subscript?: boolean;
-    highlight?: boolean | { color: string };
+    highlight?: boolean | AdvancedHighlight;
     fontsize?: number | string;
     color?: string;
     text: string;

@@ -1,13 +1,14 @@
 import React, { memo, useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { useEventListener } from 'ahooks';
+import { useEventListener, useMount } from 'ahooks';
 import { EyeFilled } from '@ant-design/icons';
 import classNames from 'classnames';
+import { useNextTick } from 'src/hooks';
 import useStyled from './styled';
 
 export interface ImageEnhancerProps extends React.ImgHTMLAttributes<HTMLImageElement> {
-  width?: number;
-  height?: number;
+  width?: number | string;
+  height?: number | string;
   inline?: boolean;
   zIndex?: number;
   showNative?: boolean; // 显示原始图片
@@ -17,30 +18,26 @@ export interface ImageEnhancerProps extends React.ImgHTMLAttributes<HTMLImageEle
 
 export type Direction = 'tl' | 'tr' | 'bl' | 'br';
 
+export type Size = [string | number | undefined, string | number | undefined];
+
 function ImageEnhancer(props: ImageEnhancerProps) {
-  const {
-    width = 50,
-    height = 50,
-    inline,
-    zIndex = 999,
-    showNative,
-    active,
-    onSizeChange,
-    ...restProps
-  } = props;
+  const { width, height, inline, zIndex = 999, showNative, active, onSizeChange, ...restProps } = props;
 
   // memoize
+  const imgRef = useRef<HTMLImageElement>(null);
   const handleRef = useRef<HTMLSpanElement>(null);
   const sizeRef = useRef<HTMLSpanElement>(null);
   const moving = useRef<Direction | null>(null);
   const startX = useRef(0);
   const startY = useRef(0);
 
-  const [size, setSize] = useState([width, height]);
+  const [size, setSize] = useState<Size>([width, height]);
 
   const [preview, setPreview] = useState(false);
 
   const { enhancer, resizable, modal } = useStyled();
+
+  const nextTick = useNextTick();
 
   // handler
   const handleMoveStart = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, direction: Direction) => {
@@ -96,25 +93,27 @@ function ImageEnhancer(props: ImageEnhancerProps) {
     if (!moving.current) return;
     if (!handleRef.current) return;
     if (!sizeRef.current) return;
+    if (!imgRef.current) return;
     const offsetW = e.clientX - startX.current;
     const offsetH = e.clientY - startY.current;
-    let w = size[0];
-    let h = size[1];
+    const rect = imgRef.current.getBoundingClientRect(); // 原始图片数据
+    let w = Number(size[0] ?? rect.width);
+    let h = Number(size[1] ?? rect.height);
     if (moving.current === 'br') {
-      w = size[0] + offsetW > 0 ? size[0] + offsetW : 0;
-      h = size[1] + offsetH > 0 ? size[1] + offsetH : 0;
+      w = w + offsetW > 0 ? w + offsetW : 0;
+      h = h + offsetH > 0 ? h + offsetH : 0;
     }
     if (moving.current === 'bl') {
-      w = size[0] - offsetW > 0 ? size[0] - offsetW : 0;
-      h = size[1] + offsetH > 0 ? size[1] + offsetH : 0;
+      w = w - offsetW > 0 ? w - offsetW : 0;
+      h = h + offsetH > 0 ? h + offsetH : 0;
     }
     if (moving.current === 'tl') {
-      w = size[0] - offsetW > 0 ? size[0] - offsetW : 0;
-      h = size[1] - offsetH > 0 ? size[1] - offsetH : 0;
+      w = w - offsetW > 0 ? w - offsetW : 0;
+      h = h - offsetH > 0 ? h - offsetH : 0;
     }
     if (moving.current === 'tr') {
-      w = size[0] + offsetW;
-      h = size[1] - offsetH;
+      w = w + offsetW;
+      h = h - offsetH;
     }
     handleRef.current.style.width = `${w}px`;
     handleRef.current.style.height = `${h}px`;
@@ -137,6 +136,24 @@ function ImageEnhancer(props: ImageEnhancerProps) {
 
   useEventListener('mouseup', handleMoveStop);
 
+  useMount(() => {
+    // 赋值：size 初始值
+    nextTick(() => {
+      if (!imgRef.current) return;
+      const rect = imgRef.current.getBoundingClientRect();
+      setSize((v) => {
+        let next = v;
+        if (next[0] === undefined || next[0] === null || next[0] === '') {
+          next = [rect.width, next[1]];
+        }
+        if (next[1] === undefined || next[1] === null || next[1] === '') {
+          next = [next[0], rect.height];
+        }
+        return next;
+      });
+    });
+  });
+
   useEffect(() => {
     if (!active) moving.current = null;
   }, [active]);
@@ -144,7 +161,13 @@ function ImageEnhancer(props: ImageEnhancerProps) {
   // render
   // data-element：提供拖动复制粘贴，获取信息使用，详情请见 src\utils\transformDOMToJSON.ts
   const core = (
-    <img width={size[0]} height={size[1]} {...restProps} data-element={inline ? 'inline' : 'block'} />
+    <img
+      ref={imgRef}
+      width={size[0]}
+      height={size[1]}
+      {...restProps}
+      data-element={inline ? 'inline' : 'block'}
+    />
   );
 
   if (showNative) {
@@ -163,7 +186,6 @@ function ImageEnhancer(props: ImageEnhancerProps) {
       onDragStart={handleDragStart}
     >
       {core}
-      {/* resizer */}
       {active && (
         <span
           ref={handleRef}
@@ -197,11 +219,10 @@ function ImageEnhancer(props: ImageEnhancerProps) {
           ></button>
         </span>
       )}
-      {/* previewer */}
       {preview &&
         ReactDOM.createPortal(
           <div className={modal} style={{ zIndex }} onClick={handlePreview}>
-            {core}
+            <img {...restProps} />
           </div>,
           document.body
         )}

@@ -46,6 +46,7 @@ function Editor(props: EditorProps) {
     sort,
     extraResolver,
     renderElement,
+    fileUpload,
     renderLeaf,
     onKeyboard,
     onChange,
@@ -61,6 +62,7 @@ function Editor(props: EditorProps) {
           include={include}
           exclude={exclude}
           extraResolver={extraResolver}
+          fileUpload={fileUpload}
         />
         <Content
           className={contentClassName}

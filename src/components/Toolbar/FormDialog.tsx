@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { Form, FormProps, Modal } from 'antd';
+import { useSlate } from 'slate-react';
 import Draggable from 'react-draggable';
 import classNames from 'classnames';
 import useStyled from './styled';
@@ -12,6 +13,9 @@ export interface FormDialogProps extends Omit<ModalProps, 'modalRender' | 'destr
   defaultPosition?: DraggableProps['defaultPosition'];
   position?: DraggableProps['position'];
   draggable?: boolean;
+  layout?: FormProps['layout'];
+  labelCol?: FormProps['labelCol'];
+  wrapperCol?: FormProps['wrapperCol'];
   onFinish?: FormProps['onFinish'];
   onFinishFailed?: FormProps['onFinishFailed'];
   onFieldsChange?: FormProps['onFieldsChange'];
@@ -25,6 +29,9 @@ function FormDialog(props: FormDialogProps) {
     defaultPosition,
     position,
     draggable,
+    layout = 'vertical',
+    labelCol,
+    wrapperCol,
     wrapClassName,
     children,
     onFinish,
@@ -33,6 +40,8 @@ function FormDialog(props: FormDialogProps) {
     onValuesChange,
     ...restProps
   } = props;
+
+  const editor = useSlate();
 
   const [bounds, setBounds] = useState({ left: 0, top: 0, bottom: 0, right: 0 });
 
@@ -43,9 +52,7 @@ function FormDialog(props: FormDialogProps) {
   const handleDragStart = useCallback((_event: DraggableEvent, uiData: DraggableData) => {
     const { clientWidth, clientHeight } = window.document.documentElement;
     const targetRect = draggleRef.current?.getBoundingClientRect();
-    if (!targetRect) {
-      return;
-    }
+    if (!targetRect) return;
     // 设置拖动边界
     setBounds({
       left: -targetRect.left + uiData.x,
@@ -80,10 +87,16 @@ function FormDialog(props: FormDialogProps) {
     [dragHandler, draggable, title]
   );
 
+  const getContainer = useCallback(() => {
+    const container = editor.getEditableDOM();
+    return container.parentNode as HTMLElement;
+  }, [editor]);
+
   return (
     <Modal
       cancelText="取消"
       okText="确定"
+      getContainer={getContainer}
       {...restProps}
       title={_title}
       wrapClassName={classNames([(position || defaultPosition) && dragModal, wrapClassName].filter(Boolean))}
@@ -92,7 +105,9 @@ function FormDialog(props: FormDialogProps) {
     >
       <Form
         form={form}
-        layout="vertical"
+        layout={layout}
+        labelCol={labelCol}
+        wrapperCol={wrapperCol}
         onFinish={onFinish}
         onFinishFailed={onFinishFailed}
         onFieldsChange={onFieldsChange}

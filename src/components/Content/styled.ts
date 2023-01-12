@@ -6,6 +6,12 @@ const { useToken } = theme;
 export default function useStyled() {
   const { token } = useToken();
   return {
+    wrapper: css`
+      display: inline-block;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    `,
     content: css`
       padding: 10px;
       margin: 0;

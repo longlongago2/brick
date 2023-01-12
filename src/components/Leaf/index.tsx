@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { useAccessories } from 'src/hooks';
 import type { RenderLeafProps } from 'slate-react';
 
 function Leaf(props: RenderLeafProps) {
@@ -7,6 +8,8 @@ function Leaf(props: RenderLeafProps) {
   const leaf = props.leaf;
 
   const style: React.CSSProperties = {};
+
+  const { activeSearchKey } = useAccessories();
 
   if ('fontsize' in leaf && leaf.fontsize) {
     style.fontSize = leaf.fontsize;
@@ -39,10 +42,30 @@ function Leaf(props: RenderLeafProps) {
   }
 
   if ('highlight' in leaf && leaf.highlight) {
+    let key;
+    let offset;
+    let isSearched = false;
     if (typeof leaf.highlight === 'object') {
-      style.backgroundColor = leaf.highlight.color;
+      key = leaf.highlight.search?.key;
+      offset = leaf.highlight.search?.offset;
+      isSearched = !!leaf.highlight.search;
+      if (isSearched && activeSearchKey === key) {
+        // Active of search result highlight
+        style.backgroundColor = '#ff9632';
+      } else {
+        // Common highlight
+        style.backgroundColor = leaf.highlight.color;
+      }
     }
-    text = <mark style={style}>{text}</mark>;
+    const _attributes = isSearched && {
+      'data-slate-decorate-search-key': key,
+      'data-slate-decorate-search-offset': offset,
+    };
+    text = (
+      <mark style={style} {..._attributes}>
+        {text}
+      </mark>
+    );
   }
 
   if ('superscript' in leaf && leaf.superscript) {

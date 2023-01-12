@@ -1,20 +1,25 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { Editable, useSlate, ReactEditor } from 'slate-react';
 import { Range, Transforms, Editor, Element as SlateElement } from 'slate';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
 import isHotkey, { isKeyHotkey } from 'is-hotkey';
 import classNames from 'classnames';
+import { HOTKEYS } from 'src/utils/constant';
+import { useAccessories } from 'src/hooks';
+import useBaseResolver from '../Toolbar/useBaseResolver';
 import Leaf from '../Leaf';
 import Element from '../Element';
-import { HOTKEYS } from '../../utils/constant';
+import decorate from './decorate';
 import useStyled from './styled';
 
 import type { RenderLeafProps, RenderElementProps } from 'slate-react';
-import type { NoEffectWrapTypes } from '../../utils/constant';
+import type { EditableProps } from 'slate-react/dist/components/editable';
+import type { NoEffectWrapTypes } from 'src/utils/constant';
 
 export interface ContentProps {
   className?: string;
+  wrapperClassName?: string;
   placeholder?: string;
   spellCheck?: boolean;
   autoFocus?: boolean;
@@ -28,6 +33,7 @@ export interface ContentProps {
 function Content(props: ContentProps) {
   const {
     className,
+    wrapperClassName,
     placeholder,
     spellCheck,
     autoFocus,
@@ -40,7 +46,13 @@ function Content(props: ContentProps) {
 
   const editor = useSlate();
 
-  const { content } = useStyled();
+  const { search } = useAccessories();
+
+  const { wrapper, content } = useStyled();
+
+  const baseResolver = useBaseResolver();
+
+  const searchResolver = useMemo(() => baseResolver.find((item) => item.key === 'search'), [baseResolver]);
 
   const stepOutOfInlineEle = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -107,8 +119,16 @@ function Content(props: ContentProps) {
           editor.toggleAlign(align);
         }
       });
+      // Search shortcut
+      if (isHotkey('mod+f', e)) {
+        e.preventDefault();
+        // 征用Toolbar的弹窗渲染
+        if (searchResolver && 'onClick' in searchResolver) {
+          searchResolver.onClick?.(editor, null);
+        }
+      }
     },
-    [editor, onKeyboard, stepOutOfInlineEle]
+    [editor, onKeyboard, searchResolver, stepOutOfInlineEle]
   );
 
   const receiveRenderLeaf = useCallback(
@@ -137,6 +157,12 @@ function Content(props: ContentProps) {
   const handleRenderElement = useCallback(
     (props: RenderElementProps) => receiveRenderElement(props, <Element {...props} />),
     [receiveRenderElement]
+  );
+
+  // 装饰器
+  const getDecorate = useCallback<NonNullable<EditableProps['decorate']>>(
+    (entry) => decorate(entry)({ search }),
+    [search]
   );
 
   const preventDefaultDrop = useCallback<React.DragEventHandler<HTMLDivElement>>(
@@ -190,20 +216,24 @@ function Content(props: ContentProps) {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <Editable
-        className={classNames(content, className)}
-        role="textbox"
-        placeholder={placeholder}
-        spellCheck={spellCheck}
-        autoFocus={autoFocus}
-        readOnly={readOnly}
-        style={style}
-        renderLeaf={handleRenderLeaf}
-        renderElement={handleRenderElement}
-        onDragStart={preventDefaultDrag}
-        onDrop={preventDefaultDrop}
-        onKeyDown={handleKeyDown}
-      />
+      <div role="document" className={classNames(wrapper, wrapperClassName)}>
+        <Editable
+          className={classNames(content, className)}
+          role="textbox"
+          placeholder={placeholder}
+          spellCheck={spellCheck}
+          autoFocus={autoFocus}
+          readOnly={readOnly}
+          style={style}
+          decorate={getDecorate}
+          renderLeaf={handleRenderLeaf}
+          renderElement={handleRenderElement}
+          onDragStart={preventDefaultDrag}
+          onDrop={preventDefaultDrop}
+          onKeyDown={handleKeyDown}
+        />
+        {searchResolver?.attachRender}
+      </div>
     </DndProvider>
   );
 }

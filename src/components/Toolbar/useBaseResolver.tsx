@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
-import { Editor } from 'slate';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { Editor, Transforms } from 'slate';
 import { ReactEditor, useSlate } from 'slate-react';
 import Icon, {
   BoldOutlined,
@@ -15,31 +15,93 @@ import Icon, {
   LinkOutlined,
   DisconnectOutlined,
   HighlightOutlined,
+  FileSearchOutlined,
+  RightOutlined,
+  DownOutlined,
 } from '@ant-design/icons';
-import { theme, Form, Input } from 'antd';
-import { useFormDialog } from 'src/hooks';
+import { theme, Form, Input, Radio, message, InputNumber, Button, Space, Row, Col } from 'antd';
+import debounce from 'lodash/debounce';
+import { useFormDialog, useAccessories } from 'src/hooks';
+import { isPowerArray } from 'src/utils';
 import { LIST_TYPES } from 'src/utils/constant';
 import FormDialog from './FormDialog';
+import FileUpload from '../FileUpload';
 import ColorPicker, { colorParse, colorStringify } from './ColorPicker';
 import CodeSvgr from 'src/assets/code.svg';
-import BlockQuoteSvgr from 'src/assets/block-quote.svg';
+import BlockQuoteSvgr from 'src/assets/quote.svg';
 import SuperscriptSvgr from 'src/assets/superscript.svg';
 import SubscriptSvgr from 'src/assets/subscript.svg';
 import UndoSvgr from 'src/assets/undo.svg';
 import RedoSvgr from 'src/assets/redo.svg';
+import ImageSvgr from 'src/assets/image.svg';
+import useStyled from './styled';
 
+import type { ImageElement } from 'slate';
 import type { Color } from 'react-color';
 import type { ToolbarResolver } from '.';
 import type { FormDialogProps } from './FormDialog';
+import type { SearchResult } from 'src/utils/withCommand';
+
+const { useToken } = theme;
 
 const mp0 = { padding: 0, margin: 0 };
 
-const { useToken } = theme;
+const w88 = { width: 88 };
+
+const span4 = { span: 4 };
+
+const pb24 = { paddingBottom: 24 };
+
+const alignCenter: React.CSSProperties = { textAlign: 'center' };
+
+const alignRight: React.CSSProperties = { textAlign: 'right', marginBottom: 0 };
+
+const searchTypeStyle: React.CSSProperties = { width: 25, height: '100%', fontSize: 12, borderRadius: 2 };
+
+const required = [{ required: true }];
+
+const noMsgRequired = [{ required: true, message: '' }];
+
+const imgSourceOptions = [
+  {
+    label: '本地上传',
+    value: 'local',
+  },
+  {
+    label: '远程图片',
+    value: 'remote',
+  },
+];
+
+const imgElementOptions = [
+  {
+    label: '行内元素',
+    value: true,
+  },
+  {
+    label: '块级元素',
+    value: false,
+  },
+];
+
+const defaultImgSource = 'local';
 
 export default function useBaseResolver() {
   const editor = useSlate();
 
   const { token } = useToken();
+
+  const { searchIndicator } = useStyled();
+
+  const { setSearch, searchResult, setActiveSearchKey } = useAccessories();
+
+  const [imgSource, setImgSource] = useState(defaultImgSource);
+
+  const [searchType, setSearchType] = useState<'search' | 'replace'>('search');
+
+  const [activeSearchIndex, setActiveSearchIndex] = useState<number | null>(null);
+
+  const replaceType = useRef<'curr' | 'all' | null>(null);
 
   const {
     form: formLink,
@@ -47,18 +109,90 @@ export default function useBaseResolver() {
     setVisible: setLinkDialogVisible,
     pos: linkDialogPos,
     setPos: setLinkDialogPos,
-    close: closeLink,
+    close: closeLinkDialog,
     submit: submitLink,
+  } = useFormDialog();
+
+  const {
+    form: formImage,
+    visible: imageDialogVisible,
+    setVisible: setImageDialogVisible,
+    pos: imageDialogPos,
+    setPos: setImageDialogPos,
+    close: closeImageDialog,
+    submit: submitImage,
+    mode: imageDialogMode,
+    setMode: setImageDialogMode,
+    loading: imgDialogLoading,
+  } = useFormDialog();
+
+  const {
+    form: formSearch,
+    visible: searchDialogVisible,
+    setVisible: setSearchDialogVisible,
+    pos: searchDialogPos,
+    setPos: setSearchDialogPos,
+    close: closeSearchDialog,
   } = useFormDialog();
 
   const handleLinkFinish = useCallback<NonNullable<FormDialogProps['onFinish']>>(
     (values) => {
-      closeLink();
+      closeLinkDialog();
       const { url } = values;
       editor.setLink(url);
       ReactEditor.focus(editor);
     },
-    [closeLink, editor]
+    [closeLinkDialog, editor]
+  );
+
+  const _closeImageDialog = useCallback(() => {
+    setImgSource(defaultImgSource);
+    closeImageDialog();
+  }, [closeImageDialog]);
+
+  const handleImageFinish = useCallback<NonNullable<FormDialogProps['onFinish']>>(
+    async (values) => {
+      const { source, file, url: _url, inline, width, height } = values;
+      let url = _url;
+      if (source === 'local') {
+        const fileUpload = editor.extraProperty?.fileUpload;
+        if (fileUpload) {
+          url = await fileUpload(file);
+        } else {
+          // default base64
+          url = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function () {
+              resolve(reader.result);
+            };
+            reader.onerror = function (error) {
+              reject(error);
+            };
+          }).catch(() => '');
+        }
+      }
+      if (imageDialogMode === 'update') {
+        // 编辑
+        editor.setElementProperties('image', { source, url, inline, width, height }, { refactor: true });
+        _closeImageDialog();
+        ReactEditor.focus(editor);
+        return;
+      }
+      // 新增
+      Transforms.insertNodes(editor, {
+        type: 'image',
+        source,
+        url,
+        inline,
+        width,
+        height,
+        children: [{ text: '' }],
+      });
+      _closeImageDialog();
+      ReactEditor.focus(editor);
+    },
+    [_closeImageDialog, editor, imageDialogMode]
   );
 
   const handleColorChange = useCallback(
@@ -77,9 +211,132 @@ export default function useBaseResolver() {
     [editor]
   );
 
+  const handleImageDialogValuesChange = useCallback<NonNullable<FormDialogProps['onValuesChange']>>(
+    (changedValues) => {
+      if (changedValues.source) {
+        setImgSource(changedValues.source);
+      }
+    },
+    []
+  );
+
+  const handleSearchTypeChange = useCallback(() => {
+    setSearchType((v) => (v === 'search' ? 'replace' : 'search'));
+    // clear errors
+    formSearch.setFields([
+      {
+        name: 'search',
+        errors: [],
+      },
+    ]);
+  }, [formSearch]);
+
+  // 上一个
+  const handleSearchResultPrev = useCallback(() => {
+    if (!isPowerArray(searchResult)) return;
+    let next;
+    let activeKey = '';
+    if (activeSearchIndex === null) {
+      next = 0;
+    } else {
+      next = activeSearchIndex - 1 >= 0 ? activeSearchIndex - 1 : searchResult.length - 1;
+    }
+    activeKey = searchResult[next]?.key || '';
+    setActiveSearchIndex(next);
+    setActiveSearchKey(activeKey);
+  }, [activeSearchIndex, searchResult, setActiveSearchKey]);
+
+  // 下一个
+  const handleSearchResultNext = useCallback(() => {
+    if (!isPowerArray(searchResult)) return;
+    let next;
+    let activeKey = '';
+    if (activeSearchIndex === null) {
+      next = 0;
+    } else {
+      next = activeSearchIndex + 1 > searchResult.length - 1 ? 0 : activeSearchIndex + 1;
+    }
+    activeKey = searchResult[next]?.key || '';
+    setActiveSearchIndex(next);
+    setActiveSearchKey(activeKey);
+  }, [activeSearchIndex, searchResult, setActiveSearchKey]);
+
+  // 替换
+  const handleSearchOrReplaceFinish = useCallback<NonNullable<FormDialogProps['onFinish']>>(
+    (values) => {
+      if (!isPowerArray(searchResult)) return;
+      const replaceText = (item: SearchResult) => {
+        const { path, offset, search } = item;
+        const rangeDelete = {
+          anchor: { path, offset },
+          focus: { path, offset: offset + search.length },
+        };
+        Transforms.delete(editor, { at: rangeDelete });
+        const rangeInsert = {
+          anchor: { path, offset },
+          focus: { path, offset },
+        };
+        Transforms.insertText(editor, values.replace, { at: rangeInsert });
+      };
+      // 当前替换
+      if (replaceType.current === 'curr') {
+        if (activeSearchIndex === null || activeSearchIndex === undefined) return;
+        const item = searchResult[activeSearchIndex];
+        replaceText(item);
+      }
+      // 全部替换
+      if (replaceType.current === 'all') {
+        searchResult.forEach((item) => {
+          replaceText(item);
+        });
+      }
+      // 重置选中
+      setActiveSearchIndex(null);
+    },
+    [activeSearchIndex, editor, searchResult]
+  );
+
+  const handleSearchValuesChange = useCallback<NonNullable<FormDialogProps['onValuesChange']>>(
+    (changedValues) => {
+      if (changedValues.search !== undefined) {
+        // 1.更新search value
+        setSearch(changedValues.search);
+        // 2.清除数据
+        setActiveSearchKey('');
+        setActiveSearchIndex(null);
+      }
+    },
+    [setActiveSearchKey, setSearch]
+  );
+
+  const handleSearchValuesDebounce = useMemo(
+    () => debounce(handleSearchValuesChange, 250),
+    [handleSearchValuesChange]
+  );
+
+  const handleSearchDialogCancel = useCallback(() => {
+    closeSearchDialog();
+    setSearch('');
+    setActiveSearchIndex(null);
+    setActiveSearchKey('');
+  }, [closeSearchDialog, setActiveSearchKey, setSearch]);
+
+  const handleReplaceCurr = useCallback(() => {
+    replaceType.current = 'curr';
+  }, []);
+
+  const handleReplaceAll = useCallback(() => {
+    replaceType.current = 'all';
+  }, []);
+
   const colorIcon = useMemo(
     () => <span style={{ display: 'inline-block', fontSize: 14, width: 13 }}>A</span>,
     []
+  );
+
+  const searchTypeIcon = useMemo(
+    () => (searchType === 'search' ? <RightOutlined /> : <DownOutlined />),
+    [searchType]
   );
 
   const defaultColor = useMemo(() => colorParse(token.colorText), [token.colorText]);
@@ -286,7 +543,7 @@ export default function useBaseResolver() {
             mask={false}
             open={linkDialogVisible}
             defaultPosition={linkDialogPos}
-            onCancel={closeLink}
+            onCancel={closeLinkDialog}
             onOk={submitLink}
             onFinish={handleLinkFinish}
           >
@@ -296,27 +553,111 @@ export default function useBaseResolver() {
           </FormDialog>
         ),
         onClick(editor, e) {
-          // 处理特殊请求，一般从Content：即文本编辑区中发出
-          if (e?.target === 'emitter_edit') {
-            // 编辑请求
-            const url = editor.getElementFieldsValue('url', 'link');
+          const { selection } = editor;
+          if (!selection) {
+            message.warning('请先选定文本区！');
+            return;
+          }
+
+          const open = () => {
             const pos = editor.getBoundingClientRect();
-            formLink.setFieldsValue({ url });
             if (pos) setLinkDialogPos({ x: pos.x + pos.width, y: pos.y + pos.height });
             setLinkDialogVisible(true);
             return;
+          };
+
+          // 处理特殊请求，一般从Content：即文本编辑区中发出
+          if (e?.target === 'emitter_edit') {
+            // 编辑请求：更新赋值
+            const url = editor.getElementFieldsValue('url', 'link');
+            formLink.setFieldsValue({ url });
+            open();
+            return;
           }
+
           const isActive = editor.isElementActive('link');
           if (isActive) {
+            // 已有超链接状态
             editor.unsetLink();
             ReactEditor.focus(editor);
-          } else {
-            const pos = editor.getBoundingClientRect();
-            if (pos) {
-              setLinkDialogPos({ x: pos.x + pos.width, y: pos.y + pos.height });
-              setLinkDialogVisible(true);
-            }
+            return;
           }
+
+          open();
+        },
+      },
+      {
+        key: 'image',
+        type: 'button',
+        icon: <Icon component={ImageSvgr} />,
+        title: '图片',
+        disabled: (editor) => editor.isElementActive('image'),
+        attachRender: (
+          <FormDialog
+            form={formImage}
+            width={355}
+            confirmLoading={imgDialogLoading}
+            draggable
+            layout="horizontal"
+            labelCol={span4}
+            title="图片"
+            mask={false}
+            defaultPosition={imageDialogPos}
+            open={imageDialogVisible}
+            onCancel={_closeImageDialog}
+            onOk={submitImage}
+            onFinish={handleImageFinish}
+            onValuesChange={handleImageDialogValuesChange}
+          >
+            <Form.Item name="source" initialValue={defaultImgSource} style={alignCenter}>
+              <Radio.Group optionType="button" options={imgSourceOptions} />
+            </Form.Item>
+            {imgSource === 'local' && (
+              <Form.Item label="上传" name="file" rules={required}>
+                <FileUpload placeholder="请选择文件上传" accept=".jpg, .jpeg, .png, .gif, .svg" />
+              </Form.Item>
+            )}
+            {imgSource === 'remote' && (
+              <Form.Item label="地址" name="url" rules={required}>
+                <Input placeholder="请输入图片地址" allowClear />
+              </Form.Item>
+            )}
+            <Form.Item label="元素" name="inline" rules={required} initialValue={true}>
+              <Radio.Group optionType="button" options={imgElementOptions} />
+            </Form.Item>
+            <Form.Item label="宽度" name="width">
+              <InputNumber step="0.1" precision={2} min={1} placeholder="auto (px)" style={w88} />
+            </Form.Item>
+            <Form.Item label="高度" name="height">
+              <InputNumber step="0.1" precision={2} min={1} placeholder="auto (px)" style={w88} />
+            </Form.Item>
+          </FormDialog>
+        ),
+        onClick(editor, e) {
+          const { selection } = editor;
+          if (!selection) {
+            message.warning('请先选定文本区！');
+            return;
+          }
+
+          const open = () => {
+            const pos = editor.getBoundingClientRect();
+            if (pos) setImageDialogPos({ x: pos.x + pos.width, y: pos.y + pos.height });
+            setImageDialogVisible(true);
+            return;
+          };
+
+          if (e?.target === 'emitter_edit') {
+            // 编辑请求
+            const ele = editor.getElementFieldsValue(true, 'image') as ImageElement;
+            formImage.setFieldsValue({ ...ele, inline: !!ele.inline });
+            setImgSource(ele.source || defaultImgSource);
+            setImageDialogMode('update');
+            open();
+            return;
+          }
+
+          open();
         },
       },
       {
@@ -494,17 +835,121 @@ export default function useBaseResolver() {
         title: '背景高亮',
         element: getHighlightElement,
       },
+      {
+        key: 'search',
+        type: 'button',
+        title: '查找替换 Ctrl+F',
+        icon: <FileSearchOutlined />,
+        attachRender: (
+          <FormDialog
+            form={formSearch}
+            open={searchDialogVisible}
+            title="查找与替换"
+            width={370}
+            footer={null}
+            draggable
+            defaultPosition={searchDialogPos}
+            mask={false}
+            onCancel={handleSearchDialogCancel}
+            onValuesChange={handleSearchValuesDebounce}
+            onFinish={handleSearchOrReplaceFinish}
+          >
+            <Row>
+              <Col flex="35px" style={pb24}>
+                <Button
+                  title="切换模式"
+                  icon={searchTypeIcon}
+                  style={searchTypeStyle}
+                  onClick={handleSearchTypeChange}
+                />
+              </Col>
+              <Col flex="auto">
+                <Form.Item name="search" rules={noMsgRequired}>
+                  <Input placeholder="查找" autoFocus autoComplete="off" />
+                </Form.Item>
+                {/* 不能使用Input suffix 会导致编辑中Input更新渲染失焦 */}
+                {searchResult.length > 0 && (
+                  <span className={searchIndicator}>
+                    {`${activeSearchIndex !== null ? activeSearchIndex + 1 : '?'}/${searchResult.length}`}
+                  </span>
+                )}
+                {searchType === 'replace' && (
+                  <Form.Item name="replace" rules={noMsgRequired}>
+                    <Input placeholder="替换" autoComplete="off" />
+                  </Form.Item>
+                )}
+              </Col>
+            </Row>
+            <Form.Item style={alignRight}>
+              <Space>
+                <Button onClick={handleSearchResultPrev}>上一个</Button>
+                <Button onClick={handleSearchResultNext}>下一个</Button>
+                {searchType === 'replace' && (
+                  <>
+                    <Button htmlType="submit" type="primary" ghost onClick={handleReplaceCurr}>
+                      替换
+                    </Button>
+                    <Button htmlType="submit" type="primary" ghost onClick={handleReplaceAll}>
+                      全部替换
+                    </Button>
+                  </>
+                )}
+              </Space>
+            </Form.Item>
+          </FormDialog>
+        ),
+        onClick(editor) {
+          const target = editor.getEditableDOM();
+          const pos = target.getBoundingClientRect();
+          const computedStyle = window.getComputedStyle(target);
+          const { paddingTop, paddingRight } = computedStyle;
+          const pt = Number(paddingTop.replace('px', ''));
+          const pr = Number(paddingRight.replace('px', ''));
+          if (pos) setSearchDialogPos({ x: pos.x + pos.width - 370 - pr, y: pos.y + pt });
+          setSearchDialogVisible(true);
+        },
+      },
     ],
     [
-      closeLink,
+      _closeImageDialog,
+      activeSearchIndex,
+      closeLinkDialog,
+      formImage,
       formLink,
+      formSearch,
       getFontColorElement,
       getHighlightElement,
+      handleImageDialogValuesChange,
+      handleImageFinish,
       handleLinkFinish,
+      handleReplaceAll,
+      handleReplaceCurr,
+      handleSearchDialogCancel,
+      handleSearchOrReplaceFinish,
+      handleSearchResultNext,
+      handleSearchResultPrev,
+      handleSearchTypeChange,
+      handleSearchValuesDebounce,
+      imageDialogPos,
+      imageDialogVisible,
+      imgDialogLoading,
+      imgSource,
       linkDialogPos,
       linkDialogVisible,
+      searchDialogPos,
+      searchDialogVisible,
+      searchIndicator,
+      searchResult.length,
+      searchType,
+      searchTypeIcon,
+      setImageDialogMode,
+      setImageDialogPos,
+      setImageDialogVisible,
       setLinkDialogPos,
       setLinkDialogVisible,
+      setSearchDialogPos,
+      setSearchDialogVisible,
+      submitImage,
       submitLink,
     ]
   );

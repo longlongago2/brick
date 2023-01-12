@@ -31,16 +31,18 @@ export default function useStyled() {
           align-items: center;
           width: 100%;
           height: 100%;
+          font-size: 13px;
         }
         .option--extra {
           flex: none;
           display: inline-flex;
           align-items: center;
           justify-content: flex-end;
-          width: 80px;
+          width: 85px;
           height: 100%;
           color: ${token.colorTextTertiary};
           font-size: 12px;
+          font-family: 'Courier New', Courier, monospace;
           text-align: right;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -101,6 +103,13 @@ export default function useStyled() {
           outline: 1px solid ${token.colorPrimary};
         }
       }
+    `,
+    searchIndicator: css`
+      position: absolute;
+      top: 4px;
+      right: 8px;
+      font-size: 14px;
+      color: ${token.colorTextTertiary};
     `,
   };
 }

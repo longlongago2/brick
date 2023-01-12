@@ -62,6 +62,7 @@ export interface ToolbarProps {
   include?: string[]; // 包含按钮
   exclude?: string[]; // 排除按钮
   extraResolver?: (editor: Editor) => ToolbarResolver[]; // 自定义按钮处理程序
+  fileUpload?: (file: File) => Promise<string>; // 输出 Promise file url
 }
 
 export const baseSort = [
@@ -88,13 +89,18 @@ export const baseSort = [
   'divider',
   'block-quote',
   'link',
+  'image',
+  'divider',
+  'search',
 ];
 
 function Toolbar(props: ToolbarProps) {
-  const { className, style, sort = baseSort, include, exclude, extraResolver } = props;
+  const { className, style, sort = baseSort, include, exclude, extraResolver, fileUpload } = props;
 
   // memoize
   const editor = useSlate();
+
+  editor.addExtraProperty('fileUpload', fileUpload); // 利用editor上下文共享
 
   const baseResolver = useBaseResolver();
 
@@ -229,7 +235,7 @@ function Toolbar(props: ToolbarProps) {
               jsxElement = item.element;
             }
             return (
-              <Tooltip key={item.key} title={title}>
+              <Tooltip key={item.key} title={title} showArrow={false}>
                 {jsxElement}
               </Tooltip>
             );
