@@ -259,9 +259,14 @@ export default function useBaseResolver() {
 
   const handleSearchOrReplaceFinish = useCallback<NonNullable<FormDialogProps['onFinish']>>((values) => {
     // 替换/全部替换
+    console.log(searchResult);
     console.log(values);
     console.log(replaceType.current);
-  }, []);
+    if (!activeSearchIndex) return;
+    const activeItem = searchResult[activeSearchIndex];
+    console.log(activeItem);
+
+  }, [activeSearchIndex, searchResult]);
 
   const handleSearchValuesChange = useCallback<NonNullable<FormDialogProps['onValuesChange']>>(
     (changedValues) => {

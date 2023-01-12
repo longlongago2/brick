@@ -45,10 +45,11 @@ function Leaf(props: RenderLeafProps) {
     let searchkey;
     if (typeof leaf.highlight === 'object') {
       searchkey = leaf.highlight.searchkey;
-      if (activeSearchKey === searchkey) {
-        // search result active
+      if (!!searchkey && activeSearchKey === searchkey) {
+        // Active of search result highlight
         style.backgroundColor = '#ff9632';
       } else {
+        // Common highlight
         style.backgroundColor = leaf.highlight.color;
       }
     }

@@ -1,6 +1,6 @@
-import {useState, useCallback, useMemo, useEffect, useRef} from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useNextTick } from 'src/hooks';
-import type {Editor} from 'slate';
+import type { Editor } from 'slate';
 
 export default function useAccessories(getEditor: () => Editor) {
   const editorFn = useRef(getEditor);
@@ -57,5 +57,4 @@ export default function useAccessories(getEditor: () => Editor) {
   }, [activeSearchKey, nextTick]);
 
   return accessories;
-
 }

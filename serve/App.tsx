@@ -109,9 +109,9 @@ function App() {
     return false; // is preventDefaultHandler
   }, []);
 
-  // const handleChange = useCallback((v: Descendant[]) => {
-  //   console.log(v);
-  // }, []);
+  const handleChange = useCallback((v: Descendant[]) => {
+    console.log(v);
+  }, []);
 
   return (
     <div>
@@ -121,7 +121,7 @@ function App() {
         readOnly={false}
         // fileUpload={handleFileUpload}
         onKeyboard={handleKeyboard}
-        // onChange={handleChange}
+        onChange={handleChange}
       />
     </div>
   );

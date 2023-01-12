@@ -12,6 +12,7 @@ import Leaf from '../Leaf';
 import Element from '../Element';
 import useStyled from './styled';
 
+import type { BaseRange, MarkText } from 'slate';
 import type { RenderLeafProps, RenderElementProps } from 'slate-react';
 import type { EditableProps } from 'slate-react/dist/components/editable';
 import type { NoEffectWrapTypes } from 'src/utils/constant';
@@ -28,6 +29,8 @@ export interface ContentProps {
   renderElement?: (props: RenderElementProps, element: JSX.Element) => JSX.Element;
   onKeyboard?: (event: React.KeyboardEvent<HTMLDivElement>) => boolean;
 }
+
+type DecorateRange = BaseRange & Omit<MarkText, 'text'>;
 
 function Content(props: ContentProps) {
   const {
@@ -161,7 +164,7 @@ function Content(props: ContentProps) {
   // 装饰器
   const decorate = useCallback<NonNullable<EditableProps['decorate']>>(
     ([node, path]) => {
-      const ranges: Range[] = [];
+      const ranges: DecorateRange[] = [];
 
       if (search && Text.isText(node)) {
         const { text } = node;
@@ -175,7 +178,7 @@ function Content(props: ContentProps) {
               anchor: { path, offset: offset - search.length },
               focus: { path, offset },
               highlight: { color: '#ffff00', searchkey: uuid }, // MarkText properties 搜索利用高亮属性高亮搜索内容
-            } as Range);
+            });
           }
 
           offset = offset + part.length + search.length;
