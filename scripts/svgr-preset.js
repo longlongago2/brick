@@ -2,7 +2,11 @@ import glob from 'glob';
 import fs from 'fs';
 import path from 'path';
 import { transform } from '@svgr/core';
-import { resolveApp } from './utils';
+import { resolveApp } from './utils.js';
+
+const entry = 'src/assets/svgr/**/*.svg';
+
+const output = 'src/assets/svgr/index.js';
 
 const camelcase = (str) => {
   const regexp = new RegExp('-(\\w)', 'g');
@@ -11,7 +15,7 @@ const camelcase = (str) => {
 
 let components = ['import { memo } from "react";'];
 
-const files = glob.sync('src/assets/svgr/**/*.svg', { debug: false, absolute: true });
+const files = glob.sync(entry, { debug: false, absolute: true });
 
 files.map((file) => {
   const basename = path.basename(file, '.svg');
@@ -37,4 +41,4 @@ files.map((file) => {
   components.push(jsCode);
 });
 
-fs.writeFile(resolveApp('./assets/svgr/index.js'), components.join('\n'));
+fs.writeFileSync(resolveApp(output), components.join('\n'));

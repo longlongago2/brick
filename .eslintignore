@@ -1,5 +1,6 @@
 .gitee
 public
+src/assets
 cjs
 dist
 esm
