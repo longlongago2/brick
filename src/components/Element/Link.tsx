@@ -6,7 +6,7 @@ import classNames from 'classnames';
 import { copyToClipboard } from '../../utils';
 import useBaseResolver from '../Toolbar/useBaseResolver';
 import InlineChromiumBugfix from '../InlineChromiumBugfix';
-import SvgrLinkExternal from '../../assets/link-external.svg';
+import { SvgrLinkExternal } from '../SvgrIcons';
 import useStyled from './styled';
 
 import type { RenderElementProps } from 'slate-react';

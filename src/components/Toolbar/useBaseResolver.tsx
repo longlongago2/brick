@@ -28,13 +28,15 @@ import { LIST_TYPES } from '../../utils/constant';
 import ColorPicker, { colorParse, colorStringify } from './ColorPicker';
 import FormDialog from './FormDialog';
 import FileUpload from '../FileUpload';
-import CodeSvgr from '../../assets/code.svg';
-import BlockQuoteSvgr from '../../assets/quote.svg';
-import SuperscriptSvgr from '../../assets/superscript.svg';
-import SubscriptSvgr from '../../assets/subscript.svg';
-import UndoSvgr from '../../assets/undo.svg';
-import RedoSvgr from '../../assets/redo.svg';
-import ImageSvgr from '../../assets/image.svg';
+import {
+  SvgrCode,
+  SvgrImage,
+  SvgrQuote,
+  SvgrSubscript,
+  SvgrSuperscript,
+  SvgrUndo,
+  SvgrRedo,
+} from '../SvgrIcons';
 import useStyled from './styled';
 
 import type { ImageElement } from 'slate';
@@ -402,7 +404,7 @@ export default function useBaseResolver() {
       {
         key: 'undo',
         type: 'button',
-        icon: <Icon component={UndoSvgr} />,
+        icon: <Icon component={SvgrUndo} />,
         title: '撤销 Ctrl+Z',
         disabled: (editor) => editor.history.undos.length <= 0,
         onClick(editor) {
@@ -413,7 +415,7 @@ export default function useBaseResolver() {
       {
         key: 'redo',
         type: 'button',
-        icon: <Icon component={RedoSvgr} />,
+        icon: <Icon component={SvgrRedo} />,
         title: '重做 Shift+Ctrl+Z',
         disabled: (editor) => editor.history.redos.length <= 0,
         onClick(editor) {
@@ -457,7 +459,7 @@ export default function useBaseResolver() {
       {
         key: 'code',
         type: 'button',
-        icon: <Icon component={CodeSvgr} />,
+        icon: <Icon component={SvgrCode} />,
         title: '行内代码 Ctrl+`',
         active: (editor) => editor.isMarkActive('code'),
         onClick(editor) {
@@ -479,7 +481,7 @@ export default function useBaseResolver() {
       {
         key: 'superscript',
         type: 'button',
-        icon: <Icon component={SuperscriptSvgr} />,
+        icon: <Icon component={SvgrSuperscript} />,
         title: '上标 Ctrl+.',
         active: (editor) => editor.isMarkActive('superscript'),
         onClick(editor) {
@@ -495,7 +497,7 @@ export default function useBaseResolver() {
       {
         key: 'subscript',
         type: 'button',
-        icon: <Icon component={SubscriptSvgr} />,
+        icon: <Icon component={SvgrSubscript} />,
         title: '下标 Ctrl+,',
         active: (editor) => editor.isMarkActive('subscript'),
         onClick(editor) {
@@ -533,7 +535,7 @@ export default function useBaseResolver() {
       {
         key: 'block-quote',
         type: 'button',
-        icon: <Icon component={BlockQuoteSvgr} />,
+        icon: <Icon component={SvgrQuote} />,
         title: '引用块 Ctrl+Alt+Q',
         active: (editor) => editor.isElementActive('block-quote'),
         onClick(editor) {
@@ -855,7 +857,7 @@ export default function useBaseResolver() {
       {
         key: 'image',
         type: 'button',
-        icon: <Icon component={ImageSvgr} />,
+        icon: <Icon component={SvgrImage} />,
         title: '图片',
         disabled: (editor) => editor.isElementActive('image'),
         attachRender: (

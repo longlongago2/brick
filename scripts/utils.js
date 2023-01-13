@@ -3,9 +3,6 @@ import path from 'path';
 import fs from 'fs-extra';
 import chalk from 'chalk';
 import webpack from 'webpack';
-import cssModulesPlugin from 'esbuild-css-modules-plugin';
-import { lessLoader } from 'esbuild-plugin-less';
-import svgrPlugin from 'esbuild-plugin-svgr';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 
 export const appDirectory = fs.realpathSync(process.cwd());
@@ -51,34 +48,16 @@ export function extendTsupConfig(overrideOptions) {
     minify: false,
     splitting: false,
     treeshake: true,
-    bundle: false, // TODO: 1.解决src路径问题；2.解决svgr的问题 如果不开启 bundle, src不会转义，开发模式一样引用路径，会造成问题，svgr不打包也会引起问题。
     sourcemap: false,
     injectStyle: true,
     replaceNodeEnv: true,
     silent: true,
     shims: false,
+    bundle: false, // for esm library tree-shaking
     // 仅当 bundle: true 时生效：跳过打包 node_modules, 优先级低于 noExternal
     skipNodeModulesBundle: false,
     // 仅当 bundle: true 时生效：与webpack external同步。
     external: ['react', 'react-dom', 'slate', 'slate-react', 'slate-history', 'slate-hyperscript'],
-    esbuildPlugins: [
-      // 仅当 bundle: true 时生效：和 webpack 作用相同：svg 作为 react component 导入。
-      svgrPlugin({
-        memo: true,
-        icon: true,
-      }),
-      // 仅当 bundle: true 时生效：尽量和 webpack 同步支持 css modules (此插件未经测试)
-      cssModulesPlugin({
-        filter: /\.module\.css$/,
-      }),
-      // 仅当 bundle: true 时生效：处理 less, 尽量和 webpack 同步支持 css modules
-      lessLoader(
-        {},
-        {
-          filter: /\.less$/,
-        }
-      ),
-    ],
     banner: {
       js: getBanner('tsup'),
     },
@@ -247,26 +226,6 @@ export const getRules = (config) => {
         preProcessor: true,
       }),
     },
-    // 将 svg 图标作为 React 组件导入
-    // import Icon from '@ant-design/icons/lib/components/Icon';
-    // import MessageSvg from 'path/to/message.svg';
-    // <Icon component={MessageSvg} />
-    {
-      test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-      use: [
-        {
-          loader: 'babel-loader',
-        },
-        {
-          loader: '@svgr/webpack',
-          options: {
-            babel: false,
-            icon: true,
-            memo: true,
-          },
-        },
-      ],
-    },
   ];
 };
 
@@ -323,13 +282,10 @@ export function webpackPromise(config) {
 }
 
 export function copyDTS(srcDir, destDir) {
-  // const files = fs.readdirSync(srcDir).filter((fn) => fn.endsWith('.d.ts'));
-  // files.map((file) => {
-  //   const filePath = resolveApp(srcDir + '/' + file);
-  //   const destPath = resolveApp(destDir + '/' + file);
-  //   fs.copyFileSync(filePath, destPath);
-  // });
-  fs.copySync(srcDir, destDir, {
-    filter: (fn) => fn.endsWith('.d.ts'),
+  const files = fs.readdirSync(srcDir).filter((fn) => fn.endsWith('.d.ts'));
+  files.map((file) => {
+    const filePath = resolveApp(srcDir + '/' + file);
+    const destPath = resolveApp(destDir + '/' + file);
+    fs.copyFileSync(filePath, destPath);
   });
 }

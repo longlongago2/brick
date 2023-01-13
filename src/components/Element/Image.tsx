@@ -15,8 +15,7 @@ import { copyToClipboard } from '../../utils';
 import DynamicElement from '../DynamicElement';
 import ImageEnhancer from '../ImageEnhancer';
 import useBaseResolver from '../Toolbar/useBaseResolver';
-import InlineSvgr from '../../assets/inline.svg';
-import WrapSvgr from '../../assets/wrap.svg';
+import { SvgrInline, SvgrWrap } from '../SvgrIcons';
 import useStyled from './styled';
 
 import type { RenderElementProps } from 'slate-react';
@@ -139,12 +138,12 @@ function Image(props: RenderElementProps) {
             {
               key: 'inline',
               label: '行内元素',
-              icon: <Icon component={InlineSvgr} />,
+              icon: <Icon component={SvgrInline} />,
             },
             {
               key: 'block',
               label: '块级元素',
-              icon: <Icon component={WrapSvgr} />,
+              icon: <Icon component={SvgrWrap} />,
             },
           ],
         },
