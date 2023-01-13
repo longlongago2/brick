@@ -1,4 +1,4 @@
-import 'katex/dist/katex.css'; // 需要打包css fonts
+import 'katex/dist/katex.css'; // TODO: 测试 umd 模式打包 css fonts， miniCssExtract
 import React from 'react';
 import classNames from 'classnames';
 import katex from 'katex';
