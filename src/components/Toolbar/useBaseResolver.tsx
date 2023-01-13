@@ -19,30 +19,29 @@ import Icon, {
   RightOutlined,
   DownOutlined,
   FunctionOutlined,
-  QuestionCircleOutlined,
 } from '@ant-design/icons';
 import { theme, Form, Input, Radio, message, InputNumber, Button, Space, Row, Col } from 'antd';
 import debounce from 'lodash/debounce';
-import { useFormDialog, useAccessories } from 'src/hooks';
-import { isPowerArray } from 'src/utils';
-import { LIST_TYPES } from 'src/utils/constant';
+import { useFormDialog, useAccessories } from '../../hooks';
+import { isPowerArray } from '../../utils';
+import { LIST_TYPES } from '../../utils/constant';
+import ColorPicker, { colorParse, colorStringify } from './ColorPicker';
 import FormDialog from './FormDialog';
 import FileUpload from '../FileUpload';
-import ColorPicker, { colorParse, colorStringify } from './ColorPicker';
-import CodeSvgr from 'src/assets/code.svg';
-import BlockQuoteSvgr from 'src/assets/quote.svg';
-import SuperscriptSvgr from 'src/assets/superscript.svg';
-import SubscriptSvgr from 'src/assets/subscript.svg';
-import UndoSvgr from 'src/assets/undo.svg';
-import RedoSvgr from 'src/assets/redo.svg';
-import ImageSvgr from 'src/assets/image.svg';
+import CodeSvgr from '../../assets/code.svg';
+import BlockQuoteSvgr from '../../assets/quote.svg';
+import SuperscriptSvgr from '../../assets/superscript.svg';
+import SubscriptSvgr from '../../assets/subscript.svg';
+import UndoSvgr from '../../assets/undo.svg';
+import RedoSvgr from '../../assets/redo.svg';
+import ImageSvgr from '../../assets/image.svg';
 import useStyled from './styled';
 
 import type { ImageElement } from 'slate';
 import type { Color } from 'react-color';
 import type { ToolbarResolver } from '.';
 import type { FormDialogProps } from './FormDialog';
-import type { SearchResult } from 'src/utils/withCommand';
+import type { SearchResult } from '../../utils/withCommand';
 
 const { useToken } = theme;
 

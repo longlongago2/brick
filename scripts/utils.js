@@ -51,21 +51,27 @@ export function extendTsupConfig(overrideOptions) {
     minify: false,
     splitting: false,
     treeshake: true,
-    bundle: true, // 作为浏览器的library,一定要开启 bundle, 这样，静态资源才会打包进去，而不是简单的和src开发模式一样引用路径，例如 svgr
+    bundle: false, // TODO: 1.解决src路径问题；2.解决svgr的问题 如果不开启 bundle, src不会转义，开发模式一样引用路径，会造成问题，svgr不打包也会引起问题。
     sourcemap: false,
     injectStyle: true,
     replaceNodeEnv: true,
     silent: true,
-    skipNodeModulesBundle: false,
     shims: false,
-    external: ['react', 'react-dom', 'slate', 'slate-react', 'slate-history', 'slate-hyperscript'], // bundle: true, 集中打包生效, 与webpack external同步
+    // 仅当 bundle: true 时生效：跳过打包 node_modules, 优先级低于 noExternal
+    skipNodeModulesBundle: false,
+    // 仅当 bundle: true 时生效：与webpack external同步。
+    external: ['react', 'react-dom', 'slate', 'slate-react', 'slate-history', 'slate-hyperscript'],
     esbuildPlugins: [
-      // 和webpack作用相同：svg作为react component 导入
-      svgrPlugin(),
-      // NOTE: 尽量和webpack同步支持css modules,less (未经测试)
+      // 仅当 bundle: true 时生效：和 webpack 作用相同：svg 作为 react component 导入。
+      svgrPlugin({
+        memo: true,
+        icon: true,
+      }),
+      // 仅当 bundle: true 时生效：尽量和 webpack 同步支持 css modules (此插件未经测试)
       cssModulesPlugin({
         filter: /\.module\.css$/,
       }),
+      // 仅当 bundle: true 时生效：处理 less, 尽量和 webpack 同步支持 css modules
       lessLoader(
         {},
         {
@@ -91,7 +97,6 @@ export function extendTsupConfig(overrideOptions) {
 // Esllint: package.json => eslintConfig => import/resolver => alias
 export const alias = {
   bricky: resolveApp('./src'),
-  src: resolveApp('./src'),
 };
 
 // peerDependencies externals
@@ -257,6 +262,7 @@ export const getRules = (config) => {
           options: {
             babel: false,
             icon: true,
+            memo: true,
           },
         },
       ],

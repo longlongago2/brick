@@ -11,12 +11,12 @@ import Icon, {
 } from '@ant-design/icons';
 import { Dropdown, message } from 'antd';
 import classNames from 'classnames';
-import InlineSvgr from 'src/assets/inline.svg';
-import WrapSvgr from 'src/assets/wrap.svg';
-import { copyToClipboard } from 'src/utils';
+import { copyToClipboard } from '../../utils';
 import DynamicElement from '../DynamicElement';
 import ImageEnhancer from '../ImageEnhancer';
 import useBaseResolver from '../Toolbar/useBaseResolver';
+import InlineSvgr from '../../assets/inline.svg';
+import WrapSvgr from '../../assets/wrap.svg';
 import useStyled from './styled';
 
 import type { RenderElementProps } from 'slate-react';

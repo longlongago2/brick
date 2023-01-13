@@ -3,10 +3,10 @@ import { useSelected, useFocused, useReadOnly, useSlate, ReactEditor } from 'sla
 import { Dropdown, message } from 'antd';
 import Icon, { DisconnectOutlined, FormOutlined, GlobalOutlined } from '@ant-design/icons';
 import classNames from 'classnames';
-import { copyToClipboard } from 'src/utils';
+import { copyToClipboard } from '../../utils';
 import useBaseResolver from '../Toolbar/useBaseResolver';
 import InlineChromiumBugfix from '../InlineChromiumBugfix';
-import SvgrLinkExternal from 'src/assets/link-external.svg';
+import SvgrLinkExternal from '../../assets/link-external.svg';
 import useStyled from './styled';
 
 import type { RenderElementProps } from 'slate-react';

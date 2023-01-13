@@ -28,7 +28,6 @@
     "paths": {
       "bricky": ["src"],
       "bricky/*": ["src/*"], // support deep path e.g. bricky/components/Editor
-      "src": ["src"]
     }
   },
   "include": ["src/**/*", "serve/**/*"]
