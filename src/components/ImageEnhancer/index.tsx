@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { useEventListener, useMount } from 'ahooks';
 import { EyeFilled } from '@ant-design/icons';
 import classNames from 'classnames';
-import { useNextTick } from 'src/hooks';
+import { useNextTick } from '../../hooks';
 import useStyled from './styled';
 
 export interface ImageEnhancerProps extends React.ImgHTMLAttributes<HTMLImageElement> {

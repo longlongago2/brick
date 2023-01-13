@@ -3,9 +3,6 @@ import path from 'path';
 import fs from 'fs-extra';
 import chalk from 'chalk';
 import webpack from 'webpack';
-import cssModulesPlugin from 'esbuild-css-modules-plugin';
-import { lessLoader } from 'esbuild-plugin-less';
-import svgrPlugin from 'esbuild-plugin-svgr';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 
 export const appDirectory = fs.realpathSync(process.cwd());
@@ -51,28 +48,16 @@ export function extendTsupConfig(overrideOptions) {
     minify: false,
     splitting: false,
     treeshake: true,
-    bundle: true, // 作为浏览器的library,一定要开启 bundle, 这样，静态资源才会打包进去，而不是简单的和src开发模式一样引用路径，例如 svgr
     sourcemap: false,
     injectStyle: true,
     replaceNodeEnv: true,
     silent: true,
-    skipNodeModulesBundle: false,
     shims: false,
-    external: ['react', 'react-dom', 'slate', 'slate-react', 'slate-history', 'slate-hyperscript'], // bundle: true, 集中打包生效, 与webpack external同步
-    esbuildPlugins: [
-      // 和webpack作用相同：svg作为react component 导入
-      svgrPlugin(),
-      // NOTE: 尽量和webpack同步支持css modules,less (未经测试)
-      cssModulesPlugin({
-        filter: /\.module\.css$/,
-      }),
-      lessLoader(
-        {},
-        {
-          filter: /\.less$/,
-        }
-      ),
-    ],
+    bundle: false, // for esm library tree-shaking
+    // 仅当 bundle: true 时生效：跳过打包 node_modules, 优先级低于 noExternal
+    skipNodeModulesBundle: false,
+    // 仅当 bundle: true 时生效：与webpack external同步。
+    external: ['react', 'react-dom', 'slate', 'slate-react', 'slate-history', 'slate-hyperscript'],
     banner: {
       js: getBanner('tsup'),
     },
@@ -91,7 +76,6 @@ export function extendTsupConfig(overrideOptions) {
 // Esllint: package.json => eslintConfig => import/resolver => alias
 export const alias = {
   bricky: resolveApp('./src'),
-  src: resolveApp('./src'),
 };
 
 // peerDependencies externals
@@ -241,25 +225,6 @@ export const getRules = (config) => {
         miniCssExtract,
         preProcessor: true,
       }),
-    },
-    // 将 svg 图标作为 React 组件导入
-    // import Icon from '@ant-design/icons/lib/components/Icon';
-    // import MessageSvg from 'path/to/message.svg';
-    // <Icon component={MessageSvg} />
-    {
-      test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-      use: [
-        {
-          loader: 'babel-loader',
-        },
-        {
-          loader: '@svgr/webpack',
-          options: {
-            babel: false,
-            icon: true,
-          },
-        },
-      ],
     },
   ];
 };

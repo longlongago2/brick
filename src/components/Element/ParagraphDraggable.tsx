@@ -3,7 +3,7 @@ import { Button, Dropdown } from 'antd';
 import { useSelected, useFocused } from 'slate-react';
 import { HolderOutlined } from '@ant-design/icons';
 import classNames from 'classnames';
-import { useReactDnd } from 'src/hooks';
+import { useReactDnd } from '../../hooks';
 import useStyled from './styled';
 
 import type { RenderElementProps } from 'slate-react';

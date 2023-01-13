@@ -1,8 +1,8 @@
 import React, { memo, useCallback, useMemo } from 'react';
 import { Slate } from 'slate-react';
 import { ConfigProvider } from 'antd';
-import { useBrickyEditor } from 'src/hooks';
-import { AccessoriesProvider } from 'src/hooks/useAccessories';
+import { useBrickyEditor } from '../../hooks';
+import { AccessoriesProvider } from '../../hooks/useAccessories';
 import useAccessories from './useAccessories';
 
 import type { Descendant, Editor } from 'slate';

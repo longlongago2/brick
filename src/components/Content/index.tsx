@@ -5,8 +5,8 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
 import isHotkey, { isKeyHotkey } from 'is-hotkey';
 import classNames from 'classnames';
-import { HOTKEYS } from 'src/utils/constant';
-import { useAccessories } from 'src/hooks';
+import { HOTKEYS } from '../../utils/constant';
+import { useAccessories } from '../../hooks';
 import useBaseResolver from '../Toolbar/useBaseResolver';
 import Leaf from '../Leaf';
 import Element from '../Element';
@@ -15,7 +15,7 @@ import useStyled from './styled';
 
 import type { RenderLeafProps, RenderElementProps } from 'slate-react';
 import type { EditableProps } from 'slate-react/dist/components/editable';
-import type { NoEffectWrapTypes } from 'src/utils/constant';
+import type { NoEffectWrapTypes } from '../../utils/constant';
 
 export interface ContentProps {
   className?: string;

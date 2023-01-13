@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { useNextTick } from 'src/hooks';
+import { useNextTick } from '../../hooks';
 import type { Editor } from 'slate';
-import type { SearchResult } from 'src/utils/withCommand';
+import type { SearchResult } from '../../utils/withCommand';
 
 export default function useAccessories(getEditor: () => Editor) {
   const editorFn = useRef(getEditor);

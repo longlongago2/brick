@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { useAccessories } from 'src/hooks';
+import { useAccessories } from '../../hooks';
 import type { RenderLeafProps } from 'slate-react';
 
 function Leaf(props: RenderLeafProps) {

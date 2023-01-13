@@ -18,45 +18,44 @@ import Icon, {
   FileSearchOutlined,
   RightOutlined,
   DownOutlined,
+  FunctionOutlined,
 } from '@ant-design/icons';
 import { theme, Form, Input, Radio, message, InputNumber, Button, Space, Row, Col } from 'antd';
 import debounce from 'lodash/debounce';
-import { useFormDialog, useAccessories } from 'src/hooks';
-import { isPowerArray } from 'src/utils';
-import { LIST_TYPES } from 'src/utils/constant';
+import { useFormDialog, useAccessories } from '../../hooks';
+import { isPowerArray } from '../../utils';
+import { LIST_TYPES } from '../../utils/constant';
+import ColorPicker, { colorParse, colorStringify } from './ColorPicker';
 import FormDialog from './FormDialog';
 import FileUpload from '../FileUpload';
-import ColorPicker, { colorParse, colorStringify } from './ColorPicker';
-import CodeSvgr from 'src/assets/code.svg';
-import BlockQuoteSvgr from 'src/assets/quote.svg';
-import SuperscriptSvgr from 'src/assets/superscript.svg';
-import SubscriptSvgr from 'src/assets/subscript.svg';
-import UndoSvgr from 'src/assets/undo.svg';
-import RedoSvgr from 'src/assets/redo.svg';
-import ImageSvgr from 'src/assets/image.svg';
+import {
+  SvgrCode,
+  SvgrImage,
+  SvgrQuote,
+  SvgrSubscript,
+  SvgrSuperscript,
+  SvgrUndo,
+  SvgrRedo,
+} from '../SvgrIcons';
 import useStyled from './styled';
 
 import type { ImageElement } from 'slate';
 import type { Color } from 'react-color';
 import type { ToolbarResolver } from '.';
 import type { FormDialogProps } from './FormDialog';
-import type { SearchResult } from 'src/utils/withCommand';
+import type { SearchResult } from '../../utils/withCommand';
 
 const { useToken } = theme;
 
-const mp0 = { padding: 0, margin: 0 };
+const span4 = { span: 4 };
 
 const w88 = { width: 88 };
-
-const span4 = { span: 4 };
 
 const pb24 = { paddingBottom: 24 };
 
 const alignCenter: React.CSSProperties = { textAlign: 'center' };
 
 const alignRight: React.CSSProperties = { textAlign: 'right', marginBottom: 0 };
-
-const searchTypeStyle: React.CSSProperties = { width: 25, height: '100%', fontSize: 12, borderRadius: 2 };
 
 const required = [{ required: true }];
 
@@ -91,7 +90,7 @@ export default function useBaseResolver() {
 
   const { token } = useToken();
 
-  const { searchIndicator } = useStyled();
+  const { searchIndicator, linkButton, searchTypeButton, between, mp0, bold } = useStyled();
 
   const { setSearch, searchResult, setActiveSearchKey } = useAccessories();
 
@@ -124,6 +123,15 @@ export default function useBaseResolver() {
     mode: imageDialogMode,
     setMode: setImageDialogMode,
     loading: imgDialogLoading,
+  } = useFormDialog();
+
+  const {
+    form: formFormula,
+    visible: formulaDialogVisible,
+    setVisible: setFormulaDialogVisible,
+    pos: formulaDialogPos,
+    setPos: setFormulaDialogPos,
+    close: closeFormulaDialog,
   } = useFormDialog();
 
   const {
@@ -329,6 +337,13 @@ export default function useBaseResolver() {
     replaceType.current = 'all';
   }, []);
 
+  const handleTexHelpDocument = useCallback(() => {
+    window.open(
+      'https://math.meta.stackexchange.com/questions/5020/mathjax-basic-tutorial-and-quick-reference',
+      '_blank'
+    );
+  }, []);
+
   const colorIcon = useMemo(
     () => <span style={{ display: 'inline-block', fontSize: 14, width: 13 }}>A</span>,
     []
@@ -347,7 +362,7 @@ export default function useBaseResolver() {
         defaultValue={defaultColor}
         value={editor.getMarkProperty('color')}
         icon={colorIcon}
-        title="字体颜色"
+        title="应用字体颜色"
         onChange={handleColorChange}
         onClick={handleColorChange}
       />
@@ -376,7 +391,7 @@ export default function useBaseResolver() {
         defaultValue={defaultHighlightColor}
         value={resolveHighlight(editor)}
         icon={<HighlightOutlined />}
-        title="背景颜色"
+        title="应用背景颜色"
         onChange={handleHlColorChange}
         onClick={handleHlColorChange}
       />
@@ -389,7 +404,7 @@ export default function useBaseResolver() {
       {
         key: 'undo',
         type: 'button',
-        icon: <Icon component={UndoSvgr} />,
+        icon: <Icon component={SvgrUndo} />,
         title: '撤销 Ctrl+Z',
         disabled: (editor) => editor.history.undos.length <= 0,
         onClick(editor) {
@@ -400,7 +415,7 @@ export default function useBaseResolver() {
       {
         key: 'redo',
         type: 'button',
-        icon: <Icon component={RedoSvgr} />,
+        icon: <Icon component={SvgrRedo} />,
         title: '重做 Shift+Ctrl+Z',
         disabled: (editor) => editor.history.redos.length <= 0,
         onClick(editor) {
@@ -444,7 +459,7 @@ export default function useBaseResolver() {
       {
         key: 'code',
         type: 'button',
-        icon: <Icon component={CodeSvgr} />,
+        icon: <Icon component={SvgrCode} />,
         title: '行内代码 Ctrl+`',
         active: (editor) => editor.isMarkActive('code'),
         onClick(editor) {
@@ -466,7 +481,7 @@ export default function useBaseResolver() {
       {
         key: 'superscript',
         type: 'button',
-        icon: <Icon component={SuperscriptSvgr} />,
+        icon: <Icon component={SvgrSuperscript} />,
         title: '上标 Ctrl+.',
         active: (editor) => editor.isMarkActive('superscript'),
         onClick(editor) {
@@ -482,7 +497,7 @@ export default function useBaseResolver() {
       {
         key: 'subscript',
         type: 'button',
-        icon: <Icon component={SubscriptSvgr} />,
+        icon: <Icon component={SvgrSubscript} />,
         title: '下标 Ctrl+,',
         active: (editor) => editor.isMarkActive('subscript'),
         onClick(editor) {
@@ -520,144 +535,12 @@ export default function useBaseResolver() {
       {
         key: 'block-quote',
         type: 'button',
-        icon: <Icon component={BlockQuoteSvgr} />,
+        icon: <Icon component={SvgrQuote} />,
         title: '引用块 Ctrl+Alt+Q',
         active: (editor) => editor.isElementActive('block-quote'),
         onClick(editor) {
           editor.toggleElement('block-quote');
           ReactEditor.focus(editor);
-        },
-      },
-      {
-        key: 'link',
-        type: 'button',
-        icon: (editor) => (editor.isElementActive('link') ? <DisconnectOutlined /> : <LinkOutlined />),
-        title: (editor) => (editor.isElementActive('link') ? '取消超链接' : '插入超链接'),
-        active: (editor) => editor.isElementActive('link'),
-        attachRender: (
-          <FormDialog
-            form={formLink}
-            width={355}
-            draggable
-            title="超链接"
-            mask={false}
-            open={linkDialogVisible}
-            defaultPosition={linkDialogPos}
-            onCancel={closeLinkDialog}
-            onOk={submitLink}
-            onFinish={handleLinkFinish}
-          >
-            <Form.Item name="url">
-              <Input placeholder="请输入地址，例如：http://www.baidu.com" allowClear />
-            </Form.Item>
-          </FormDialog>
-        ),
-        onClick(editor, e) {
-          const { selection } = editor;
-          if (!selection) {
-            message.warning('请先选定文本区！');
-            return;
-          }
-
-          const open = () => {
-            const pos = editor.getBoundingClientRect();
-            if (pos) setLinkDialogPos({ x: pos.x + pos.width, y: pos.y + pos.height });
-            setLinkDialogVisible(true);
-            return;
-          };
-
-          // 处理特殊请求，一般从Content：即文本编辑区中发出
-          if (e?.target === 'emitter_edit') {
-            // 编辑请求：更新赋值
-            const url = editor.getElementFieldsValue('url', 'link');
-            formLink.setFieldsValue({ url });
-            open();
-            return;
-          }
-
-          const isActive = editor.isElementActive('link');
-          if (isActive) {
-            // 已有超链接状态
-            editor.unsetLink();
-            ReactEditor.focus(editor);
-            return;
-          }
-
-          open();
-        },
-      },
-      {
-        key: 'image',
-        type: 'button',
-        icon: <Icon component={ImageSvgr} />,
-        title: '图片',
-        disabled: (editor) => editor.isElementActive('image'),
-        attachRender: (
-          <FormDialog
-            form={formImage}
-            width={355}
-            confirmLoading={imgDialogLoading}
-            draggable
-            layout="horizontal"
-            labelCol={span4}
-            title="图片"
-            mask={false}
-            defaultPosition={imageDialogPos}
-            open={imageDialogVisible}
-            onCancel={_closeImageDialog}
-            onOk={submitImage}
-            onFinish={handleImageFinish}
-            onValuesChange={handleImageDialogValuesChange}
-          >
-            <Form.Item name="source" initialValue={defaultImgSource} style={alignCenter}>
-              <Radio.Group optionType="button" options={imgSourceOptions} />
-            </Form.Item>
-            {imgSource === 'local' && (
-              <Form.Item label="上传" name="file" rules={required}>
-                <FileUpload placeholder="请选择文件上传" accept=".jpg, .jpeg, .png, .gif, .svg" />
-              </Form.Item>
-            )}
-            {imgSource === 'remote' && (
-              <Form.Item label="地址" name="url" rules={required}>
-                <Input placeholder="请输入图片地址" allowClear />
-              </Form.Item>
-            )}
-            <Form.Item label="元素" name="inline" rules={required} initialValue={true}>
-              <Radio.Group optionType="button" options={imgElementOptions} />
-            </Form.Item>
-            <Form.Item label="宽度" name="width">
-              <InputNumber step="0.1" precision={2} min={1} placeholder="auto (px)" style={w88} />
-            </Form.Item>
-            <Form.Item label="高度" name="height">
-              <InputNumber step="0.1" precision={2} min={1} placeholder="auto (px)" style={w88} />
-            </Form.Item>
-          </FormDialog>
-        ),
-        onClick(editor, e) {
-          const { selection } = editor;
-          if (!selection) {
-            message.warning('请先选定文本区！');
-            return;
-          }
-
-          const open = () => {
-            const pos = editor.getBoundingClientRect();
-            if (pos) setImageDialogPos({ x: pos.x + pos.width, y: pos.y + pos.height });
-            setImageDialogVisible(true);
-            return;
-          };
-
-          if (e?.target === 'emitter_edit') {
-            // 编辑请求
-            const ele = editor.getElementFieldsValue(true, 'image') as ImageElement;
-            formImage.setFieldsValue({ ...ele, inline: !!ele.inline });
-            setImgSource(ele.source || defaultImgSource);
-            setImageDialogMode('update');
-            open();
-            return;
-          }
-
-          open();
         },
       },
       {
@@ -670,43 +553,43 @@ export default function useBaseResolver() {
           {
             key: 'paragraph',
             label: '正文',
-            renderLabel: (label) => <p style={mp0}>{label}</p>,
+            renderLabel: (label) => <p className={mp0}>{label}</p>,
             extra: 'Ctrl+Alt+0',
           },
           {
             key: 'heading-one',
             label: '标题1',
-            renderLabel: (label) => <h1 style={mp0}>{label}</h1>,
+            renderLabel: (label) => <h1 className={mp0}>{label}</h1>,
             extra: 'Ctrl+Alt+1',
           },
           {
             key: 'heading-two',
             label: '标题2',
-            renderLabel: (label) => <h2 style={mp0}>{label}</h2>,
+            renderLabel: (label) => <h2 className={mp0}>{label}</h2>,
             extra: 'Ctrl+Alt+2',
           },
           {
             key: 'heading-three',
             label: '标题3',
-            renderLabel: (label) => <h3 style={mp0}>{label}</h3>,
+            renderLabel: (label) => <h3 className={mp0}>{label}</h3>,
             extra: 'Ctrl+Alt+3',
           },
           {
             key: 'heading-four',
             label: '标题4',
-            renderLabel: (label) => <h4 style={mp0}>{label}</h4>,
+            renderLabel: (label) => <h4 className={mp0}>{label}</h4>,
             extra: 'Ctrl+Alt+4',
           },
           {
             key: 'heading-five',
             label: '标题5',
-            renderLabel: (label) => <h5 style={mp0}>{label}</h5>,
+            renderLabel: (label) => <h5 className={mp0}>{label}</h5>,
             extra: 'Ctrl+Alt+5',
           },
           {
             key: 'heading-six',
             label: '标题6',
-            renderLabel: (label) => <h6 style={mp0}>{label}</h6>,
+            renderLabel: (label) => <h6 className={mp0}>{label}</h6>,
             extra: 'Ctrl+Alt+6',
           },
         ],
@@ -722,6 +605,7 @@ export default function useBaseResolver() {
         title: '字号调整',
         placeholder: '字号',
         width: 80,
+        showOriginalOption: true,
         options: [
           {
             key: '12px',
@@ -767,7 +651,10 @@ export default function useBaseResolver() {
             key: '40px',
             label: '40px',
           },
-        ],
+        ].map((item) => ({
+          ...item,
+          renderLabel: (label) => <span className={bold}>{label}</span>,
+        })),
         activeKey: (editor) => editor.getMarkProperty('fontsize') || '16px',
         onSelect(editor, v) {
           editor.setMarkProperty('fontsize', v);
@@ -859,7 +746,7 @@ export default function useBaseResolver() {
                 <Button
                   title="切换模式"
                   icon={searchTypeIcon}
-                  style={searchTypeStyle}
+                  className={searchTypeButton}
                   onClick={handleSearchTypeChange}
                 />
               </Col>
@@ -909,14 +796,207 @@ export default function useBaseResolver() {
           setSearchDialogVisible(true);
         },
       },
+      {
+        key: 'link',
+        type: 'button',
+        icon: (editor) => (editor.isElementActive('link') ? <DisconnectOutlined /> : <LinkOutlined />),
+        title: (editor) => (editor.isElementActive('link') ? '取消超链接' : '插入超链接'),
+        active: (editor) => editor.isElementActive('link'),
+        attachRender: (
+          <FormDialog
+            form={formLink}
+            width={355}
+            draggable
+            title="超链接"
+            mask={false}
+            open={linkDialogVisible}
+            defaultPosition={linkDialogPos}
+            onCancel={closeLinkDialog}
+            onOk={submitLink}
+            onFinish={handleLinkFinish}
+          >
+            <Form.Item name="url">
+              <Input placeholder="请输入地址，例如：http://www.baidu.com" allowClear />
+            </Form.Item>
+          </FormDialog>
+        ),
+        onClick(editor, e) {
+          const { selection } = editor;
+          if (!selection) {
+            message.warning('请先选定编辑区！');
+            return;
+          }
+
+          const open = () => {
+            const pos = editor.getBoundingClientRect();
+            if (pos) setLinkDialogPos({ x: pos.x + pos.width, y: pos.y + pos.height });
+            setLinkDialogVisible(true);
+            return;
+          };
+
+          // 处理特殊请求，一般从Content：即文本编辑区中发出
+          if (e?.target === 'emitter_edit') {
+            // 编辑请求：更新赋值
+            const url = editor.getElementFieldsValue('url', 'link');
+            formLink.setFieldsValue({ url });
+            open();
+            return;
+          }
+
+          const isActive = editor.isElementActive('link');
+          if (isActive) {
+            // 已有超链接状态
+            editor.unsetLink();
+            ReactEditor.focus(editor);
+            return;
+          }
+
+          open();
+        },
+      },
+      {
+        key: 'image',
+        type: 'button',
+        icon: <Icon component={SvgrImage} />,
+        title: '图片',
+        disabled: (editor) => editor.isElementActive('image'),
+        attachRender: (
+          <FormDialog
+            form={formImage}
+            width={355}
+            confirmLoading={imgDialogLoading}
+            draggable
+            layout="horizontal"
+            labelCol={span4}
+            title="图片"
+            mask={false}
+            defaultPosition={imageDialogPos}
+            open={imageDialogVisible}
+            onCancel={_closeImageDialog}
+            onOk={submitImage}
+            onFinish={handleImageFinish}
+            onValuesChange={handleImageDialogValuesChange}
+          >
+            <Form.Item name="source" initialValue={defaultImgSource} style={alignCenter}>
+              <Radio.Group optionType="button" options={imgSourceOptions} />
+            </Form.Item>
+            {imgSource === 'local' && (
+              <Form.Item label="上传" name="file" rules={required}>
+                <FileUpload placeholder="请选择文件上传" accept=".jpg, .jpeg, .png, .gif, .svg" />
+              </Form.Item>
+            )}
+            {imgSource === 'remote' && (
+              <Form.Item label="地址" name="url" rules={required}>
+                <Input placeholder="请输入图片地址" allowClear />
+              </Form.Item>
+            )}
+            <Form.Item label="元素" name="inline" rules={required} initialValue={true}>
+              <Radio.Group optionType="button" options={imgElementOptions} />
+            </Form.Item>
+            <Form.Item label="宽度" name="width">
+              <InputNumber step="0.1" precision={2} min={1} placeholder="auto (px)" style={w88} />
+            </Form.Item>
+            <Form.Item label="高度" name="height">
+              <InputNumber step="0.1" precision={2} min={1} placeholder="auto (px)" style={w88} />
+            </Form.Item>
+          </FormDialog>
+        ),
+        onClick(editor, e) {
+          const { selection } = editor;
+          if (!selection) {
+            message.warning('请先选定编辑区！');
+            return;
+          }
+
+          const open = () => {
+            const pos = editor.getBoundingClientRect();
+            if (pos) setImageDialogPos({ x: pos.x + pos.width, y: pos.y + pos.height });
+            setImageDialogVisible(true);
+            return;
+          };
+
+          if (e?.target === 'emitter_edit') {
+            // 编辑请求
+            const ele = editor.getElementFieldsValue(true, 'image') as ImageElement;
+            formImage.setFieldsValue({ ...ele, inline: !!ele.inline });
+            setImgSource(ele.source || defaultImgSource);
+            setImageDialogMode('update');
+            open();
+            return;
+          }
+
+          open();
+        },
+      },
+      {
+        key: 'formula',
+        type: 'button',
+        title: '公式',
+        icon: <FunctionOutlined />,
+        attachRender: (
+          <FormDialog
+            form={formFormula}
+            width={400}
+            draggable
+            title="公式"
+            mask={false}
+            footer={null}
+            open={formulaDialogVisible}
+            defaultPosition={formulaDialogPos}
+            onCancel={closeFormulaDialog}
+          >
+            <Form.Item name="tex">
+              <Input.TextArea rows={4} placeholder="请输入 LaTeX 公式，例如：a^2+b^2=c^2" />
+            </Form.Item>
+            <Form.Item style={alignRight}>
+              <div className={between}>
+                <Button size="small" type="link" className={linkButton} onClick={handleTexHelpDocument}>
+                  还不了解LaTeX公式，查看帮助
+                </Button>
+                <Button htmlType="submit" type="primary">
+                  确定
+                </Button>
+              </div>
+            </Form.Item>
+          </FormDialog>
+        ),
+        onClick(editor, e) {
+          const { selection } = editor;
+          if (!selection) {
+            message.warning('请先选定编辑区！');
+            return;
+          }
+
+          const open = () => {
+            const pos = editor.getBoundingClientRect();
+            if (pos) setFormulaDialogPos({ x: pos.x + pos.width, y: pos.y + pos.height });
+            setFormulaDialogVisible(true);
+            return;
+          };
+
+          if (e?.target === 'emitter_edit') {
+            // 编辑
+            open();
+            return;
+          }
+
+          open();
+        },
+      },
     ],
     [
       _closeImageDialog,
       activeSearchIndex,
+      between,
+      bold,
+      closeFormulaDialog,
       closeLinkDialog,
+      formFormula,
       formImage,
       formLink,
       formSearch,
+      formulaDialogPos,
+      formulaDialogVisible,
       getFontColorElement,
       getHighlightElement,
       handleImageDialogValuesChange,
@@ -930,18 +1010,24 @@ export default function useBaseResolver() {
       handleSearchResultPrev,
       handleSearchTypeChange,
       handleSearchValuesDebounce,
+      handleTexHelpDocument,
       imageDialogPos,
       imageDialogVisible,
       imgDialogLoading,
       imgSource,
+      linkButton,
       linkDialogPos,
       linkDialogVisible,
+      mp0,
       searchDialogPos,
       searchDialogVisible,
       searchIndicator,
       searchResult.length,
       searchType,
+      searchTypeButton,
       searchTypeIcon,
+      setFormulaDialogPos,
+      setFormulaDialogVisible,
       setImageDialogMode,
       setImageDialogPos,
       setImageDialogVisible,
