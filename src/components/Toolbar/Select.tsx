@@ -26,12 +26,23 @@ export interface SelectProps<DatasetType = any>
   width?: number;
   options?: DropdownOption[];
   dataset?: DatasetType;
-  optionDisplayField?: keyof DropdownOption;
+  showOriginalOption?: boolean; // 显示原始的下拉菜单内容
+  optionDisplayField?: keyof DropdownOption; // 当showOriginalOption={false}时生效，选择展示下拉菜单的DropdownOption字段值，例如展示icon
   onChange?: (value: any, option: DefaultOptionType | DefaultOptionType[], dataset?: DatasetType) => void; // 继承失败，因为参数不同，所以去掉父类onChange属性
 }
 
 function Selector<DatasetType = any>(props: SelectProps<DatasetType>) {
-  const { options, title, width = 120, style, dataset, optionDisplayField, onChange, ...restProps } = props;
+  const {
+    options,
+    title,
+    width = 120,
+    style,
+    dataset,
+    showOriginalOption,
+    optionDisplayField,
+    onChange,
+    ...restProps
+  } = props;
 
   const [tooltipVisible, setTooltipVisible] = useState(false);
 
@@ -80,7 +91,7 @@ function Selector<DatasetType = any>(props: SelectProps<DatasetType>) {
         onDropdownVisibleChange={handleDropdownVisibleChange}
         suffixIcon={suffix}
         {...restProps}
-        optionLabelProp="label"
+        {...(!showOriginalOption && { optionLabelProp: 'label' })}
         onChange={handleChange}
       >
         {isPowerArray(options) &&

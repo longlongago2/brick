@@ -31,6 +31,7 @@ export interface ToolbarDropdown {
   placeholder?: string;
   disabled?: boolean | ((editor: Editor) => boolean);
   optionDisplayField?: keyof DropdownOption;
+  showOriginalOption?: boolean;
   options: DropdownOption[];
   activeKey?: DropdownOption['key'] | ((editor: Editor) => DropdownOption['key']);
   attachRender?: React.ReactElement;
@@ -86,10 +87,11 @@ export const baseSort = [
   'align',
   'numbered-list',
   'bulleted-list',
-  'divider',
   'block-quote',
+  'divider',
   'link',
   'image',
+  'formula',
   'divider',
   'search',
 ];
@@ -222,6 +224,7 @@ function Toolbar(props: ToolbarProps) {
                 placeholder={item.placeholder}
                 dataset={item}
                 optionDisplayField={item.optionDisplayField}
+                showOriginalOption={item.showOriginalOption}
                 onChange={handleSelectChange}
               />
             );
