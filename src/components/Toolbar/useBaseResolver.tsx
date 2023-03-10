@@ -43,7 +43,7 @@ import type { ImageElement } from 'slate';
 import type { Color } from 'react-color';
 import type { ToolbarResolver } from '.';
 import type { FormDialogProps } from './FormDialog';
-import type { SearchResult } from '../../utils/withCommand';
+import type { SearchResult } from '../../types';
 
 const { useToken } = theme;
 
@@ -92,7 +92,7 @@ export default function useBaseResolver() {
 
   const { searchIndicator, linkButton, searchTypeButton, between, mp0, bold } = useStyled();
 
-  const { setSearch, searchResult, setActiveSearchKey } = useAccessories();
+  const { setSearch, searchResult, setActiveSearchKey, researching } = useAccessories();
 
   const [imgSource, setImgSource] = useState(defaultImgSource);
 

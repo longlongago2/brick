@@ -1,9 +1,9 @@
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef, useTransition } from 'react';
 import { useNextTick } from '../../hooks';
 import type { Editor } from 'slate';
-import type { SearchResult } from '../../utils/withCommand';
+import type { SearchResult } from '../../types';
 
-export default function useAccessories(getEditor: () => Editor) {
+export default function useAccessoriesValue(getEditor: () => Editor) {
   const editorFn = useRef(getEditor);
 
   editorFn.current = getEditor;
@@ -11,32 +11,41 @@ export default function useAccessories(getEditor: () => Editor) {
   // accessories
   const nextTick = useNextTick(50);
 
+  const [isPending, startTransition] = useTransition();
+
   const [search, setSearch] = useState('');
 
   const [activeSearchKey, setActiveSearchKey] = useState('');
 
   const [searchResult, setSearchResult] = useState<SearchResult[]>([]);
 
+  const getSearchResult = useCallback(() => {
+    startTransition(() => {
+      // 非紧急任务，可以等待其他紧急任务完成后再执行
+      const _editor = editorFn.current();
+      const nodes = _editor.getEditableSearchResult();
+      setSearchResult(nodes);
+    });
+  }, []);
+
   const handleSetSearch = useCallback(
     (v: string) => {
       setSearch(v);
       // 需要等待search界面更新完成
       nextTick(() => {
-        const _editor = editorFn.current();
-        const nodes = _editor.getEditableSearchResult();
-        setSearchResult(nodes);
+        getSearchResult();
       });
     },
-    [nextTick]
+    [getSearchResult, nextTick]
   );
 
-  const update = useCallback(() => {
+  const updateAccessories = useCallback(() => {
     nextTick(() => {
-      const _editor = editorFn.current();
-      const nodes = _editor.getEditableSearchResult();
-      setSearchResult(nodes);
+      if (search) {
+        getSearchResult();
+      }
     });
-  }, [nextTick]);
+  }, [getSearchResult, nextTick, search]);
 
   const handleSetSearchKey = useCallback((v: string) => {
     setActiveSearchKey(v);
@@ -44,13 +53,14 @@ export default function useAccessories(getEditor: () => Editor) {
 
   const accessories = useMemo(
     () => ({
+      researching: isPending,
       search,
       setSearch: handleSetSearch,
       activeSearchKey,
       setActiveSearchKey: handleSetSearchKey,
       searchResult,
     }),
-    [activeSearchKey, handleSetSearch, handleSetSearchKey, search, searchResult]
+    [activeSearchKey, handleSetSearch, handleSetSearchKey, isPending, search, searchResult]
   );
 
   useEffect(() => {
@@ -65,5 +75,5 @@ export default function useAccessories(getEditor: () => Editor) {
     });
   }, [activeSearchKey, nextTick]);
 
-  return { accessories, update };
+  return { accessories, updateAccessories };
 }

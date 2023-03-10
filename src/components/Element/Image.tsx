@@ -203,9 +203,6 @@ function Image(props: RenderElementProps) {
     );
   }
 
-  // 拖动状态
-  // TODO: 参考ParagraphDraggable.tsx
-
   // 编辑状态
   return (
     <DynamicElement

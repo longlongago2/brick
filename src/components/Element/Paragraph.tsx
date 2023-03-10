@@ -2,8 +2,7 @@ import React, { useCallback, memo, useMemo } from 'react';
 import { Dropdown } from 'antd';
 import { Editor, Transforms } from 'slate';
 import { ReactEditor, useSlate, useReadOnly, useSelected, useFocused } from 'slate-react';
-import { DragOutlined, EnterOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
-import ParagraphDraggable from './ParagraphDraggable';
+import { EnterOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
 import useStyled from './styled';
 
 import type { RenderElementProps } from 'slate-react';
@@ -58,11 +57,6 @@ function Paragraph(props: RenderElementProps) {
         handleDownEnter();
       } else if (key.indexOf('lock') > -1) {
         editor.toggleLock('paragraph');
-        editor.toggleDraggable('paragraph', { draggable: false });
-      } else if (key === 'allow-drag') {
-        editor.toggleDraggable('paragraph', { unique: true });
-      } else if (key === 'not-allow-drag') {
-        editor.toggleDraggable('paragraph', { unique: true });
       }
     },
     [editor, handleDownEnter, handleUpEnter]
@@ -75,8 +69,6 @@ function Paragraph(props: RenderElementProps) {
     }),
     [element.align]
   );
-
-  const draggable = useMemo(() => element.draggable, [element.draggable]);
 
   const menu = useMemo<DropDownProps['menu']>(
     () => ({
@@ -92,18 +84,6 @@ function Paragraph(props: RenderElementProps) {
             label: '锁定段落',
             icon: <LockOutlined />,
           },
-        !element.lock &&
-          (draggable
-            ? {
-              key: 'not-allow-drag',
-              label: '关闭段落拖动',
-              icon: <DragOutlined />,
-            }
-            : {
-              key: 'allow-drag',
-              label: '开启段落拖动',
-              icon: <DragOutlined />,
-            }),
         {
           key: 'up-enter',
           label: '新增上段落',
@@ -117,7 +97,7 @@ function Paragraph(props: RenderElementProps) {
       ].filter(Boolean as any as ExcludesFalse),
       onClick: handleMenuClick,
     }),
-    [draggable, element.lock, handleMenuClick]
+    [element.lock, handleMenuClick]
   );
 
   // render
@@ -146,11 +126,6 @@ function Paragraph(props: RenderElementProps) {
         </p>
       </Dropdown>
     );
-  }
-
-  // 拖动状态
-  if (editor.hasDraggableNodes()) {
-    return <ParagraphDraggable {...props} trigger={trigger} menu={menu} />;
   }
 
   // 编辑状态

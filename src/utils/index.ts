@@ -1,5 +1,5 @@
 import type { Element } from 'slate';
-import type { DefinedType } from './constant';
+import type { DefinedType } from '../types';
 
 /**
  * @description 判断是否是长度大于0的数组
@@ -76,10 +76,6 @@ export const isUrl = (url: string) => {
 
 /**
  * @description 判断是否是条件内的元素类型
- * @export
- * @param {Element} element 元素
- * @param {DefinedType[]} types 类型条件
- * @return {*}
  */
 export function isIncludeElementTypes(element: Element, types: DefinedType[]) {
   return Boolean(
@@ -99,9 +95,6 @@ export function isIncludeElementTypes(element: Element, types: DefinedType[]) {
 
 /**
  * @description 兼容性浏览器访问剪贴板
- * @export
- * @param {*} text
- * @return {*}
  */
 export function copyToClipboard(text: string) {
   // 浏览器安全性限制，导致只有https安全域下才可以访问 navigator.clipboard
@@ -134,8 +127,6 @@ export function copyToClipboard(text: string) {
 
 /**
  * @description 获取滚动条宽度
- * @export
- * @return {*}
  */
 export function getScrollBarWidth() {
   const scrollHeight = document.body.scrollHeight;

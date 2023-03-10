@@ -21,8 +21,8 @@
   "scripts": {
     "build": "node scripts/index.js",
     "serve": "node scripts/serve.js",
-    "svgr": "node scripts/svgr.js",
-    "start": "npm run serve"
+    "start": "npm run serve",
+    "build:svgr": "node scripts/svgr.js"
   },
   "engines": {
     "node": ">=10.3.0"
@@ -206,8 +206,6 @@
     "katex": "^0.16.4",
     "lodash": "^4.17.21",
     "react-color": "^2.19.3",
-    "react-dnd": "^16.0.1",
-    "react-dnd-html5-backend": "^16.0.1",
     "react-draggable": "^4.4.5"
   }
 }

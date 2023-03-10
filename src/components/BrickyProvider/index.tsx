@@ -3,7 +3,7 @@ import { Slate } from 'slate-react';
 import { ConfigProvider } from 'antd';
 import { useBrickyEditor } from '../../hooks';
 import { AccessoriesProvider } from '../../hooks/useAccessories';
-import useAccessories from './useAccessories';
+import useAccessoriesValue from './useAccessoriesValue';
 
 import type { Descendant, Editor } from 'slate';
 import type { ThemeConfig } from 'antd/es/config-provider/context';
@@ -24,12 +24,12 @@ function BrickyProvider(props: BrickyProviderProps) {
 
   const bricky = useMemo(() => editor ?? _editor, [_editor, editor]);
 
-  const { accessories, update } = useAccessories(() => bricky);
+  const { accessories, updateAccessories } = useAccessoriesValue(() => bricky);
 
   const handleChange = useCallback((value: Descendant[]) => {
     onChange?.(value);
-    update();
-  }, [onChange, update]);
+    updateAccessories();
+  }, [onChange, updateAccessories]);
 
   // render
   const slate = (

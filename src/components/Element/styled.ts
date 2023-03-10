@@ -61,25 +61,6 @@ export default function useStyled() {
           opacity: 0.7;
         }
       `,
-      dragButton: css`
-        position: absolute;
-        top: 2px;
-        right: 2px;
-        cursor: move;
-        display: flex;
-        align-items: center;
-        > span {
-          font-size: 12px;
-          line-height: 1;
-          color: ${token.colorTextTertiary};
-        }
-        .anticon {
-          font-size: 14px;
-          height: 14px;
-          width: 14px;
-          color: ${token.colorText};
-        }
-      `,
     }),
     [token]
   );
