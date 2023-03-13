@@ -11,15 +11,23 @@ export interface HotKeys {
   nodes: Record<string, Element['type']>;
   aligns: Record<string, TextAlign>;
 }
+/**
+ * @description 编辑器装饰器参数类型
+ */
+export interface EditorDecorate {
+  search: string;
+}
+
 
 /**
- * @description 编辑器外围数据类型
+ * @description 编辑器外围全局数据类型
  */
-export interface AccessoryValues {
-  researching: boolean; // 正在搜索中
-  search: string;
+export interface BrickySearchValues {
+  search: string; // 搜索关键字
   setSearch: (value: string) => void;
-  activeSearchKey: string;
+  activeSearchKey: string; // 搜索结果高亮key
   setActiveSearchKey: (value: string) => void;
-  searchResult: SearchResult[];
+  searchResult: SearchResult[]; // 搜索结果
+  setSearchResult: (value: SearchResult[]) => void;
+  reset: () => void;
 }

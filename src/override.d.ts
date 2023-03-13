@@ -136,6 +136,7 @@ declare module 'slate' {
   export type AdvancedHighlight = {
     color: string;
     search?: {
+      activeColor: string;
       key: string;
       offset: number;
     };

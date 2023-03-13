@@ -4,7 +4,7 @@ import { Range, Transforms, Editor, Element as SlateElement } from 'slate';
 import isHotkey, { isKeyHotkey } from 'is-hotkey';
 import classNames from 'classnames';
 import { HOTKEYS } from '../../utils/constant';
-import { useAccessories } from '../../hooks';
+import { useBrickySearch } from '../../hooks';
 import useBaseResolver from '../Toolbar/useBaseResolver';
 import Leaf from '../Leaf';
 import Element from '../Element';
@@ -44,7 +44,7 @@ function Content(props: ContentProps) {
 
   const editor = useSlate();
 
-  const { search } = useAccessories();
+  const { search } = useBrickySearch();
 
   const { wrapper, content } = useStyled();
 
