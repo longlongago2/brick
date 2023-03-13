@@ -1,12 +1,10 @@
 import React, { memo, useCallback, useMemo } from 'react';
 import { Editable, useSlate, ReactEditor } from 'slate-react';
 import { Range, Transforms, Editor, Element as SlateElement } from 'slate';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import { DndProvider } from 'react-dnd';
 import isHotkey, { isKeyHotkey } from 'is-hotkey';
 import classNames from 'classnames';
 import { HOTKEYS } from '../../utils/constant';
-import { useAccessories } from '../../hooks';
+import { useBrickySearch } from '../../hooks';
 import useBaseResolver from '../Toolbar/useBaseResolver';
 import Leaf from '../Leaf';
 import Element from '../Element';
@@ -15,7 +13,7 @@ import useStyled from './styled';
 
 import type { RenderLeafProps, RenderElementProps } from 'slate-react';
 import type { EditableProps } from 'slate-react/dist/components/editable';
-import type { NoEffectWrapTypes } from '../../utils/constant';
+import type { NoEffectWrapTypes } from '../../types';
 
 export interface ContentProps {
   className?: string;
@@ -46,7 +44,7 @@ function Content(props: ContentProps) {
 
   const editor = useSlate();
 
-  const { search } = useAccessories();
+  const { search } = useBrickySearch();
 
   const { wrapper, content } = useStyled();
 
@@ -167,12 +165,12 @@ function Content(props: ContentProps) {
 
   const preventDefaultDrop = useCallback<React.DragEventHandler<HTMLDivElement>>(
     (e) => {
-      // returning true, Slate will skip its own event handler
-      // returning false, Slate will execute its own event handler afterward
       let locked = false;
-      const hasReactDnd = editor.hasDraggableNodes();
-      // 因为此处 editor.getElementFieldsValue('lock'); 获取的是拖动前的值，不是放置目标的值
-      // 所以此处根据 document element(e.target) 寻找 slate element(ParagraphElement)
+      // 注意：
+      // editor.getElementFieldsValue('lock'); 获取的是拖动前的值，不是拖动放置目标的值，
+      // 而此处需要获取放置区的锁定状态，因此不能使用该方法来获取是否锁定。
+      // 因为 e.target 是放置目标的 document element
+      // 所以此处根据 e.target 寻找 ParagraphElement，即可获取到放置区的锁定状态
       const node = ReactEditor.toSlateNode(editor, e.target as Node);
       const path = ReactEditor.findPath(editor, node);
       const [match] = Array.from(
@@ -190,17 +188,16 @@ function Content(props: ContentProps) {
         e.stopPropagation();
         e.preventDefault();
       }
-      // 阻止slate默认拖放
-      return hasReactDnd || locked;
+      // 是否阻止slate默认拖放
+      // returning true, Slate will skip its own event handler
+      // returning false, Slate will execute its own event handler afterward
+      return locked;
     },
     [editor]
   );
 
   const preventDefaultDrag = useCallback<React.DragEventHandler<HTMLDivElement>>(
     (e) => {
-      // returning true, Slate will skip its own event handler
-      // returning false, Slate will execute its own event handler afterward
-      const hasReactDnd = editor.hasDraggableNodes();
       const locked = !!editor.getElementFieldsValue('lock');
       // prevent its own event handler, avoiding conflicts with react-dnd.
       if (locked) {
@@ -208,33 +205,33 @@ function Content(props: ContentProps) {
         e.stopPropagation();
         e.preventDefault();
       }
-      // 阻止slate默认拖动
-      return hasReactDnd || locked;
+      // 是否阻止slate默认拖动
+      // returning true, Slate will skip its own event handler
+      // returning false, Slate will execute its own event handler afterward
+      return locked;
     },
     [editor]
   );
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div role="document" className={classNames(wrapper, wrapperClassName)}>
-        <Editable
-          className={classNames(content, className)}
-          role="textbox"
-          placeholder={placeholder}
-          spellCheck={spellCheck}
-          autoFocus={autoFocus}
-          readOnly={readOnly}
-          style={style}
-          decorate={getDecorate}
-          renderLeaf={handleRenderLeaf}
-          renderElement={handleRenderElement}
-          onDragStart={preventDefaultDrag}
-          onDrop={preventDefaultDrop}
-          onKeyDown={handleKeyDown}
-        />
-        {searchResolver?.attachRender}
-      </div>
-    </DndProvider>
+    <div role="document" className={classNames(wrapper, wrapperClassName)}>
+      <Editable
+        className={classNames(content, className)}
+        role="textbox"
+        placeholder={placeholder}
+        spellCheck={spellCheck}
+        autoFocus={autoFocus}
+        readOnly={readOnly}
+        style={style}
+        decorate={getDecorate}
+        renderLeaf={handleRenderLeaf}
+        renderElement={handleRenderElement}
+        onDragStart={preventDefaultDrag}
+        onDrop={preventDefaultDrop}
+        onKeyDown={handleKeyDown}
+      />
+      {searchResolver?.attachRender}
+    </div>
   );
 }
 

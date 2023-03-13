@@ -22,7 +22,7 @@ import Icon, {
 } from '@ant-design/icons';
 import { theme, Form, Input, Radio, message, InputNumber, Button, Space, Row, Col } from 'antd';
 import debounce from 'lodash/debounce';
-import { useFormDialog, useAccessories } from '../../hooks';
+import { useFormDialog, useBrickySearch } from '../../hooks';
 import { isPowerArray } from '../../utils';
 import { LIST_TYPES } from '../../utils/constant';
 import ColorPicker, { colorParse, colorStringify } from './ColorPicker';
@@ -43,7 +43,7 @@ import type { ImageElement } from 'slate';
 import type { Color } from 'react-color';
 import type { ToolbarResolver } from '.';
 import type { FormDialogProps } from './FormDialog';
-import type { SearchResult } from '../../utils/withCommand';
+import type { SearchResult } from '../../types';
 
 const { useToken } = theme;
 
@@ -92,7 +92,7 @@ export default function useBaseResolver() {
 
   const { searchIndicator, linkButton, searchTypeButton, between, mp0, bold } = useStyled();
 
-  const { setSearch, searchResult, setActiveSearchKey } = useAccessories();
+  const { searchResult, setSearch, setActiveSearchKey, reset: resetSearch } = useBrickySearch();
 
   const [imgSource, setImgSource] = useState(defaultImgSource);
 
@@ -324,10 +324,11 @@ export default function useBaseResolver() {
 
   const handleSearchDialogCancel = useCallback(() => {
     closeSearchDialog();
-    setSearch('');
+    // reset initial state
     setActiveSearchIndex(null);
-    setActiveSearchKey('');
-  }, [closeSearchDialog, setActiveSearchKey, setSearch]);
+    setSearchType('search');
+    resetSearch();
+  }, [closeSearchDialog, resetSearch]);
 
   const handleReplaceCurr = useCallback(() => {
     replaceType.current = 'curr';

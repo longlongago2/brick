@@ -94,7 +94,6 @@ declare module 'slate' {
     type: 'paragraph';
     align?: TextAlign;
     lock?: boolean;
-    draggable?: boolean;
     children: Descendant[];
   };
 
@@ -137,6 +136,7 @@ declare module 'slate' {
   export type AdvancedHighlight = {
     color: string;
     search?: {
+      activeColor: string;
       key: string;
       offset: number;
     };

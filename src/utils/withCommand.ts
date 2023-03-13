@@ -1,10 +1,8 @@
 import { Editor, Element, Transforms, Range } from 'slate';
 import { ReactEditor } from 'slate-react';
 import { TEXT_ALIGN_TYPES, NO_EFFECT_WRAP_TYPES, LIST_TYPES } from './constant';
-import type { Text, Node, LinkElement, MarkKeys, ElementKeys, ParagraphElement, Path } from 'slate';
-import type { TextAlign, NoEffectWrapTypes } from './constant';
-
-export type SearchResult = { key: string; offset: number; search: string; node: Node; path: Path };
+import type { Text, Node, LinkElement, MarkKeys, ElementKeys } from 'slate';
+import type { SearchResult, TextAlign, NoEffectWrapTypes } from '../types';
 
 export interface CommandEditor {
   /**
@@ -82,13 +80,6 @@ export interface CommandEditor {
   toggleLock: (type: Element['type']) => void;
 
   /**
-   * @descriptionZH 开启/关闭节点拖动。options.draggable：强制设置当前状态；options.unique: 状态唯一，即清除焦点外所有拖动状态，只应用焦点下的拖动状态
-   * @descriptionEN Turn on/off node draggable state
-   * @memberof CommandEditor
-   */
-  toggleDraggable: (type: Element['type'], options?: { unique?: boolean; draggable?: boolean }) => void;
-
-  /**
    * @descriptionZH 获取指定节点的信息
    * @descriptionEN
    * @memberof CommandEditor
@@ -151,13 +142,6 @@ export interface CommandEditor {
    * @memberof CommandEditor
    */
   removeExtraProperty: (key: string) => void;
-
-  /**
-   * @descriptionZH 判断全文是否存在可拖动节点
-   * @descriptionEN Determine whether the editor has draggable nodes
-   * @memberof CommandEditor
-   */
-  hasDraggableNodes: () => boolean;
 }
 
 /**
@@ -338,42 +322,6 @@ export function withCommand<T extends Editor>(editor: T) {
     });
   };
 
-  e.toggleDraggable = (type, options) => {
-    const { unique, draggable } = options || {};
-    const { selection } = editor;
-    if (!selection) return null;
-    const [match] = Array.from(
-      Editor.nodes(editor, {
-        at: Editor.unhangRange(editor, selection),
-        match: (n) => !Editor.isEditor(n) && Element.isElement(n) && n.type === type,
-      })
-    );
-    const element = match?.[0] as Element;
-    if (!element) return;
-
-    let prevDraggable;
-    if ('draggable' in element) {
-      prevDraggable = element.draggable;
-    }
-    const newProperties = {
-      draggable: draggable ?? !prevDraggable,
-    };
-
-    if (unique) {
-      // clear all draggable
-      Transforms.setNodes(
-        editor,
-        { draggable: false },
-        {
-          at: [],
-          match: (n) => !Editor.isEditor(n) && Element.isElement(n) && n.type === type,
-        }
-      );
-    }
-    // set new draggable
-    Transforms.setNodes(editor, newProperties);
-  };
-
   e.setElementProperties = (type, properties, options) => {
     if (options?.refactor) {
       // 先删后增：解决行内元素和块级元素相互转换不生效的问题
@@ -443,19 +391,6 @@ export function withCommand<T extends Editor>(editor: T) {
     if (editor.extraProperty) {
       delete editor.extraProperty[key];
     }
-  };
-
-  e.hasDraggableNodes = () => {
-    const [match] = Array.from(
-      Editor.nodes(editor, {
-        at: [], // whole editor
-        match: (n) => {
-          return !Editor.isEditor(n) && Element.isElement(n) && !!(n as ParagraphElement).draggable;
-        },
-      })
-    );
-    const ele = match?.[0];
-    return !!ele;
   };
 
   return e;

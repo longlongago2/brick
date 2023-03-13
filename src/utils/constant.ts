@@ -1,11 +1,14 @@
-import type { CSSProperties } from 'react';
-import type { Element, MarkKeys } from 'slate';
+import type { DefinedType, TextAlign, NoEffectWrapTypes } from '../types';
+import type { HotKeys } from '../interface';
 
+/**
+ * @description 是否为开发环境
+ */
 export const isDev = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
 
-// 行内元素类型定义
-export type DefinedType = string | [string, Record<string, any>];
-
+/**
+ * @description 定义富文本编辑器的行内元素类型
+ */
 export const INLINE_TYPES: DefinedType[] = [
   'link',
   ['image', { inline: true }],
@@ -14,30 +17,24 @@ export const INLINE_TYPES: DefinedType[] = [
   ['audio', { inline: true }],
 ];
 
-// 虚空元素类型：Void Element 经常用于不使用原始渲染，自定义渲染的元素。
+/**
+ * @description 定义富文本的虚空元素类型：Void Element 经常用于不使用原始渲染，自定义渲染的元素。
+ */
 export const VOID_TYPES: DefinedType[] = ['image', 'formula', 'video', 'audio'];
 
-// List 元素：含有元素 List Item
+/**
+ * @description 定义富文本的列表元素类型：一般是含有元素 List Item 元素的 Element
+ */
 export const LIST_TYPES: string[] = ['bulleted-list', 'numbered-list'];
 
-// Align 类型
-export type TextAlign = Exclude<CSSProperties['textAlign'], undefined>;
-
+/**
+ * @description 定义富文本文本对齐类型
+ */
 export const TEXT_ALIGN_TYPES: TextAlign[] = ['left', 'center', 'right', 'justify'];
 
-// 无副作用的类型：可以直接 Toggle 的 Element 类型
-export type NoEffectWrapTypes =
-  | 'paragraph'
-  | 'heading-one'
-  | 'heading-two'
-  | 'heading-three'
-  | 'heading-four'
-  | 'heading-five'
-  | 'heading-six'
-  | 'block-quote'
-  | 'bulleted-list'
-  | 'numbered-list';
-
+/**
+ * @description 定义富文本的无副作用的类型：可以直接 Toggle 的 Element 类型
+ */
 export const NO_EFFECT_WRAP_TYPES: NoEffectWrapTypes[] = [
   'paragraph',
   'heading-one',
@@ -51,13 +48,9 @@ export const NO_EFFECT_WRAP_TYPES: NoEffectWrapTypes[] = [
   'numbered-list',
 ];
 
-// HotKeys：编辑器快捷键
-export interface HotKeys {
-  marks: Record<string, MarkKeys>;
-  nodes: Record<string, Element['type']>;
-  aligns: Record<string, TextAlign>;
-}
-
+/**
+ * @description 定义富文本热键配置数据
+ */
 export const HOTKEYS: HotKeys = {
   marks: {
     'mod+b': 'bold',

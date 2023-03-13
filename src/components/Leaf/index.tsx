@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { useAccessories } from '../../hooks';
+import { useBrickySearch } from '../../hooks';
 import type { RenderLeafProps } from 'slate-react';
 
 function Leaf(props: RenderLeafProps) {
@@ -9,7 +9,7 @@ function Leaf(props: RenderLeafProps) {
 
   const style: React.CSSProperties = {};
 
-  const { activeSearchKey } = useAccessories();
+  const { activeSearchKey } = useBrickySearch();
 
   if ('fontsize' in leaf && leaf.fontsize) {
     style.fontSize = leaf.fontsize;
@@ -51,7 +51,7 @@ function Leaf(props: RenderLeafProps) {
       isSearched = !!leaf.highlight.search;
       if (isSearched && activeSearchKey === key) {
         // Active of search result highlight
-        style.backgroundColor = '#ff9632';
+        style.backgroundColor = leaf.highlight.search?.activeColor;
       } else {
         // Common highlight
         style.backgroundColor = leaf.highlight.color;

@@ -1,15 +1,12 @@
 import { Text } from 'slate';
 import type { NodeEntry, MarkText, BaseRange } from 'slate';
+import type { EditorDecorate } from '../../interface';
 
-export interface CustomDecorate {
-  search: string;
-}
-
-export type DecorateRange = BaseRange & Omit<MarkText, 'text'>;
+type DecorateRange = BaseRange & Omit<MarkText, 'text'>;
 
 export default function decorte(entry: NodeEntry) {
   const [node, path] = entry;
-  return (params: CustomDecorate) => {
+  return (params: EditorDecorate) => {
     const { search } = params;
     const ranges: DecorateRange[] = [];
 
@@ -27,6 +24,7 @@ export default function decorte(entry: NodeEntry) {
             highlight: {
               color: '#ffff00',
               search: {
+                activeColor: '#ff9632',
                 key: uuid,
                 offset: offset - search.length
               },
