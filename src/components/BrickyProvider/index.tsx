@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useMemo } from 'react';
 import { Slate } from 'slate-react';
 import { ConfigProvider } from 'antd';
-import { useBrickyEditor } from '../../hooks';
+import { useBrickyEditor, useNextTick } from '../../hooks';
 import { BrickySearchProvider } from './SearchCtx';
 import useCreateSearch from './useCreateSearch';
 
@@ -19,6 +19,8 @@ export interface BrickyProviderProps {
 function BrickyProvider(props: BrickyProviderProps) {
   const { editor, value, children, theme, onChange } = props;
 
+  const nextTick = useNextTick(50);
+
   const _editor = useBrickyEditor();
 
   const bricky = useMemo(() => editor ?? _editor, [_editor, editor]);
@@ -29,9 +31,11 @@ function BrickyProvider(props: BrickyProviderProps) {
     (value: Descendant[]) => {
       onChange?.(value);
       // 当文章内容改变，需要被动更新search result上下文数据
-      updateSearchResult();
+      nextTick(() => {
+        updateSearchResult();
+      });
     },
-    [onChange, updateSearchResult]
+    [nextTick, onChange, updateSearchResult]
   );
 
   // Render
