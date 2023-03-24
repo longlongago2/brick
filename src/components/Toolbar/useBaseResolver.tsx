@@ -45,6 +45,10 @@ import type { ToolbarResolver } from '.';
 import type { FormDialogProps } from './FormDialog';
 import type { SearchResult } from '../../types';
 
+// TODO: 优化代码结构
+// 1. 拆分代码，将render相关的代码拆分到单独的文件中
+// 2. 修复FormDialog的位置问题：resize 和 初始化 不会更新位置和检测边界
+
 const { useToken } = theme;
 
 const span4 = { span: 4 };
