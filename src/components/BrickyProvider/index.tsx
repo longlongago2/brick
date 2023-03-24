@@ -9,7 +9,7 @@ import type { Descendant, Editor } from 'slate';
 import type { ThemeConfig } from 'antd/es/config-provider/context';
 
 export interface BrickyProviderProps {
-  value: Descendant[];
+  defaultValue: Descendant[];
   children: React.ReactNode;
   editor?: Editor;
   theme?: ThemeConfig;
@@ -17,9 +17,9 @@ export interface BrickyProviderProps {
 }
 
 function BrickyProvider(props: BrickyProviderProps) {
-  const { editor, value, children, theme, onChange } = props;
+  const { editor, defaultValue, children, theme, onChange } = props;
 
-  const nextTick = useNextTick(50);
+  const nextTick = useNextTick();
 
   const _editor = useBrickyEditor();
 
@@ -30,17 +30,21 @@ function BrickyProvider(props: BrickyProviderProps) {
   const handleChange = useCallback(
     (value: Descendant[]) => {
       onChange?.(value);
-      // 当文章内容改变，需要被动更新search result上下文数据
-      nextTick(() => {
-        updateSearchResult();
-      });
+      // 当文章内容改变，需要被动更新search result 上下文数据
+      // 利用 nextTick，保证在 onChange DOM 渲染完成之后执行
+      nextTick(() => updateSearchResult());
     },
     [nextTick, onChange, updateSearchResult]
   );
 
   // Render
+  // Slate Provider's "value" prop is only used as initial state for editor.children.
+  // If your code relies on replacing editor.children
+  // you should do so by replacing it directly instead of relying on the "value" prop to do this for you.
+  // See Slate PR 4540 for a more in-depth discussion.
+  // https://github.com/ianstormtaylor/slate/pull/4540
   const slate = (
-    <Slate editor={bricky} value={value} onChange={handleChange}>
+    <Slate editor={bricky} value={defaultValue} onChange={handleChange}>
       <BrickySearchProvider value={brickySearchValues}>{children}</BrickySearchProvider>
     </Slate>
   );

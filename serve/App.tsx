@@ -116,7 +116,7 @@ function App() {
   return (
     <div>
       <Editor
-        value={initialValue}
+        defaultValue={initialValue}
         renderElement={renderElement}
         readOnly={false}
         // fileUpload={handleFileUpload}
