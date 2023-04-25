@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrickySearchValues } from '../interface';
+import { BrickySearchValues } from '../types';
 import BrickySearchCxt from '../components/BrickyProvider/SearchCtx';
 
 

@@ -15,12 +15,13 @@ import { copyToClipboard } from '../../utils';
 import DynamicElement from '../DynamicElement';
 import ImageEnhancer from '../ImageEnhancer';
 import useBaseResolver from '../Toolbar/useBaseResolver';
-import { SvgrInline, SvgrWrap } from '../SvgrIcons';
+import { SvgrInline, SvgrWrap } from '../Icons';
 import useStyled from './styled';
 
 import type { RenderElementProps } from 'slate-react';
 import type { ImageElement } from 'slate';
 import type { DropDownProps } from 'antd';
+import type { ExcludeNullableFunc } from '../../types';
 
 const trigger: DropDownProps['trigger'] = ['contextMenu'];
 
@@ -147,10 +148,10 @@ function Image(props: RenderElementProps) {
             },
           ],
         },
-      ].filter(Boolean as any as ExcludesFalse),
+      ].filter(Boolean as any as ExcludeNullableFunc),
       selectable: true,
       selectedKeys: [editor.isInline(imageEle) ? 'inline' : 'block', imageEle.float].filter(
-        Boolean as any as ExcludesFalse
+        Boolean as any as ExcludeNullableFunc
       ),
       onClick: handleMenuClick,
     }),

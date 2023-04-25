@@ -1,8 +1,8 @@
 import { Text } from 'slate';
-import type { NodeEntry, MarkText, BaseRange } from 'slate';
-import type { EditorDecorate } from '../../interface';
+import type { NodeEntry } from 'slate';
+import type { EditorDecorate, DecorateRange } from '../../types';
 
-type DecorateRange = BaseRange & Omit<MarkText, 'text'>;
+
 
 export default function decorte(entry: NodeEntry) {
   const [node, path] = entry;

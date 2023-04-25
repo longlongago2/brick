@@ -36,7 +36,7 @@ import {
   SvgrSuperscript,
   SvgrUndo,
   SvgrRedo,
-} from '../SvgrIcons';
+} from '../Icons';
 import useStyled from './styled';
 
 import type { ImageElement } from 'slate';

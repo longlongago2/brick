@@ -1,8 +1,22 @@
 import { Descendant, BaseEditor } from 'slate';
 import { ReactEditor } from 'slate-react';
 import { HistoryEditor } from 'slate-history';
-import { CommandEditor } from './utils/withCommand';
-import { TextAlign } from './utils/constant';
+import { CommandEditor, TextAlign } from './types';
+
+declare module '*.module.less' {
+  const classes: { readonly [key: string]: string };
+  export default classes;
+}
+
+declare module '*.less' {
+  const classes: { readonly [key: string]: string };
+  export default classes;
+}
+
+declare module '*.svg' {
+  const content: any;
+  export default content;
+}
 
 declare module 'slate' {
   export type BlockQuoteElement = {
@@ -160,11 +174,11 @@ declare module 'slate' {
     text: string;
   };
 
-  type CustomEditor = BaseEditor & ReactEditor & HistoryEditor & CommandEditor;
+  export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor & CommandEditor;
 
-  type CustomText = MarkText | EmptyText;
+  export type CustomText = MarkText | EmptyText;
 
-  type CustomElement =
+  export type CustomElement =
     | BlockQuoteElement
     | BulletedListElement
     | NumberedListElement
@@ -192,8 +206,4 @@ declare module 'slate' {
     Text: CustomText;
     Element: CustomElement;
   }
-
-  export type ElementKeys = KeysOfUnion<CustomTypes['Element']>;
-
-  export type MarkKeys = keyof Omit<MarkText, 'text'>;
 }

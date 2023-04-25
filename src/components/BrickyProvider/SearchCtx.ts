@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrickySearchValues } from '../../interface';
+import type { BrickySearchValues } from '../../types';
 
 // 创建用于编辑器整体搜索的上下文
 const BrickySearchCxt = React.createContext<BrickySearchValues>({
