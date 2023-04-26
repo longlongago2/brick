@@ -20,7 +20,7 @@ npm install bricky
 import { Editor } from 'bricky';
 ```
 
-### tsconfig.json
+#### tsconfig.json
 
 ```json
 {
@@ -34,7 +34,7 @@ import { Editor } from 'bricky';
 
 or
 
-### vite-env.d.ts
+#### vite-env.d.ts
 
 ```typescript
 /// <reference types="bricky/esm/slate.d.ts" />
