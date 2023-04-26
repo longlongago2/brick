@@ -13,6 +13,7 @@ export default function useStyled() {
       width: 100%;
       margin: 0;
       padding: 0;
+      text-align: left;
     `,
     content: css`
       padding: 10px;

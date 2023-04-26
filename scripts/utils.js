@@ -73,7 +73,7 @@ export function extendTsupConfig(overrideOptions) {
 
 // 需要和以下配置文件同步配置项
 // Typescript: tsconfig.json => paths
-// Esllint: package.json => eslintConfig => import/resolver => alias
+// Eslint: package.json => eslintConfig => import/resolver => alias
 export const alias = {
   bricky: resolveApp('./src'),
 };

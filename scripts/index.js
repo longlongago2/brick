@@ -87,7 +87,7 @@ async function runComplier() {
   console.log('\n');
 
   // TSUP: build esm
-  spinner.start(chalk.green('TSUP ESM: ') + chalk.bgGreen(chalk.white.bold('Building...')));
+  spinner.start(chalk.green('TSUP ESM: ') + chalk.bgGreen(chalk.white.bold('Building...\n')));
   await tsupPromise(
     extendTsupConfig({
       name: 'Typescript: building esm',
@@ -125,7 +125,7 @@ async function runComplier() {
   console.log('\n');
 
   // TSUP: build cjs
-  spinner.start(chalk.green('TSUP CJS: ') + chalk.bgGreen(chalk.white.bold('Building...')));
+  spinner.start(chalk.green('TSUP CJS: ') + chalk.bgGreen(chalk.white.bold('Building...\n')));
   await tsupPromise(
     extendTsupConfig({
       name: 'Typescript: building cjs',

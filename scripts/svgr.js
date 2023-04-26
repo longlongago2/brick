@@ -13,7 +13,7 @@ const entry = 'src/assets/svgr/**/*.svg';
 // Output
 const output = 'src/components/Icons/index.tsx';
 
-// Compiler
+// Compiler React > 17
 const spinner = ora();
 
 const camelcase = (str) => {
@@ -24,7 +24,7 @@ const camelcase = (str) => {
 try {
   spinner.start(chalk.green('Svgr: ') + chalk.bgGreen(chalk.white.bold('Compiling...')));
 
-  let components = ['import React, { memo, SVGProps } from \'react\';'];
+  let components = ['import { memo, SVGProps } from \'react\';'];
 
   const files = glob.sync(entry, { debug: false, absolute: true });
 

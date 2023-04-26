@@ -1,8 +1,5 @@
 {
   "compilerOptions": {
-    /* Visit https://aka.ms/tsconfig to read more about this file */
-    // "outDir": "lib",
-    // "rootDir": ".",
     "noImplicitAny": true,
     "module": "ESNext",
     "target": "ES5",
@@ -24,11 +21,7 @@
     "resolveJsonModule": true,
     "strict": true,
     "skipLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "bricky": ["src"],
-      "bricky/*": ["src/*"], // support deep path e.g. bricky/components/Editor
-    }
+    "baseUrl": "."
   },
   "include": ["src/**/*", "serve/**/*"]
 }
