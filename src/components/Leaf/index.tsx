@@ -1,15 +1,15 @@
 import React, { memo } from 'react';
-import { useBrickySearch } from '../../hooks';
+import { useSlate } from 'slate-react';
 import type { RenderLeafProps } from 'slate-react';
 
 function Leaf(props: RenderLeafProps) {
   const { attributes, children } = props;
 
+  const editor = useSlate();
+
   const leaf = props.leaf;
 
   const style: React.CSSProperties = {};
-
-  const { activeSearchKey } = useBrickySearch();
 
   if ('fontsize' in leaf && leaf.fontsize) {
     style.fontSize = leaf.fontsize;
@@ -42,25 +42,27 @@ function Leaf(props: RenderLeafProps) {
   }
 
   if ('highlight' in leaf && leaf.highlight) {
-    let key;
-    let offset;
-    let isSearched = false;
+    const _attributes: Record<string, any> = {};
+    // Advanced highlight
     if (typeof leaf.highlight === 'object') {
-      key = leaf.highlight.search?.key;
-      offset = leaf.highlight.search?.offset;
-      isSearched = !!leaf.highlight.search;
-      if (isSearched && activeSearchKey === key) {
-        // Active of search result highlight
-        style.backgroundColor = leaf.highlight.search?.activeColor;
-      } else {
-        // Common highlight
+      let showSearchActiveColor = false;
+      // Search highlight
+      if (leaf.highlight.search) {
+        const { key, activeColor } = leaf.highlight.search;
+        _attributes['data-slate-decorate-search-key'] = key;
+        if (editor.search.activeSearchKey === key) {
+          _attributes['data-slate-decorate-search-active'] = true;
+          if (activeColor) {
+            showSearchActiveColor = true;
+            style.backgroundColor = activeColor;
+          }
+        }
+      }
+      // Common highlight
+      if (!showSearchActiveColor) {
         style.backgroundColor = leaf.highlight.color;
       }
     }
-    const _attributes = isSearched && {
-      'data-slate-decorate-search-key': key,
-      'data-slate-decorate-search-offset': offset,
-    };
     text = (
       <mark style={style} {..._attributes}>
         {text}

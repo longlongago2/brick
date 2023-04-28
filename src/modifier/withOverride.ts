@@ -1,17 +1,17 @@
 import { Transforms } from 'slate';
-import { INLINE_TYPES, VOID_TYPES } from './constant';
-import { deserialize } from './transformDOMToJSON';
-import { isUrl, isIncludeElementTypes } from '.';
+import { INLINE_TYPES, VOID_TYPES } from '../utils/constant';
+import { deserialize } from '../utils/transformDOMToJSON';
+import { isUrl, isIncludeElementTypes } from '../utils';
 
 import type { Editor, Node } from 'slate';
 
 /**
- * @description 修改内置的实例方法，在原有的实例方法上修改，并继承原有的方法
+ * @description 覆写内置的实例方法，在原有的实例方法上修改，并继承原有的方法
  * @export
  * @template T
  * @param {T} editor
  */
-export function withPrototype<T extends Editor>(editor: T) {
+function withOverride<T extends Editor>(editor: T) {
   const { insertData, insertText, isInline, isVoid } = editor;
 
   // 此处增加自定义的行内元素 Inline Element
@@ -47,3 +47,5 @@ export function withPrototype<T extends Editor>(editor: T) {
 
   return editor;
 }
+
+export default withOverride;

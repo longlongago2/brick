@@ -281,11 +281,38 @@ export function webpackPromise(config) {
   });
 }
 
+/**
+ * @description 拷贝dts文件
+ * @export
+ * @param {string} srcDir
+ * @param {string} destDir
+ */
 export function copyDTS(srcDir, destDir) {
   const files = fs.readdirSync(srcDir).filter((fn) => fn.endsWith('.d.ts'));
   files.map((file) => {
     const filePath = resolveApp(srcDir + '/' + file);
     const destPath = resolveApp(destDir + '/' + file);
     fs.copyFileSync(filePath, destPath);
+  });
+}
+
+/**
+ * @description 删除空文件
+ * @export
+ * @param {string} dir
+ */
+export function deleteEmptyFiles(dir) {
+  const files = fs.readdirSync(dir);
+  files.map((file) => {
+    const filePath = resolveApp(dir + '/' + file);
+    const stat = fs.statSync(filePath);
+    if (stat.isDirectory()) {
+      deleteEmptyFiles(filePath);
+    } else {
+      const data = fs.readFileSync(filePath, 'utf8');
+      if (data.trim().length === 0) {
+        fs.unlinkSync(filePath);
+      }
+    }
   });
 }

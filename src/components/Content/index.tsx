@@ -44,8 +44,6 @@ function Content(props: ContentProps) {
 
   const editor = useSlate();
 
-  const { search } = useBrickySearch();
-
   const { wrapper, content } = useStyled();
 
   const baseResolver = useBaseResolver();
@@ -159,8 +157,8 @@ function Content(props: ContentProps) {
 
   // 装饰器
   const getDecorate = useCallback<NonNullable<EditableProps['decorate']>>(
-    (entry) => decorate(entry)({ search }),
-    [search]
+    (entry) => decorate(entry)(editor),
+    [editor]
   );
 
   const preventDefaultDrop = useCallback<React.DragEventHandler<HTMLDivElement>>(

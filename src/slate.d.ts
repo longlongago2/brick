@@ -1,7 +1,7 @@
 import type { Descendant, BaseEditor } from 'slate';
 import type { ReactEditor } from 'slate-react';
 import type { HistoryEditor } from 'slate-history';
-import type { CommandEditor, TextAlign } from './types';
+import type { CommandEditor, SearchEditor, TextAlign } from './types';
 
 declare module 'slate' {
   export type BlockQuoteElement = {
@@ -135,9 +135,8 @@ declare module 'slate' {
   export type AdvancedHighlight = {
     color: string;
     search?: {
-      activeColor: string;
       key: string;
-      offset: number;
+      activeColor?: string;
     };
   };
 
@@ -159,7 +158,7 @@ declare module 'slate' {
     text: string;
   };
 
-  export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor & CommandEditor;
+  export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor & CommandEditor & SearchEditor;
 
   export type CustomText = MarkText | EmptyText;
 

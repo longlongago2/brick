@@ -28,22 +28,14 @@ import { LIST_TYPES } from '../../utils/constant';
 import ColorPicker, { colorParse, colorStringify } from './ColorPicker';
 import FormDialog from './FormDialog';
 import FileUpload from '../FileUpload';
-import {
-  SvgrCode,
-  SvgrImage,
-  SvgrQuote,
-  SvgrSubscript,
-  SvgrSuperscript,
-  SvgrUndo,
-  SvgrRedo,
-} from '../Icons';
+import { SvgrCode, SvgrImage, SvgrQuote, SvgrSubscript, SvgrSuperscript, SvgrUndo, SvgrRedo } from '../Icons';
 import useStyled from './styled';
 
 import type { ImageElement } from 'slate';
 import type { Color } from 'react-color';
 import type { ToolbarResolver } from '.';
 import type { FormDialogProps } from './FormDialog';
-import type { SearchResult } from '../../types';
+import type { SearchNode } from '../../types';
 
 // TODO: 优化代码结构
 // 1. 拆分代码，将render相关的代码拆分到单独的文件中
@@ -96,7 +88,7 @@ export default function useBaseResolver() {
 
   const { searchIndicator, linkButton, searchTypeButton, between, mp0, bold } = useStyled();
 
-  const { searchResult, setSearch, setActiveSearchKey, reset: resetSearch } = useBrickySearch();
+  // const { searchResult, setSearch, setActiveSearchKey, reset: resetSearch } = useBrickySearch();
 
   const [imgSource, setImgSource] = useState(defaultImgSource);
 
@@ -245,50 +237,51 @@ export default function useBaseResolver() {
 
   // 上一个
   const handleSearchResultPrev = useCallback(() => {
+    const searchResult = editor.search.getSearchResult();
     if (!isPowerArray(searchResult)) return;
     let next;
-    let activeKey = '';
     if (activeSearchIndex === null) {
       next = 0;
     } else {
       next = activeSearchIndex - 1 >= 0 ? activeSearchIndex - 1 : searchResult.length - 1;
     }
-    activeKey = searchResult[next]?.key || '';
     setActiveSearchIndex(next);
-    setActiveSearchKey(activeKey);
-  }, [activeSearchIndex, searchResult, setActiveSearchKey]);
+    const activeKey = searchResult[next]?.key || '';
+    editor.search.activeSearchKey = activeKey;
+  }, [activeSearchIndex, editor]);
 
   // 下一个
   const handleSearchResultNext = useCallback(() => {
+    const searchResult = editor.search.getSearchResult();
     if (!isPowerArray(searchResult)) return;
     let next;
-    let activeKey = '';
     if (activeSearchIndex === null) {
       next = 0;
     } else {
       next = activeSearchIndex + 1 > searchResult.length - 1 ? 0 : activeSearchIndex + 1;
     }
-    activeKey = searchResult[next]?.key || '';
     setActiveSearchIndex(next);
-    setActiveSearchKey(activeKey);
-  }, [activeSearchIndex, searchResult, setActiveSearchKey]);
+    const activeKey = searchResult[next]?.key || '';
+    editor.search.activeSearchKey = activeKey;
+  }, [activeSearchIndex, editor]);
 
   // 替换
   const handleSearchOrReplaceFinish = useCallback<NonNullable<FormDialogProps['onFinish']>>(
     (values) => {
+      const searchResult = editor.search.getSearchResult();
       if (!isPowerArray(searchResult)) return;
-      const replaceText = (item: SearchResult) => {
-        const { path, offset, search } = item;
+      const replaceText = (item: SearchNode) => {
+        const { search, range } = item;
+        const { anchor, focus } = range;
         const rangeDelete = {
-          anchor: { path, offset },
-          focus: { path, offset: offset + search.length },
+          anchor,
+          focus: {
+            ...focus,
+            offset: focus.offset + search.length,
+          },
         };
         Transforms.delete(editor, { at: rangeDelete });
-        const rangeInsert = {
-          anchor: { path, offset },
-          focus: { path, offset },
-        };
-        Transforms.insertText(editor, values.replace, { at: rangeInsert });
+        Transforms.insertText(editor, values.replace, { at: range });
       };
       // 当前替换
       if (replaceType.current === 'curr') {
@@ -305,23 +298,21 @@ export default function useBaseResolver() {
       // 重置选中
       setActiveSearchIndex(null);
     },
-    [activeSearchIndex, editor, searchResult]
+    [activeSearchIndex, editor]
   );
 
   const handleSearchValuesChange = useCallback<NonNullable<FormDialogProps['onValuesChange']>>(
     (changedValues) => {
       if (changedValues.search !== undefined) {
-        // 1.更新search value
-        setSearch(changedValues.search);
-        // 2.清除数据
-        setActiveSearchKey('');
+        editor.search.text = changedValues.search;
+        editor.search.activeSearchKey = '';
         setActiveSearchIndex(null);
       }
     },
-    [setActiveSearchKey, setSearch]
+    [editor]
   );
 
-  const handleSearchValuesDebounce = useMemo(
+  const handleSearchOrReplaceValuesChange = useMemo(
     () => debounce(handleSearchValuesChange, 250),
     [handleSearchValuesChange]
   );
@@ -329,10 +320,10 @@ export default function useBaseResolver() {
   const handleSearchDialogCancel = useCallback(() => {
     closeSearchDialog();
     // reset initial state
-    setActiveSearchIndex(null);
     setSearchType('search');
-    resetSearch();
-  }, [closeSearchDialog, resetSearch]);
+    setActiveSearchIndex(null);
+    editor.search.reset();
+  }, [closeSearchDialog, editor]);
 
   const handleReplaceCurr = useCallback(() => {
     replaceType.current = 'curr';
@@ -743,7 +734,7 @@ export default function useBaseResolver() {
             defaultPosition={searchDialogPos}
             mask={false}
             onCancel={handleSearchDialogCancel}
-            onValuesChange={handleSearchValuesDebounce}
+            onValuesChange={handleSearchOrReplaceValuesChange}
             onFinish={handleSearchOrReplaceFinish}
           >
             <Row>
@@ -760,11 +751,11 @@ export default function useBaseResolver() {
                   <Input placeholder="查找" autoFocus autoComplete="off" />
                 </Form.Item>
                 {/* 不能使用Input suffix 会导致编辑中Input更新渲染失焦 */}
-                {searchResult.length > 0 && (
+                {/* {searchResult.length > 0 && (
                   <span className={searchIndicator}>
                     {`${activeSearchIndex !== null ? activeSearchIndex + 1 : '?'}/${searchResult.length}`}
                   </span>
-                )}
+                )} */}
                 {searchType === 'replace' && (
                   <Form.Item name="replace" rules={noMsgRequired}>
                     <Input placeholder="替换" autoComplete="off" />
@@ -989,60 +980,7 @@ export default function useBaseResolver() {
         },
       },
     ],
-    [
-      _closeImageDialog,
-      activeSearchIndex,
-      between,
-      bold,
-      closeFormulaDialog,
-      closeLinkDialog,
-      formFormula,
-      formImage,
-      formLink,
-      formSearch,
-      formulaDialogPos,
-      formulaDialogVisible,
-      getFontColorElement,
-      getHighlightElement,
-      handleImageDialogValuesChange,
-      handleImageFinish,
-      handleLinkFinish,
-      handleReplaceAll,
-      handleReplaceCurr,
-      handleSearchDialogCancel,
-      handleSearchOrReplaceFinish,
-      handleSearchResultNext,
-      handleSearchResultPrev,
-      handleSearchTypeChange,
-      handleSearchValuesDebounce,
-      handleTexHelpDocument,
-      imageDialogPos,
-      imageDialogVisible,
-      imgDialogLoading,
-      imgSource,
-      linkButton,
-      linkDialogPos,
-      linkDialogVisible,
-      mp0,
-      searchDialogPos,
-      searchDialogVisible,
-      searchIndicator,
-      searchResult.length,
-      searchType,
-      searchTypeButton,
-      searchTypeIcon,
-      setFormulaDialogPos,
-      setFormulaDialogVisible,
-      setImageDialogMode,
-      setImageDialogPos,
-      setImageDialogVisible,
-      setLinkDialogPos,
-      setLinkDialogVisible,
-      setSearchDialogPos,
-      setSearchDialogVisible,
-      submitImage,
-      submitLink,
-    ]
+    [_closeImageDialog, between, bold, closeFormulaDialog, closeLinkDialog, formFormula, formImage, formLink, formSearch, formulaDialogPos, formulaDialogVisible, getFontColorElement, getHighlightElement, handleImageDialogValuesChange, handleImageFinish, handleLinkFinish, handleReplaceAll, handleReplaceCurr, handleSearchDialogCancel, handleSearchOrReplaceFinish, handleSearchResultNext, handleSearchResultPrev, handleSearchTypeChange, handleSearchOrReplaceValuesChange, handleTexHelpDocument, imageDialogPos, imageDialogVisible, imgDialogLoading, imgSource, linkButton, linkDialogPos, linkDialogVisible, mp0, searchDialogPos, searchDialogVisible, searchType, searchTypeButton, searchTypeIcon, setFormulaDialogPos, setFormulaDialogVisible, setImageDialogMode, setImageDialogPos, setImageDialogVisible, setLinkDialogPos, setLinkDialogVisible, setSearchDialogPos, setSearchDialogVisible, submitImage, submitLink]
   );
 
   return baseResolver;

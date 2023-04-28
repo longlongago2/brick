@@ -20,6 +20,7 @@ import {
   copyDTS,
   webpackPromise,
   extendTsupConfig,
+  deleteEmptyFiles,
 } from './utils.js';
 
 async function runComplier() {
@@ -98,6 +99,8 @@ async function runComplier() {
   )
     .then(() => {
       copyDTS(resolveApp('src'), resolveApp('esm'));
+      // 因为tsup的编译只有类型定义的types.ts，会生成空js文件，所以需要删除空文件
+      deleteEmptyFiles(resolveApp('esm'));
       // build complete
       spinner
         .succeed(
@@ -136,6 +139,7 @@ async function runComplier() {
   )
     .then(() => {
       copyDTS(resolveApp('src'), resolveApp('lib'));
+      deleteEmptyFiles(resolveApp('lib'));
       // build complete
       spinner
         .succeed(

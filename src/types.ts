@@ -1,5 +1,6 @@
+import type { SearchHighlight } from './modifier/withSearch';
 import type { CSSProperties } from 'react';
-import type { Element, Node, Path, MarkText, BaseRange } from 'slate';
+import type { Element, Node, MarkText, BaseRange } from 'slate';
 
 /**
  * @description Slate Editor 装饰器的 range 类型
@@ -41,12 +42,11 @@ export type ExcludeNullableFunc = <T>(x: T | false | undefined | null) => x is T
 /**
  * @description 搜索结果类型
  */
-export type SearchResult = {
+export type SearchNode = {
   key: string;
-  offset: number;
   search: string;
   node: Node;
-  path: Path;
+  range: BaseRange;
 };
 
 /**
@@ -74,13 +74,6 @@ export interface HotKeys {
 }
 
 /**
- * @description 编辑器装饰器参数类型
- */
-export interface EditorDecorate {
-  search: string;
-}
-
-/**
  * @description 编辑器外围全局数据类型
  */
 export interface BrickySearchValues {
@@ -88,8 +81,8 @@ export interface BrickySearchValues {
   setSearch: (value: string) => void;
   activeSearchKey: string; // 搜索结果高亮key
   setActiveSearchKey: (value: string) => void;
-  searchResult: SearchResult[]; // 搜索结果
-  setSearchResult: (value: SearchResult[]) => void;
+  searchResult: SearchNode[]; // 搜索结果
+  setSearchResult: (value: SearchNode[]) => void;
   reset: () => void;
 }
 
@@ -207,13 +200,6 @@ export interface CommandEditor {
   getEditableDOM: () => HTMLElement;
 
   /**
-   * @descriptionZH 获取当前编辑区搜索结果
-   * @descriptionEN
-   * @memberof CommandEditor
-   */
-  getEditableSearchResult: () => SearchResult[];
-
-  /**
    * @descriptionZH 挂载在实例上的一些额外的属性
    * @descriptionEN some extra attributes on the instance
    * @type {Record<string, any>}
@@ -234,4 +220,8 @@ export interface CommandEditor {
    * @memberof CommandEditor
    */
   removeExtraProperty: (key: string) => void;
+}
+
+export interface SearchEditor {
+  search: SearchHighlight;
 }

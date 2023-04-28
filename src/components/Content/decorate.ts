@@ -1,34 +1,35 @@
 import { Text } from 'slate';
-import type { NodeEntry } from 'slate';
-import type { EditorDecorate, DecorateRange } from '../../types';
-
-
+import type { NodeEntry, Editor } from 'slate';
+import type { DecorateRange } from '../../types';
 
 export default function decorte(entry: NodeEntry) {
   const [node, path] = entry;
-  return (params: EditorDecorate) => {
-    const { search } = params;
+  return (editor: Editor) => {
     const ranges: DecorateRange[] = [];
 
+    const search = editor.search.text;
+
+    console.log(node);
     if (search && Text.isText(node)) {
       const { text } = node;
       const parts = text.split(search);
       let offset = 0;
 
+      console.log(search);
+
       parts.forEach((part, i) => {
         if (i !== 0) {
-          const uuid = Math.random().toString(36).slice(2);
+          const key = btoa(JSON.stringify(path.concat(offset)));
+
+          const mark = editor.search.createSearchMark(key);
+          console.log(mark);
+
+
           ranges.push({
             anchor: { path, offset: offset - search.length },
             focus: { path, offset },
-            highlight: {
-              color: '#ffff00',
-              search: {
-                activeColor: '#ff9632',
-                key: uuid,
-                offset: offset - search.length
-              },
-            }, // MarkText properties 搜索利用高亮属性高亮搜索内容
+            // Mark
+            ...mark,
           });
         }
 
