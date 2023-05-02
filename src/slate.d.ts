@@ -1,7 +1,7 @@
 import type { Descendant, BaseEditor } from 'slate';
 import type { ReactEditor } from 'slate-react';
 import type { HistoryEditor } from 'slate-history';
-import type { CommandEditor, SearchEditor, TextAlign } from './types';
+import type { CommandEditor, TextAlign } from './types';
 
 declare module 'slate' {
   export type BlockQuoteElement = {
@@ -158,7 +158,7 @@ declare module 'slate' {
     text: string;
   };
 
-  export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor & CommandEditor & SearchEditor;
+  export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor & CommandEditor;
 
   export type CustomText = MarkText | EmptyText;
 

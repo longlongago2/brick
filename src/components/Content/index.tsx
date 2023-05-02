@@ -4,15 +4,13 @@ import { Range, Transforms, Editor, Element as SlateElement } from 'slate';
 import isHotkey, { isKeyHotkey } from 'is-hotkey';
 import classNames from 'classnames';
 import { HOTKEYS } from '../../utils/constant';
-import { useBrickySearch } from '../../hooks';
+import { useSearchDecorate } from '../../package/slate-search';
 import useBaseResolver from '../Toolbar/useBaseResolver';
 import Leaf from '../Leaf';
 import Element from '../Element';
-import decorate from './decorate';
 import useStyled from './styled';
 
 import type { RenderLeafProps, RenderElementProps } from 'slate-react';
-import type { EditableProps } from 'slate-react/dist/components/editable';
 import type { NoEffectWrapTypes } from '../../types';
 
 export interface ContentProps {
@@ -43,6 +41,8 @@ function Content(props: ContentProps) {
   } = props;
 
   const editor = useSlate();
+
+  const decorate = useSearchDecorate();
 
   const { wrapper, content } = useStyled();
 
@@ -155,12 +155,6 @@ function Content(props: ContentProps) {
     [receiveRenderElement]
   );
 
-  // 装饰器
-  const getDecorate = useCallback<NonNullable<EditableProps['decorate']>>(
-    (entry) => decorate(entry)(editor),
-    [editor]
-  );
-
   const preventDefaultDrop = useCallback<React.DragEventHandler<HTMLDivElement>>(
     (e) => {
       let locked = false;
@@ -221,7 +215,7 @@ function Content(props: ContentProps) {
         autoFocus={autoFocus}
         readOnly={readOnly}
         style={style}
-        decorate={getDecorate}
+        decorate={decorate}
         renderLeaf={handleRenderLeaf}
         renderElement={handleRenderElement}
         onDragStart={preventDefaultDrag}

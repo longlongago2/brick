@@ -4,7 +4,6 @@ import { withReact } from 'slate-react';
 import { withHistory } from 'slate-history';
 import withCommand from '../modifier/withCommand';
 import withOverride from '../modifier/withOverride';
-import withSearch from '../modifier/withSearch';
 
 /**
  * @description Create BrickyProvider props editor
@@ -12,8 +11,6 @@ import withSearch from '../modifier/withSearch';
  * @return {*}
  */
 export function useBrickyEditor() {
-  const [editor] = useState(() =>
-    withSearch(withCommand(withOverride(withHistory(withReact(createEditor())))))
-  );
+  const [editor] = useState(() => withCommand(withOverride(withHistory(withReact(createEditor())))));
   return editor;
 }

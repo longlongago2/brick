@@ -1,15 +1,17 @@
 import React, { memo } from 'react';
-import { useSlate } from 'slate-react';
+import { useSlateSearch } from '../../package/slate-search';
 import type { RenderLeafProps } from 'slate-react';
 
 function Leaf(props: RenderLeafProps) {
   const { attributes, children } = props;
 
-  const editor = useSlate();
-
   const leaf = props.leaf;
 
   const style: React.CSSProperties = {};
+
+  const slateSearch = useSlateSearch();
+
+  const { activeKey } = slateSearch.getState();
 
   if ('fontsize' in leaf && leaf.fontsize) {
     style.fontSize = leaf.fontsize;
@@ -50,7 +52,7 @@ function Leaf(props: RenderLeafProps) {
       if (leaf.highlight.search) {
         const { key, activeColor } = leaf.highlight.search;
         _attributes['data-slate-decorate-search-key'] = key;
-        if (editor.search.activeSearchKey === key) {
+        if (activeKey === key) {
           _attributes['data-slate-decorate-search-active'] = true;
           if (activeColor) {
             showSearchActiveColor = true;

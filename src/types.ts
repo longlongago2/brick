@@ -1,6 +1,5 @@
-import type { SearchHighlight } from './modifier/withSearch';
 import type { CSSProperties } from 'react';
-import type { Element, Node, MarkText, BaseRange } from 'slate';
+import type { Element, MarkText, BaseRange } from 'slate';
 
 /**
  * @description Slate Editor 装饰器的 range 类型
@@ -40,16 +39,6 @@ export type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type ExcludeNullableFunc = <T>(x: T | false | undefined | null) => x is T;
 
 /**
- * @description 搜索结果类型
- */
-export type SearchNode = {
-  key: string;
-  search: string;
-  node: Node;
-  range: BaseRange;
-};
-
-/**
  * @description 无副作用的类型：可以直接 Toggle 的 Element 类型
  */
 export type NoEffectWrapTypes =
@@ -71,19 +60,6 @@ export interface HotKeys {
   marks: Record<string, MarkKeys>;
   nodes: Record<string, Element['type']>;
   aligns: Record<string, TextAlign>;
-}
-
-/**
- * @description 编辑器外围全局数据类型
- */
-export interface BrickySearchValues {
-  search: string; // 搜索关键字
-  setSearch: (value: string) => void;
-  activeSearchKey: string; // 搜索结果高亮key
-  setActiveSearchKey: (value: string) => void;
-  searchResult: SearchNode[]; // 搜索结果
-  setSearchResult: (value: SearchNode[]) => void;
-  reset: () => void;
 }
 
 /**
@@ -220,8 +196,4 @@ export interface CommandEditor {
    * @memberof CommandEditor
    */
   removeExtraProperty: (key: string) => void;
-}
-
-export interface SearchEditor {
-  search: SearchHighlight;
 }
