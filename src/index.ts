@@ -4,7 +4,7 @@ export * from './hooks';
 
 export * from './utils';
 
-export * from './utils/transformDOMToJSON';
+export * from './utils/parser';
 
 export { default as InlineChromiumBugfix } from './components/InlineChromiumBugfix';
 

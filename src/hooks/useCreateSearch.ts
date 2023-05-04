@@ -1,49 +1,31 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { ReactEditor } from 'slate-react';
-import { useNextTick } from '../../hooks';
-import type { Editor, BaseRange, Node, AdvancedHighlight } from 'slate';
+import { useNextTick } from '.';
+import type { Editor, BaseRange, AdvancedHighlight } from 'slate';
+import type { SlateSearch, SearchNode } from '../types';
+
+const defaultValue: SlateSearch = {
+  setKeyword: () => void 0,
+  setActiveKey: () => void 0,
+  reset: () => void 0,
+  forceCollectSearchResult: () => void 0,
+  getState: () => ({ keyword: '', activeKey: '', results: [] }),
+  createSearchMark: () => ({ highlight: {} as AdvancedHighlight }),
+};
 
 /**
- * @description 搜索结果项类型定义
+ * @description 搜索功能上下文
  */
-export type SearchNode = {
-  key: string;
-  search: string;
-  node: Node;
-  range: BaseRange;
-};
+export const SlateSearchCxt = React.createContext(defaultValue);
 
-export type SlateSearch = {
-  /**
-   * @description 设置搜索关键字
-   */
-  setKeyword: React.Dispatch<React.SetStateAction<string>>;
-  /**
-   * @description 设置当前激活的搜索结果项
-   */
-  setActiveKey: React.Dispatch<React.SetStateAction<string>>;
-  /**
-   * @description 重置搜索
-   */
-  reset: () => void;
-  /**
-   * @description 获取当前搜索状态
-   */
-  getState: () => {
-    keyword: string;
-    activeKey: string;
-    results: SearchNode[];
-  };
-  /**
-   * @description 强制收集搜索结果
-   */
-  forceCollectSearchResult: () => void;
-  /**
-   * @description 创建搜索结果标记
-   */
-  createSearchMark: (key: string) => { highlight: AdvancedHighlight };
-};
+/**
+ * @description 搜索功能上下文数据提供者
+ */
+export const SlateSearchProvider = SlateSearchCxt.Provider;
 
+/**
+ * @description 创建搜索功能上下文数据
+ */
 export function useCreateSearch(editor: Editor): SlateSearch {
   const editorRef = useRef<Editor>(editor);
 

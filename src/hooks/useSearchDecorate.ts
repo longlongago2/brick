@@ -2,8 +2,11 @@ import { useCallback } from 'react';
 import { Text } from 'slate';
 import { useSlateSearch } from '.';
 import type { NodeEntry } from 'slate';
-import type { DecorateRange } from '../../types';
+import type { DecorateRange } from '../types';
 
+/**
+ * @description 获取搜索功能的Editor decorate方法
+ */
 export function useSearchDecorate() {
   const slateSearch = useSlateSearch();
 

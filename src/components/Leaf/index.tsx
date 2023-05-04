@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { useSlateSearch } from '../../package/slate-search';
+import { useSlateSearch } from '../../hooks';
 import type { RenderLeafProps } from 'slate-react';
 
 function Leaf(props: RenderLeafProps) {

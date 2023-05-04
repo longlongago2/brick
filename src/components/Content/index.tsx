@@ -4,7 +4,7 @@ import { Range, Transforms, Editor, Element as SlateElement } from 'slate';
 import isHotkey, { isKeyHotkey } from 'is-hotkey';
 import classNames from 'classnames';
 import { HOTKEYS } from '../../utils/constant';
-import { useSearchDecorate } from '../../package/slate-search';
+import { useSearchDecorate } from '../../hooks';
 import useBaseResolver from '../Toolbar/useBaseResolver';
 import Leaf from '../Leaf';
 import Element from '../Element';

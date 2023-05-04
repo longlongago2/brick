@@ -22,10 +22,9 @@ import Icon, {
 } from '@ant-design/icons';
 import { theme, Form, Input, Radio, message, InputNumber, Button, Space, Row, Col } from 'antd';
 import debounce from 'lodash/debounce';
-import { useFormDialog } from '../../hooks';
+import { useSlateSearch, useFormDialog } from '../../hooks';
 import { isPowerArray } from '../../utils';
 import { LIST_TYPES } from '../../utils/constant';
-import { useSlateSearch } from '../../package/slate-search';
 import ColorPicker, { colorParse, colorStringify } from './ColorPicker';
 import FormDialog from './FormDialog';
 import FileUpload from '../FileUpload';
@@ -36,7 +35,7 @@ import type { ImageElement } from 'slate';
 import type { Color } from 'react-color';
 import type { ToolbarResolver } from '.';
 import type { FormDialogProps } from './FormDialog';
-import type { SearchNode } from '../../package/slate-search';
+import type { SearchNode } from '../../types';
 
 // TODO: 优化代码结构
 // 1. 拆分代码，将render相关的代码拆分到单独的文件中

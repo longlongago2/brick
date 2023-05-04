@@ -1,6 +1,6 @@
 import { Transforms } from 'slate';
 import { INLINE_TYPES, VOID_TYPES } from '../utils/constant';
-import { deserialize } from '../utils/transformDOMToJSON';
+import { deserialize } from '../utils/parser';
 import { isUrl, isIncludeElementTypes } from '../utils';
 
 import type { Editor, Node } from 'slate';

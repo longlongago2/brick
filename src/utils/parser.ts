@@ -49,9 +49,6 @@ export const mapMarkToJSON: Record<HTMLElement['nodeName'], any> = {
 
 /**
  * @description 判断是否是换行node节点：在DOM中，块级元素之间会存在一个换行符，有的浏览器会将它解释为#text节点
- * @export
- * @param {Node} node
- * @returns {boolean}
  */
 export const isFragmentWrapTextNode = (node: Node) => {
   const isWrapText = node.textContent && node.textContent.split('\n').filter(Boolean).length === 0;
@@ -66,9 +63,6 @@ export const isFragmentWrapTextNode = (node: Node) => {
 
 /**
  * @description 反序列化：将 HTML 解析成 JSON
- * @export
- * @param {Node} el
- * @returns {*}
  */
 export const deserialize = (el: Node) => {
   if (el.nodeType === window.Node.TEXT_NODE) {

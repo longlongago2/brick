@@ -1,9 +1,7 @@
 import React, { memo, useMemo } from 'react';
 import { Slate } from 'slate-react';
 import { ConfigProvider } from 'antd';
-import { useBrickyEditor } from '../../hooks';
-import { SlateSearchProvider, useCreateSearch } from '../../package/slate-search';
-
+import { useBrickyEditor, SlateSearchProvider, useCreateSearch } from '../../hooks';
 import type { Descendant, Editor } from 'slate';
 import type { ThemeConfig } from 'antd/es/config-provider/context';
 

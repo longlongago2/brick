@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import type { Element, MarkText, BaseRange } from 'slate';
+import type { Element, MarkText, BaseRange, Node, AdvancedHighlight } from 'slate';
 
 /**
  * @description Slate Editor 装饰器的 range 类型
@@ -196,4 +196,53 @@ export interface CommandEditor {
    * @memberof CommandEditor
    */
   removeExtraProperty: (key: string) => void;
+}
+
+/**
+ * @description 搜索结果项类型定义
+ */
+export interface SearchNode {
+  key: string;
+  search: string;
+  node: Node;
+  range: BaseRange;
+}
+
+/**
+ * @description 搜索功能上下文数据类型定义
+ */
+export interface SlateSearch {
+  /**
+   * @description 设置搜索关键字
+   */
+  setKeyword: React.Dispatch<React.SetStateAction<string>>;
+
+  /**
+   * @description 设置当前激活的搜索结果项
+   */
+  setActiveKey: React.Dispatch<React.SetStateAction<string>>;
+
+  /**
+   * @description 重置搜索
+   */
+  reset: () => void;
+
+  /**
+   * @description 获取当前搜索状态
+   */
+  getState: () => {
+    keyword: string;
+    activeKey: string;
+    results: SearchNode[];
+  };
+
+  /**
+   * @description 强制收集搜索结果
+   */
+  forceCollectSearchResult: () => void;
+
+  /**
+   * @description 创建搜索结果标记
+   */
+  createSearchMark: (key: string) => { highlight: AdvancedHighlight };
 }
