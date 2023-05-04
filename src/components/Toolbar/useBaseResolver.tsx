@@ -359,7 +359,7 @@ export default function useBaseResolver() {
         defaultValue={defaultColor}
         value={editor.getMarkProperty('color')}
         icon={colorIcon}
-        title="应用字体颜色"
+        title="字体颜色"
         onChange={handleColorChange}
         onClick={handleColorChange}
       />
@@ -388,7 +388,7 @@ export default function useBaseResolver() {
         defaultValue={defaultHighlightColor}
         value={resolveHighlight(editor)}
         icon={<HighlightOutlined />}
-        title="应用背景颜色"
+        title="背景颜色"
         onChange={handleHlColorChange}
         onClick={handleHlColorChange}
       />
@@ -716,7 +716,7 @@ export default function useBaseResolver() {
       {
         key: 'highlight',
         type: 'custom',
-        title: '背景高亮',
+        title: '背景',
         element: getHighlightElement,
       },
       {
@@ -791,6 +791,9 @@ export default function useBaseResolver() {
           if (pos) setSearchDialogPos({ x: pos.x + pos.width - 370 - pr, y: pos.y + pt });
           setSearchDialogVisible(true);
         },
+        // onShortcut(editor) {
+        //   // 提供快捷键操作，以供外部调用
+        // },
       },
       {
         key: 'link',

@@ -14,6 +14,12 @@ export default function useStyled() {
           &:hover {
             background-color: ${token.colorBgTextHover} !important;
           }
+          .ant-select-selection-item {
+            .anticon {
+              font-size: 16px;
+              vertical-align: middle;
+            }
+          }
         }
       `,
       option: css`
@@ -93,7 +99,7 @@ export default function useStyled() {
         font-size: 11px;
       `,
       dropdownButton: css`
-        padding: 0 3px !important;
+        padding: 0 5px !important;
       `,
       sketchPicker: css`
         background-color: red;
