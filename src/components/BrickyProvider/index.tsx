@@ -6,7 +6,7 @@ import type { Descendant, Editor } from 'slate';
 import type { ThemeConfig } from 'antd/es/config-provider/context';
 
 export interface BrickyProviderProps {
-  defaultValue: Descendant[];
+  initialValue: Descendant[];
   children: React.ReactNode;
   editor?: Editor;
   theme?: ThemeConfig;
@@ -14,7 +14,7 @@ export interface BrickyProviderProps {
 }
 
 function BrickyProvider(props: BrickyProviderProps) {
-  const { editor, defaultValue, children, theme, onChange } = props;
+  const { editor, initialValue, children, theme, onChange } = props;
 
   const _editor = useBrickyEditor();
 
@@ -30,7 +30,7 @@ function BrickyProvider(props: BrickyProviderProps) {
   // https://github.com/ianstormtaylor/slate/pull/4540
   // SlateSearchProvider depends on Slate's editor, so it needs to be placed in Slate.
   const slate = (
-    <Slate editor={bricky} value={defaultValue} onChange={onChange}>
+    <Slate editor={bricky} initialValue={initialValue} onChange={onChange}>
       <SlateSearchProvider value={slateSearch}>{children}</SlateSearchProvider>
     </Slate>
   );

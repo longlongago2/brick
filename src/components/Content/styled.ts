@@ -18,6 +18,7 @@ export default function useStyled() {
       padding: 10px;
       margin: 0;
       color: ${token.colorText};
+      outline: none;
       p {
         line-height: 1.74;
         border-radius: ${token.borderRadiusXS}px;

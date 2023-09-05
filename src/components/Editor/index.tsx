@@ -12,7 +12,7 @@ export interface EditorProps
   extends Omit<ContentProps, 'style' | 'className'>,
     Omit<ToolbarProps, 'style' | 'className'> {
   editor?: SlateEditor;
-  defaultValue: Descendant[];
+  initialValue: Descendant[];
   onChange?: (value: Descendant[]) => void;
   theme?: ThemeConfig;
   className?: string;
@@ -29,7 +29,7 @@ export interface EditorProps
  */
 function Editor(props: EditorProps) {
   const {
-    defaultValue,
+    initialValue,
     editor,
     theme,
     className,
@@ -53,7 +53,7 @@ function Editor(props: EditorProps) {
   } = props;
 
   return (
-    <BrickyProvider editor={editor} defaultValue={defaultValue} onChange={onChange} theme={theme}>
+    <BrickyProvider editor={editor} initialValue={initialValue} onChange={onChange} theme={theme}>
       <div className={className}>
         <Toolbar
           className={toolbarClassName}

@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useCallback } from 'react';
+import React, { memo, useMemo, useCallback, useState, useRef, useEffect } from 'react';
 import { useSelected, useFocused, useReadOnly, useSlate, ReactEditor } from 'slate-react';
 import Icon, {
   BlockOutlined,
@@ -30,6 +30,11 @@ function Image(props: RenderElementProps) {
 
   const imageEle = element as ImageElement;
 
+  const anim = useRef<number | null>(null);
+
+  // memoize
+  const [open, setOpen] = useState(false);
+
   const editor = useSlate();
 
   const selected = useSelected();
@@ -46,12 +51,22 @@ function Image(props: RenderElementProps) {
 
   const locked = editor.getElementFieldsValue('lock', 'paragraph');
 
+  // handler
   const preventContextMenu: React.MouseEventHandler<HTMLSpanElement> = (e) => {
-    e.preventDefault();
+    // e.preventDefault();
     e.stopPropagation();
+    // 触发点击事件，选中图片
     const event = new MouseEvent('click', { bubbles: true, cancelable: true });
     e.target.dispatchEvent(event);
   };
+
+  const handleOpenChange = useCallback((v: boolean) => {
+    anim.current = requestAnimationFrame(() => {
+      // 降低优先级，先等 preventContextMenu click 事件触发，选中图片，再打开下拉菜单
+      // 如果不延迟，会导致选中图片后，下拉菜单打开，然后立即关闭
+      setOpen(v);
+    });
+  }, []);
 
   const handleImageSizeChange = useCallback(
     (size: [number, number]) => {
@@ -62,6 +77,7 @@ function Image(props: RenderElementProps) {
 
   const handleMenuClick = useCallback<NonNullable<NonNullable<DropDownProps['menu']>['onClick']>>(
     ({ key }) => {
+      setOpen(false);
       const floatKeys = ['left', 'right']; // 浮动互斥选项
       const typeKeys = ['inline', 'block']; // 元素类型互斥选项
       // handler
@@ -95,6 +111,13 @@ function Image(props: RenderElementProps) {
     },
     [editor, imageResolver]
   );
+
+  useEffect(() => () => {
+    // unmount
+    if (anim.current) {
+      cancelAnimationFrame(anim.current);
+    }
+  }, []);
 
   const menu = useMemo<DropDownProps['menu']>(
     () => ({
@@ -218,7 +241,7 @@ function Image(props: RenderElementProps) {
       onContextMenu={preventContextMenu}
     >
       {children}
-      <Dropdown trigger={trigger} menu={menu}>
+      <Dropdown trigger={trigger} menu={menu} open={open} onOpenChange={handleOpenChange}>
         {core}
       </Dropdown>
       {imageResolver?.attachRender}

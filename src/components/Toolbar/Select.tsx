@@ -87,7 +87,7 @@ function Selector<DatasetType = any>(props: SelectProps<DatasetType>) {
         virtual={false}
         bordered={false}
         allowClear={false}
-        dropdownMatchSelectWidth={false}
+        popupMatchSelectWidth={false}
         onDropdownVisibleChange={handleDropdownVisibleChange}
         suffixIcon={suffix}
         {...restProps}
