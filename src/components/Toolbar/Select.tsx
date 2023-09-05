@@ -1,11 +1,11 @@
 import React, { memo, useMemo, useState, useCallback } from 'react';
 import { Tooltip, Select } from 'antd';
+import { CaretDownFilled } from '@ant-design/icons';
 import { isPowerArray } from '../../utils';
 import useStyled from './styled';
 
 import type { SelectProps as AntdSelectProps } from 'antd';
 import type { DefaultOptionType } from 'antd/es/select';
-import { CaretDownFilled } from '@ant-design/icons';
 
 const { Option } = Select;
 
@@ -21,7 +21,7 @@ export interface DropdownOption {
 const suffix = <CaretDownFilled style={{ pointerEvents: 'none' }} />;
 
 export interface SelectProps<DatasetType = any>
-  extends Omit<AntdSelectProps, 'onChange' | 'children' | 'ref' | 'optionLabelProp'> {
+  extends Omit<AntdSelectProps, 'onChange' | 'children' | 'ref' | 'optionLabelProp' | 'title'> {
   title?: React.ReactNode;
   width?: number;
   options?: DropdownOption[];
@@ -87,7 +87,7 @@ function Selector<DatasetType = any>(props: SelectProps<DatasetType>) {
         virtual={false}
         bordered={false}
         allowClear={false}
-        dropdownMatchSelectWidth={false}
+        popupMatchSelectWidth={false}
         onDropdownVisibleChange={handleDropdownVisibleChange}
         suffixIcon={suffix}
         {...restProps}

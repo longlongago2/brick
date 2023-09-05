@@ -1,5 +1,4 @@
-import type { DefinedType, TextAlign, NoEffectWrapTypes } from '../types';
-import type { HotKeys } from '../interface';
+import type { DefinedType, TextAlign, NoEffectWrapTypes, HotKeys } from '../types';
 
 /**
  * @description 是否为开发环境

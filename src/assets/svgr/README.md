@@ -10,7 +10,7 @@ then, we can use
 
 ```js
 import Icon from '@ant-design/icons';
-import { SvgrIconName } from 'src/components/SvgrIcons';
+import { SvgrIconName } from 'src/components/Icons';
 
 function Component() {
   return <Icon component={SvgrIconName} />;

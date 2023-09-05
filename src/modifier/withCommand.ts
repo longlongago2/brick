@@ -1,148 +1,9 @@
 import { Editor, Element, Transforms, Range } from 'slate';
 import { ReactEditor } from 'slate-react';
-import { TEXT_ALIGN_TYPES, NO_EFFECT_WRAP_TYPES, LIST_TYPES } from './constant';
-import type { Text, Node, LinkElement, MarkKeys, ElementKeys } from 'slate';
-import type { SearchResult, TextAlign, NoEffectWrapTypes } from '../types';
+import { TEXT_ALIGN_TYPES, NO_EFFECT_WRAP_TYPES, LIST_TYPES } from '../utils/constant';
 
-export interface CommandEditor {
-  /**
-   * @descriptionZH 标记类型是否处于激活状态
-   * @descriptionEN
-   * @memberof CommandEditor
-   */
-  isMarkActive: (name: MarkKeys) => boolean;
-
-  /**
-   * @descriptionZH 获取标记类型的属性值
-   * @descriptionEN
-   * @memberof CommandEditor
-   */
-  getMarkProperty: (name: MarkKeys) => any;
-
-  /**
-   * @descriptionZH 设置标记类型的属性值
-   * @descriptionEN
-   * @memberof CommandEditor
-   */
-  setMarkProperty: (name: MarkKeys, value: any) => void;
-
-  /**
-   * @descriptionZH 应用/取消标记类型
-   * @descriptionEN
-   * @memberof CommandEditor
-   */
-  toggleMark: (name: MarkKeys) => void;
-
-  /**
-   * @descriptionZH 某节点类型是否处于当前焦点
-   * @descriptionEN
-   * @memberof CommandEditor
-   */
-  isElementActive: (type: Element['type']) => boolean;
-
-  /**
-   * @descriptionZH 应用/取消某节点类型
-   * @descriptionEN
-   * @memberof CommandEditor
-   */
-  toggleElement: (type: NoEffectWrapTypes) => void;
-
-  /**
-   * @descriptionZH 设置元素属性值 `refactor:true`重构：先删后增，解决inline转换问题
-   * @descriptionEN
-   * @memberof CommandEditor
-   */
-  setElementProperties: (
-    type: Element['type'],
-    properties: Record<string, any>,
-    options?: { refactor: boolean }
-  ) => void;
-
-  /**
-   * @descriptionZH 移除指定类型元素
-   * @descriptionEN
-   * @memberof CommandEditor
-   */
-  removeElement: (type: Element['type']) => void;
-
-  /**
-   * @descriptionZH 应用/取消该文本对齐方式
-   * @descriptionEN
-   * @memberof CommandEditor
-   */
-  toggleAlign: (align: TextAlign) => void;
-
-  /**
-   * @descriptionZH 开启/关闭当前节点锁定状态
-   * @descriptionEN
-   * @memberof CommandEditor
-   */
-  toggleLock: (type: Element['type']) => void;
-
-  /**
-   * @descriptionZH 获取指定节点的信息
-   * @descriptionEN
-   * @memberof CommandEditor
-   */
-  getElementFieldsValue: (fields?: ElementKeys | ElementKeys[] | true, type?: Element['type']) => any;
-
-  /**
-   * @descriptionZH 设置超链接，如果已存在超链接则更新，否则新增
-   * @descriptionEN set hyperlink
-   * @memberof CommandEditor
-   */
-  setLink: (url: string) => void;
-
-  /**
-   * @descriptionZH 取消超链接
-   * @descriptionEN cancel hyperlink
-   * @memberof CommandEditor
-   */
-  unsetLink: () => void;
-
-  /**
-   * @descriptionZH 获取当前selection的DOMRect对象，其提供了selection的大小及其相对于视口的位置，常用于定位。
-   * @descriptionEN
-   * @memberof CommandEditor
-   */
-  getBoundingClientRect: () => DOMRect | null;
-
-  /**
-   * @descriptionZH 获取编辑区DOM
-   * @descriptionEN
-   * @memberof CommandEditor
-   */
-  getEditableDOM: () => HTMLElement;
-
-  /**
-   * @descriptionZH 获取当前编辑区搜索结果
-   * @descriptionEN
-   * @memberof CommandEditor
-   */
-  getEditableSearchResult: () => SearchResult[];
-
-  /**
-   * @descriptionZH 挂载在实例上的一些额外的属性
-   * @descriptionEN some extra attributes on the instance
-   * @type {Record<string, any>}
-   * @memberof CommandEditor
-   */
-  extraProperty?: Record<string, any>;
-
-  /**
-   * @descriptionZH 添加额外属性
-   * @descriptionEN Add an extra attribute
-   * @memberof CommandEditor
-   */
-  addExtraProperty: (key: string, value: any) => void;
-
-  /**
-   * @descriptionZH 移除实例上指定的额外属性
-   * @descriptionEN Remove extra attributes specified on the instance
-   * @memberof CommandEditor
-   */
-  removeExtraProperty: (key: string) => void;
-}
+import type { Text, Node, LinkElement } from 'slate';
+import type { CommandEditor } from '../types';
 
 /**
  * @descriptionZH 命令方法: 在实例上新增一些常用的命令
@@ -152,7 +13,7 @@ export interface CommandEditor {
  * @param {T} editor
  * @return {*}
  */
-export function withCommand<T extends Editor>(editor: T) {
+function withCommand<T extends Editor>(editor: T) {
   const e = editor as T & CommandEditor;
 
   e.isMarkActive = (name) => {
@@ -359,26 +220,6 @@ export function withCommand<T extends Editor>(editor: T) {
 
   e.getEditableDOM = () => ReactEditor.toDOMNode(editor, editor);
 
-  e.getEditableSearchResult = () => {
-    const textbox = editor.getEditableDOM();
-    const res = textbox.querySelectorAll('mark[data-slate-decorate-search-key]');
-    const nodes = Array.from(res).map((ele) => {
-      const node = ReactEditor.toSlateNode(editor, ele);
-      const path = ReactEditor.findPath(editor, node);
-      const key = ele.getAttribute('data-slate-decorate-search-key') ?? '';
-      const search = ele.textContent ?? '';
-      const offset = Number(ele.getAttribute('data-slate-decorate-search-offset') ?? 0);
-      return {
-        key,
-        offset, // 当前搜索结果偏移量
-        search, // 搜索关键字
-        node, // 搜索结果所处的Node
-        path, // 搜索结果所处的Node path
-      };
-    });
-    return nodes;
-  };
-
   e.addExtraProperty = (key, value) => {
     if (editor.extraProperty) {
       editor.extraProperty[key] = value;
@@ -395,3 +236,5 @@ export function withCommand<T extends Editor>(editor: T) {
 
   return e;
 }
+
+export default withCommand;

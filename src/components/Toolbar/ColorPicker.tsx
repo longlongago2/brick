@@ -6,8 +6,6 @@ import useStyled from './styled';
 
 import type { SketchPickerProps, ColorChangeHandler, Color, RGBColor, HSLColor } from 'react-color';
 
-const align = { offset: [0, 4] };
-
 const p0 = { padding: 0 };
 
 const pickerStyles: SketchPickerProps['styles'] = {
@@ -102,12 +100,13 @@ export interface ColorPickerProps {
   defaultValue?: Color;
   icon?: React.ReactNode;
   title?: React.ReactNode;
+  size?: 'small' | 'middle' | 'large';
   onChange?: (value: Color) => void;
   onClick?: (value: Color) => void;
 }
 
 function ColorPicker(props: ColorPickerProps) {
-  const { value, defaultValue, icon, title, onChange, onClick } = props;
+  const { value, defaultValue, icon, title, size, onChange, onClick } = props;
 
   // memorize
   const [color, setColor] = useState<Color | undefined>(defaultValue || value);
@@ -180,7 +179,7 @@ function ColorPicker(props: ColorPickerProps) {
   );
 
   return (
-    <Button.Group size="small">
+    <Button.Group size={size}>
       <Tooltip title={title} showArrow={false}>
         <Button type="text" className={dropdownButton} onClick={handleClick}>
           <div className={colorPicker}>
@@ -195,7 +194,6 @@ function ColorPicker(props: ColorPickerProps) {
         open={dropdownVisible}
         onOpenChange={handleDropdownOpenChange}
         showArrow={false}
-        align={align}
         overlayInnerStyle={p0}
       >
         <Tooltip

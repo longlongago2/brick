@@ -1,18 +1,19 @@
 # bricky
 
-> A rich editor based on slate.js.
+> 一款基于 slate.js 的富文本编辑器
 
 `react`&nbsp;&nbsp;&nbsp;&nbsp;`slate.js`&nbsp;&nbsp;&nbsp;&nbsp;`typescript`&nbsp;&nbsp;&nbsp;&nbsp;`antd`&nbsp;&nbsp;&nbsp;&nbsp;`rich-editor`&nbsp;&nbsp;&nbsp;&nbsp;
 
-## Usage
+## 使用
 
-### 1.Install
+### 1、安装
 
 ```bash
 npm install bricky
 ```
 
-### 2.Javascript / Typescript
+### 2、Javascript / Typescript
+
 
 #### app.tsx
 
@@ -40,11 +41,11 @@ or
 /// <reference types="bricky/esm/slate.d.ts" />
 ```
 
-## Debugging / Local install
+## 本地安装调试
 
 ```bash
-cd ~/bricky       # go into this package directory
-npm link          # creates global link
-cd ~/my-project   # go into some other package directory.
-npm link bricky   # link-install the package, --save: change the package.json
+cd ~/bricky       # 进入本项目根目录
+npm link          # 将本项目包创建全局链接，类似安装到全局
+cd ~/my-project   # 进入其他项目目录
+npm link bricky   # 链接 bricky 包, --save: 保存到 package.json
 ```

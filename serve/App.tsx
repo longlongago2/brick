@@ -1,8 +1,8 @@
-import React, { useCallback } from 'react';
-import { Editor } from 'bricky';
+import { useCallback } from 'react';
+import { Editor } from '../src'; // '../src' is 'bricky'
 
 import type { Descendant } from 'slate';
-import type { EditorProps } from 'bricky/components/Editor';
+import type { EditorProps } from '../src/components/Editor';
 
 const initialValue: Descendant[] = [
   {
@@ -116,7 +116,7 @@ function App() {
   return (
     <div>
       <Editor
-        value={initialValue}
+        initialValue={initialValue}
         renderElement={renderElement}
         readOnly={false}
         // fileUpload={handleFileUpload}

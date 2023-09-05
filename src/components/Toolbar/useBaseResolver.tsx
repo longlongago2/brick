@@ -22,28 +22,24 @@ import Icon, {
 } from '@ant-design/icons';
 import { theme, Form, Input, Radio, message, InputNumber, Button, Space, Row, Col } from 'antd';
 import debounce from 'lodash/debounce';
-import { useFormDialog, useBrickySearch } from '../../hooks';
+import { useSlateSearch, useFormDialog } from '../../hooks';
 import { isPowerArray } from '../../utils';
 import { LIST_TYPES } from '../../utils/constant';
 import ColorPicker, { colorParse, colorStringify } from './ColorPicker';
 import FormDialog from './FormDialog';
 import FileUpload from '../FileUpload';
-import {
-  SvgrCode,
-  SvgrImage,
-  SvgrQuote,
-  SvgrSubscript,
-  SvgrSuperscript,
-  SvgrUndo,
-  SvgrRedo,
-} from '../SvgrIcons';
+import { SvgrCode, SvgrImage, SvgrQuote, SvgrSubscript, SvgrSuperscript, SvgrUndo, SvgrRedo } from '../Icons';
 import useStyled from './styled';
 
 import type { ImageElement } from 'slate';
 import type { Color } from 'react-color';
 import type { ToolbarResolver } from '.';
 import type { FormDialogProps } from './FormDialog';
-import type { SearchResult } from '../../types';
+import type { SearchNode } from '../../types';
+
+// TODO: 优化代码结构
+// 1. 拆分代码，将render相关的代码拆分到单独的文件中
+// 2. 修复FormDialog的位置问题：resize 和 初始化 不会更新位置和检测边界
 
 const { useToken } = theme;
 
@@ -92,7 +88,9 @@ export default function useBaseResolver() {
 
   const { searchIndicator, linkButton, searchTypeButton, between, mp0, bold } = useStyled();
 
-  const { searchResult, setSearch, setActiveSearchKey, reset: resetSearch } = useBrickySearch();
+  const slateSearch = useSlateSearch();
+
+  const { results: searchResult } = slateSearch.getState();
 
   const [imgSource, setImgSource] = useState(defaultImgSource);
 
@@ -243,48 +241,46 @@ export default function useBaseResolver() {
   const handleSearchResultPrev = useCallback(() => {
     if (!isPowerArray(searchResult)) return;
     let next;
-    let activeKey = '';
     if (activeSearchIndex === null) {
       next = 0;
     } else {
       next = activeSearchIndex - 1 >= 0 ? activeSearchIndex - 1 : searchResult.length - 1;
     }
-    activeKey = searchResult[next]?.key || '';
     setActiveSearchIndex(next);
-    setActiveSearchKey(activeKey);
-  }, [activeSearchIndex, searchResult, setActiveSearchKey]);
+    const activeKey = searchResult[next]?.key || '';
+    slateSearch.setActiveKey(activeKey);
+  }, [activeSearchIndex, searchResult, slateSearch]);
 
   // 下一个
   const handleSearchResultNext = useCallback(() => {
     if (!isPowerArray(searchResult)) return;
     let next;
-    let activeKey = '';
     if (activeSearchIndex === null) {
       next = 0;
     } else {
       next = activeSearchIndex + 1 > searchResult.length - 1 ? 0 : activeSearchIndex + 1;
     }
-    activeKey = searchResult[next]?.key || '';
     setActiveSearchIndex(next);
-    setActiveSearchKey(activeKey);
-  }, [activeSearchIndex, searchResult, setActiveSearchKey]);
+    const activeKey = searchResult[next]?.key || '';
+    slateSearch.setActiveKey(activeKey);
+  }, [activeSearchIndex, searchResult, slateSearch]);
 
   // 替换
   const handleSearchOrReplaceFinish = useCallback<NonNullable<FormDialogProps['onFinish']>>(
     (values) => {
       if (!isPowerArray(searchResult)) return;
-      const replaceText = (item: SearchResult) => {
-        const { path, offset, search } = item;
+      const replaceText = (item: SearchNode) => {
+        const { search, range } = item;
+        const { anchor, focus } = range;
         const rangeDelete = {
-          anchor: { path, offset },
-          focus: { path, offset: offset + search.length },
+          anchor,
+          focus: {
+            ...focus,
+            offset: focus.offset + search.length,
+          },
         };
         Transforms.delete(editor, { at: rangeDelete });
-        const rangeInsert = {
-          anchor: { path, offset },
-          focus: { path, offset },
-        };
-        Transforms.insertText(editor, values.replace, { at: rangeInsert });
+        Transforms.insertText(editor, values.replace, { at: range });
       };
       // 当前替换
       if (replaceType.current === 'curr') {
@@ -300,24 +296,24 @@ export default function useBaseResolver() {
       }
       // 重置选中
       setActiveSearchIndex(null);
+      // 重新收集搜索结果
+      slateSearch.forceCollectSearchResult();
     },
-    [activeSearchIndex, editor, searchResult]
+    [activeSearchIndex, editor, searchResult, slateSearch]
   );
 
   const handleSearchValuesChange = useCallback<NonNullable<FormDialogProps['onValuesChange']>>(
     (changedValues) => {
       if (changedValues.search !== undefined) {
-        // 1.更新search value
-        setSearch(changedValues.search);
-        // 2.清除数据
-        setActiveSearchKey('');
+        slateSearch.setActiveKey('');
+        slateSearch.setKeyword(changedValues.search);
         setActiveSearchIndex(null);
       }
     },
-    [setActiveSearchKey, setSearch]
+    [slateSearch]
   );
 
-  const handleSearchValuesDebounce = useMemo(
+  const handleSearchOrReplaceValuesChange = useMemo(
     () => debounce(handleSearchValuesChange, 250),
     [handleSearchValuesChange]
   );
@@ -325,10 +321,10 @@ export default function useBaseResolver() {
   const handleSearchDialogCancel = useCallback(() => {
     closeSearchDialog();
     // reset initial state
-    setActiveSearchIndex(null);
     setSearchType('search');
-    resetSearch();
-  }, [closeSearchDialog, resetSearch]);
+    setActiveSearchIndex(null);
+    slateSearch.reset();
+  }, [closeSearchDialog, slateSearch]);
 
   const handleReplaceCurr = useCallback(() => {
     replaceType.current = 'curr';
@@ -363,7 +359,7 @@ export default function useBaseResolver() {
         defaultValue={defaultColor}
         value={editor.getMarkProperty('color')}
         icon={colorIcon}
-        title="应用字体颜色"
+        title="字体颜色"
         onChange={handleColorChange}
         onClick={handleColorChange}
       />
@@ -392,7 +388,7 @@ export default function useBaseResolver() {
         defaultValue={defaultHighlightColor}
         value={resolveHighlight(editor)}
         icon={<HighlightOutlined />}
-        title="应用背景颜色"
+        title="背景颜色"
         onChange={handleHlColorChange}
         onClick={handleHlColorChange}
       />
@@ -720,7 +716,7 @@ export default function useBaseResolver() {
       {
         key: 'highlight',
         type: 'custom',
-        title: '背景高亮',
+        title: '背景',
         element: getHighlightElement,
       },
       {
@@ -739,7 +735,7 @@ export default function useBaseResolver() {
             defaultPosition={searchDialogPos}
             mask={false}
             onCancel={handleSearchDialogCancel}
-            onValuesChange={handleSearchValuesDebounce}
+            onValuesChange={handleSearchOrReplaceValuesChange}
             onFinish={handleSearchOrReplaceFinish}
           >
             <Row>
@@ -755,7 +751,6 @@ export default function useBaseResolver() {
                 <Form.Item name="search" rules={noMsgRequired}>
                   <Input placeholder="查找" autoFocus autoComplete="off" />
                 </Form.Item>
-                {/* 不能使用Input suffix 会导致编辑中Input更新渲染失焦 */}
                 {searchResult.length > 0 && (
                   <span className={searchIndicator}>
                     {`${activeSearchIndex !== null ? activeSearchIndex + 1 : '?'}/${searchResult.length}`}
@@ -796,6 +791,9 @@ export default function useBaseResolver() {
           if (pos) setSearchDialogPos({ x: pos.x + pos.width - 370 - pr, y: pos.y + pt });
           setSearchDialogVisible(true);
         },
+        // onShortcut(editor) {
+        //   // 提供快捷键操作，以供外部调用
+        // },
       },
       {
         key: 'link',
@@ -986,58 +984,58 @@ export default function useBaseResolver() {
       },
     ],
     [
-      _closeImageDialog,
-      activeSearchIndex,
-      between,
-      bold,
-      closeFormulaDialog,
-      closeLinkDialog,
-      formFormula,
-      formImage,
-      formLink,
-      formSearch,
-      formulaDialogPos,
-      formulaDialogVisible,
       getFontColorElement,
       getHighlightElement,
-      handleImageDialogValuesChange,
-      handleImageFinish,
-      handleLinkFinish,
-      handleReplaceAll,
-      handleReplaceCurr,
+      formSearch,
+      searchDialogVisible,
+      searchDialogPos,
       handleSearchDialogCancel,
+      handleSearchOrReplaceValuesChange,
       handleSearchOrReplaceFinish,
-      handleSearchResultNext,
-      handleSearchResultPrev,
+      searchTypeIcon,
+      searchTypeButton,
       handleSearchTypeChange,
-      handleSearchValuesDebounce,
-      handleTexHelpDocument,
+      searchResult.length,
+      searchIndicator,
+      activeSearchIndex,
+      searchType,
+      handleSearchResultPrev,
+      handleSearchResultNext,
+      handleReplaceCurr,
+      handleReplaceAll,
+      formLink,
+      linkDialogVisible,
+      linkDialogPos,
+      closeLinkDialog,
+      submitLink,
+      handleLinkFinish,
+      formImage,
+      imgDialogLoading,
       imageDialogPos,
       imageDialogVisible,
-      imgDialogLoading,
+      _closeImageDialog,
+      submitImage,
+      handleImageFinish,
+      handleImageDialogValuesChange,
       imgSource,
+      formFormula,
+      formulaDialogVisible,
+      formulaDialogPos,
+      closeFormulaDialog,
+      between,
       linkButton,
-      linkDialogPos,
-      linkDialogVisible,
+      handleTexHelpDocument,
       mp0,
-      searchDialogPos,
-      searchDialogVisible,
-      searchIndicator,
-      searchResult.length,
-      searchType,
-      searchTypeButton,
-      searchTypeIcon,
-      setFormulaDialogPos,
-      setFormulaDialogVisible,
-      setImageDialogMode,
-      setImageDialogPos,
-      setImageDialogVisible,
-      setLinkDialogPos,
-      setLinkDialogVisible,
+      bold,
       setSearchDialogPos,
       setSearchDialogVisible,
-      submitImage,
-      submitLink,
+      setLinkDialogPos,
+      setLinkDialogVisible,
+      setImageDialogPos,
+      setImageDialogVisible,
+      setImageDialogMode,
+      setFormulaDialogPos,
+      setFormulaDialogVisible,
     ]
   );
 

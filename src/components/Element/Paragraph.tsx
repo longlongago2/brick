@@ -3,12 +3,13 @@ import { Dropdown } from 'antd';
 import { Editor, Transforms } from 'slate';
 import { ReactEditor, useSlate, useReadOnly, useSelected, useFocused } from 'slate-react';
 import { EnterOutlined, LockOutlined, UnlockOutlined } from '@ant-design/icons';
+import classNames from 'classnames';
 import useStyled from './styled';
 
 import type { RenderElementProps } from 'slate-react';
 import type { ParagraphElement } from 'slate';
 import type { DropDownProps } from 'antd';
-import classNames from 'classnames';
+import type { ExcludeNullableFunc } from '../../types';
 
 const trigger: DropDownProps['trigger'] = ['contextMenu'];
 
@@ -94,7 +95,7 @@ function Paragraph(props: RenderElementProps) {
           label: '新增下段落',
           icon: <EnterOutlined />,
         },
-      ].filter(Boolean as any as ExcludesFalse),
+      ].filter(Boolean as any as ExcludeNullableFunc),
       onClick: handleMenuClick,
     }),
     [element.lock, handleMenuClick]

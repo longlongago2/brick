@@ -1,8 +1,7 @@
-import { Descendant, BaseEditor } from 'slate';
-import { ReactEditor } from 'slate-react';
-import { HistoryEditor } from 'slate-history';
-import { CommandEditor } from './utils/withCommand';
-import { TextAlign } from './utils/constant';
+import type { Descendant, BaseEditor } from 'slate';
+import type { ReactEditor } from 'slate-react';
+import type { HistoryEditor } from 'slate-history';
+import type { CommandEditor, TextAlign } from './types';
 
 declare module 'slate' {
   export type BlockQuoteElement = {
@@ -136,9 +135,8 @@ declare module 'slate' {
   export type AdvancedHighlight = {
     color: string;
     search?: {
-      activeColor: string;
       key: string;
-      offset: number;
+      activeColor?: string;
     };
   };
 
@@ -160,11 +158,11 @@ declare module 'slate' {
     text: string;
   };
 
-  type CustomEditor = BaseEditor & ReactEditor & HistoryEditor & CommandEditor;
+  export type CustomEditor = BaseEditor & ReactEditor & HistoryEditor & CommandEditor;
 
-  type CustomText = MarkText | EmptyText;
+  export type CustomText = MarkText | EmptyText;
 
-  type CustomElement =
+  export type CustomElement =
     | BlockQuoteElement
     | BulletedListElement
     | NumberedListElement
@@ -192,8 +190,4 @@ declare module 'slate' {
     Text: CustomText;
     Element: CustomElement;
   }
-
-  export type ElementKeys = KeysOfUnion<CustomTypes['Element']>;
-
-  export type MarkKeys = keyof Omit<MarkText, 'text'>;
 }

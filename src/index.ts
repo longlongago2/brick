@@ -1,12 +1,11 @@
-// hooks
+export * from './types';
+
 export * from './hooks';
 
-// utils
 export * from './utils';
 
-export * from './utils/transformDOMToJSON';
+export * from './utils/parser';
 
-// components
 export { default as InlineChromiumBugfix } from './components/InlineChromiumBugfix';
 
 export { default as BrickyProvider } from './components/BrickyProvider';

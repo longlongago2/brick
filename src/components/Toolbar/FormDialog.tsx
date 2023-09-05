@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { Form, FormProps, Modal } from 'antd';
 import { useSlate } from 'slate-react';
 import Draggable from 'react-draggable';

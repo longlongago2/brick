@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
-import glob from 'glob';
 import fs from 'fs';
 import path from 'path';
 import ora from 'ora';
 import chalk from 'chalk';
+import { glob } from 'glob';
 import { transform } from '@svgr/core';
 import { resolveApp } from './utils.js';
 
@@ -11,9 +11,9 @@ import { resolveApp } from './utils.js';
 const entry = 'src/assets/svgr/**/*.svg';
 
 // Output
-const output = 'src/components/SvgrIcons/index.tsx';
+const output = 'src/components/Icons/index.tsx';
 
-// Compiler
+// Compiler React > 17
 const spinner = ora();
 
 const camelcase = (str) => {
@@ -24,16 +24,16 @@ const camelcase = (str) => {
 try {
   spinner.start(chalk.green('Svgr: ') + chalk.bgGreen(chalk.white.bold('Compiling...')));
 
-  let components = ['import React, { memo, SVGProps } from \'react\';'];
+  let components = ['import { memo, SVGProps } from \'react\';'];
 
   const files = glob.sync(entry, { debug: false, absolute: true });
 
   files.map((file) => {
     const basename = path.basename(file, '.svg');
-    const componentName = camelcase('Svgr' + '-' + basename);
-    const data = fs.readFileSync(file, { encoding: 'utf-8' });
+    const iconName = camelcase('Svgr' + '-' + basename);
+    const svgCode = fs.readFileSync(file, { encoding: 'utf-8' });
     const jsCode = transform.sync(
-      data,
+      svgCode,
       {
         plugins: ['@svgr/plugin-svgo', '@svgr/plugin-jsx', '@svgr/plugin-prettier'],
         icon: true,
@@ -50,7 +50,7 @@ try {
         `;
         },
       },
-      { componentName }
+      { componentName: iconName }
     );
     components.push(jsCode);
   });
@@ -63,7 +63,7 @@ try {
       chalk.green('Svgr: ') +
         chalk.bgGreen(chalk.white.bold('Compile completed!')) +
         ' => ' +
-        resolveApp('src/components/SvgrIcons/index.tsx') +
+        resolveApp('src/components/Icons/index.tsx') +
         '\n'
     )
     .stop();

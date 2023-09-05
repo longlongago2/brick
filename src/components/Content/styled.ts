@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { theme } from 'antd';
 import { css } from '@emotion/css';
 
@@ -7,17 +6,19 @@ const { useToken } = theme;
 export default function useStyled() {
   const { token } = useToken();
 
-  const classnames = useMemo(() => ({
+  return {
     wrapper: css`
       display: inline-block;
       width: 100%;
       margin: 0;
       padding: 0;
+      text-align: left;
     `,
     content: css`
       padding: 10px;
       margin: 0;
       color: ${token.colorText};
+      outline: none;
       p {
         line-height: 1.74;
         border-radius: ${token.borderRadiusXS}px;
@@ -49,7 +50,5 @@ export default function useStyled() {
         text-decoration-color: ${token.colorError};
       }
     `,
-  }), [token]);
-
-  return classnames;
+  };
 }
